@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OHCP_BK", "Online_Health_Consultation_Portal\OHCP_BK.csproj", "{C2C7CED4-C343-4682-B30E-A1F73E92EC0D}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "OHCP_FE", "OHCP_FE\OHCP_FE.esproj", "{2862596B-5D89-AF32-8B72-BFB93779B465}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C2C7CED4-C343-4682-B30E-A1F73E92EC0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2C7CED4-C343-4682-B30E-A1F73E92EC0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2C7CED4-C343-4682-B30E-A1F73E92EC0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2C7CED4-C343-4682-B30E-A1F73E92EC0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2862596B-5D89-AF32-8B72-BFB93779B465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2862596B-5D89-AF32-8B72-BFB93779B465}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2862596B-5D89-AF32-8B72-BFB93779B465}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{2862596B-5D89-AF32-8B72-BFB93779B465}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2862596B-5D89-AF32-8B72-BFB93779B465}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2862596B-5D89-AF32-8B72-BFB93779B465}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FEBE2765-6176-45AF-9A17-D5A3C2F78098}
+	EndGlobalSection
+EndGlobal

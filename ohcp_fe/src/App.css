@@ -1,0 +1,40 @@
+.App {
+  font-family: Arial, sans-serif;
+}
+
+.navbar {
+  margin-bottom: 20px;
+}
+
+.section {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-control {
+  width: 100%;
+  max-width: 300px;
+  margin-top: 5px;
+}
+
+.btn {
+  margin-right: 10px;
+}
+
+.doctor-profile {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.nav-link.active {
+  font-weight: bold;
+  color: #007bff !important;
+}

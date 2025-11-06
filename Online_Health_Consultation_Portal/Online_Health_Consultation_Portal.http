@@ -1,0 +1,6 @@
+@Online_Health_Consultation_Portal_HostAddress = http://localhost:5223
+
+GET {{Online_Health_Consultation_Portal_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
