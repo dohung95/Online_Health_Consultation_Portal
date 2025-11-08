@@ -3,11 +3,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebuggerFlavor>LaunchJsonDebugger</DebuggerFlavor>
     <LaunchJsonTarget>{
-  "name": "localhost (Chrome)",
-  "type": "chrome",
+  "name": "localhost (Edge)",
+  "type": "edge",
   "request": "launch",
   "url": "http://localhost:63527",
-  "webRoot": "D:\\Aptech\\Sem_3\\eProject\\Code\\Online_Health_Consultation_Portal\\OHCP_FE"
+  "webRoot": "C:\\mydata\\project\\Online_Health_Consultation_Portal\\OHCP_FE"
 }</LaunchJsonTarget>
   </PropertyGroup>
 </Project>

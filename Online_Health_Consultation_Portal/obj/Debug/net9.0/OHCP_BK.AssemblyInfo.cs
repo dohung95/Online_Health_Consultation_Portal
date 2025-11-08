@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OHCP_BK")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d44b20990513c3b1c04ff79d3b91d6cdea10f930")]
 [assembly: System.Reflection.AssemblyProductAttribute("OHCP_BK")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OHCP_BK")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
