@@ -1,1 +1,2 @@
 D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\OHCP_FE\obj\Debug\OHCP_FE.esproj.CoreCompileInputs.cache
+C:\mydata\project\Online_Health_Consultation_Portal\OHCP_FE\obj\Debug\OHCP_FE.esproj.CoreCompileInputs.cache

@@ -4,6 +4,8 @@ using OHCP_BK.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+DotNetEnv.Env.Load();
+
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenLocalhost(7267, listenOptions =>
@@ -32,7 +34,7 @@ if (File.Exists(envFile))
 var dbServer = Environment.GetEnvironmentVariable("DB_SERVER") ?? ".";
 var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "OHCP_DB";
 var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
-var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "123456";
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "1234";
 var connectionString = $"Server={dbServer};Database={dbName};User Id={dbUser};Password={dbPassword};TrustServerCertificate=True;MultipleActiveResultSets=true";
 builder.Services.AddDbContext<OHCPContext>(options =>
     options.UseSqlServer(connectionString)

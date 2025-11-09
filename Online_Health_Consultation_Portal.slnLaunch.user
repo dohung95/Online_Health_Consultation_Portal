@@ -10,7 +10,7 @@
       {
         "Path": "OHCP_FE\\OHCP_FE.esproj",
         "Action": "Start",
-        "DebugTarget": "localhost (Chrome)"
+        "DebugTarget": "localhost (Edge)"
       }
     ]
   }
