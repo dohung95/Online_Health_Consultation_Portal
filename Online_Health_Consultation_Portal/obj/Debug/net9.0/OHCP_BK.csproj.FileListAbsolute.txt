@@ -167,3 +167,6 @@ D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Co
 D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\bin\Debug\net9.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\bin\Debug\net9.0\Microsoft.Extensions.Identity.Core.dll
 D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\bin\Debug\net9.0\Microsoft.Extensions.Identity.Stores.dll
+D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\bin\Debug\net9.0\DotNetEnv.dll
+D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\bin\Debug\net9.0\Sprache.dll
+D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\obj\Debug\net9.0\OHCP_BK.sourcelink.json
