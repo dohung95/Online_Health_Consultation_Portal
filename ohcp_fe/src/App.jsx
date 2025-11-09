@@ -11,9 +11,18 @@ import Payment from './components/Payment';
 import Reminders from './components/Reminders';
 import Admin from './components/Admin';
 import Dashboard from './components/Dashboard'; // Thêm Dashboard
+import Sign_in from './components/Auth/Sign_in';
+import Sign_up from './components/Auth/Sign_up';
 import './App.css';
+import { useAuth } from './context/AuthContext';
 
 function App() {
+
+    const { isAuthenticated, roles, logout } = useAuth();
+    const isAdmin = roles.includes('admin');
+    const isDocter = roles.includes('docter');
+    const isUser = roles.includes('patient');
+
   return (
     <Router>
       <div className="App">
@@ -58,6 +67,45 @@ function App() {
                 <li className="nav-item">
                   <NavLink className="nav-link" to="/dashboard">Dashboard</NavLink> {/* Thêm route Dashboard */}
                 </li>
+
+                              {isAuthenticated ? (
+                    <>
+                                      <li className="nav-item">
+                                          {isUser && (
+                                            <p>User</p>
+                                          )}
+                        
+                        {isAdmin && (
+                        <p>Admin</p>
+                        )}
+                        {isDocter && (
+                        <p>Docter</p>
+                        )}
+                        
+                                      </li>
+                                      <li>
+                                          <button className="nav-link" onClick={logout}>Logout</button>
+                                      </li>
+                    </>
+                    
+                              ) : (
+                    <>
+                    <li>
+                        <NavLink className="nav-link" to="/login">Login</NavLink>
+                    </li>
+                    <li>
+                        <NavLink className="nav-link" to="/register">Register</NavLink>
+                                          </li>
+                    </>
+                )}
+
+
+                {/*<li className="nav-item">*/}
+                {/*  <NavLink className="nav-link" to="/login">Login</NavLink>*/}
+                {/*</li>*/}
+                {/*<li className="nav-item">*/}
+                {/*  <NavLink className="nav-link" to="/register">Register</NavLink>*/}
+                {/*</li>*/}
               </ul>
             </div>
           </div>
@@ -74,7 +122,9 @@ function App() {
             <Route path="/payment" element={<Payment />} />
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/dashboard" element={<Dashboard />} /> {/* Thêm route Dashboard */}
+                      <Route path="/dashboard" element={<Dashboard />} /> {/* Thêm route Dashboard */}
+                      <Route path="/login" element={<Sign_in />} /> {/* Thay thế bằng component Login khi có */}
+                      <Route path="/register" element={<Sign_up />} /> {/* Thay thế bằng component Register khi có */}
           </Routes>
         </div>
       </div>
