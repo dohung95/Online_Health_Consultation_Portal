@@ -339,3 +339,6 @@ C:\mydata\project\Online_Health_Consultation_Portal\Online_Health_Consultation_P
 C:\mydata\project\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\obj\Debug\net9.0\ref\OHCP_BK.dll
 C:\mydata\project\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\bin\Debug\net9.0\DotNetEnv.dll
 C:\mydata\project\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\bin\Debug\net9.0\Sprache.dll
+D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\bin\Debug\net9.0\DotNetEnv.dll
+D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\bin\Debug\net9.0\Sprache.dll
+D:\Aptech\Sem_3\eProject\Code\Online_Health_Consultation_Portal\Online_Health_Consultation_Portal\obj\Debug\net9.0\OHCP_BK.sourcelink.json
