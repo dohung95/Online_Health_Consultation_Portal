@@ -162,5 +162,15 @@
     "C:\\Users\\THINKPAD\\.nuget\\packages\\system.xml.readerwriter\\4.3.0\\system.xml.readerwriter.4.3.0.nupkg.sha512",
     "C:\\Users\\THINKPAD\\.nuget\\packages\\system.xml.xdocument\\4.3.0\\system.xml.xdocument.4.3.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "message": "Problem reading the cache file C:\\mydata\\project\\Online_Health_Consultation_Portal\\Online_Health_Consultation_Portal\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0.",
+      "projectPath": "C:\\mydata\\project\\Online_Health_Consultation_Portal\\Online_Health_Consultation_Portal\\OHCP_BK.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\mydata\\project\\Online_Health_Consultation_Portal\\Online_Health_Consultation_Portal\\OHCP_BK.csproj",
+      "targetGraphs": []
+    }
+  ]
 }
