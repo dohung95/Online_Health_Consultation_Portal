@@ -1,11 +1,11 @@
 # === .NET Core ===
 # Lờ các thư mục build, cache, và user-settings
 /.vs/
-obj/
-/Online_Health_Consultation_Portal/bin/
-/.env/
-appsettings.json
-appsettings.*.json
+Online_Health_Consultation_Portal/obj/
+Online_Health_Consultation_Portal/bin/
+Online_Health_Consultation_Portal/.env
+Online_Health_Consultation_Portal/appsettings.json
+Online_Health_Consultation_Portal/appsettings.*.json
 
 
 # Lờ các file cài đặt/debug cá nhân
