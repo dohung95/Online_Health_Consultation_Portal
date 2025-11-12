@@ -6,7 +6,7 @@ Online_Health_Consultation_Portal/bin/
 Online_Health_Consultation_Portal/.env
 Online_Health_Consultation_Portal/appsettings.json
 Online_Health_Consultation_Portal/appsettings.*.json
-node_modules/
+/node_modules/
 
 # Lờ các file cài đặt/debug cá nhân
 *.suo
@@ -17,6 +17,7 @@ node_modules/
 # === Node.js (Cho React) ===
 # Lờ thư mục thư viện
 ohcp_fe/node_modules/
+ohcp_fe/OHCP_FE.esproj.user
 
 # Lờ các file build output
 /dist/
