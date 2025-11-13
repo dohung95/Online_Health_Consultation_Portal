@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 function Navbar() {
     const { isAuthenticated, roles, logout } = useAuth();
     const isAdmin = roles.includes('admin');
-    const isDocter = roles.includes('docter');
+    const isDoctor = roles.includes('doctor');
     const isUser = roles.includes('patient');
 
     return (
@@ -86,7 +86,7 @@ function Navbar() {
                                 <li className="nav-item">
                                     {isUser && <p>User</p>}
                                     {isAdmin && <p>Admin</p>}
-                                    {isDocter && <p>Docter</p>}
+                                    {isDoctor && <p>Doctor</p>}
                                 </li>
                                 <li>
                                     <button className="nav-link" onClick={logout}>
