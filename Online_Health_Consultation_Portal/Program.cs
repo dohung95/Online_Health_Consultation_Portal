@@ -164,7 +164,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var userManager = services.GetRequiredService<UserManager<AppUser_dat>>();
-    await SeedData_dat.CreateRoles(services, userManager);
+    await SeedData.CreateRoles(services, userManager);
 }
 
 app.Run();
