@@ -76,14 +76,14 @@ namespace OHCP_BK.Data
 
             builder.Entity<Doctor>()
                 .HasOne(d => d.User)
-                .WithMany()
-                .HasForeignKey(d => d.UserId)
+                .WithOne(u => u.Doctor)
+                .HasForeignKey<Doctor>(d => d.DoctorID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.Entity<Patient>()
                 .HasOne(p => p.User)
-                .WithMany()
-                .HasForeignKey(p => p.UserId)
+                .WithOne(u => u.Patient)
+                .HasForeignKey<Patient>(p => p.PatientID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure RefreshToken relationships

@@ -12,8 +12,8 @@ using OHCP_BK.Data;
 namespace OHCP_BK.Migrations
 {
     [DbContext(typeof(OHCPContext))]
-    [Migration("20251113124957_s1")]
-    partial class s1
+    [Migration("20251115113942_v1")]
+    partial class v1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -173,9 +173,6 @@ namespace OHCP_BK.Migrations
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("DoctorID")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -200,9 +197,6 @@ namespace OHCP_BK.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PatientID")
-                        .HasColumnType("int");
-
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -221,8 +215,6 @@ namespace OHCP_BK.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DoctorID");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -230,8 +222,6 @@ namespace OHCP_BK.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("PatientID");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -251,11 +241,13 @@ namespace OHCP_BK.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("DoctorID")
-                        .HasColumnType("int");
+                    b.Property<string>("DoctorID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("PatientID")
-                        .HasColumnType("int");
+                    b.Property<string>("PatientID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -282,7 +274,6 @@ namespace OHCP_BK.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("DoctorNotes")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("EndTime")
@@ -301,11 +292,8 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("OHCP_BK.Models.Doctor", b =>
                 {
-                    b.Property<int>("DoctorID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DoctorID"));
+                    b.Property<string>("DoctorID")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -327,16 +315,10 @@ namespace OHCP_BK.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int?>("YearsOfExperience")
                         .HasColumnType("int");
 
                     b.HasKey("DoctorID");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Doctors");
                 });
@@ -352,8 +334,9 @@ namespace OHCP_BK.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PatientID")
-                        .HasColumnType("int");
+                    b.Property<string>("PatientID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("HealthRecordID");
 
@@ -380,8 +363,9 @@ namespace OHCP_BK.Migrations
                     b.Property<DateTime>("IssueDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PatientID")
-                        .HasColumnType("int");
+                    b.Property<string>("PatientID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -493,11 +477,8 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("OHCP_BK.Models.Patient", b =>
                 {
-                    b.Property<int>("PatientID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PatientID"));
+                    b.Property<string>("PatientID")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
@@ -507,24 +488,15 @@ namespace OHCP_BK.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("InsurancePolicyNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("InsuranceProvider")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MedicalHistorySummary")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("PatientID");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Patients");
                 });
@@ -555,8 +527,9 @@ namespace OHCP_BK.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PatientID")
-                        .HasColumnType("int");
+                    b.Property<string>("PatientID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("PrescriptionID");
 
@@ -611,11 +584,13 @@ namespace OHCP_BK.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("DoctorID")
-                        .HasColumnType("int");
+                    b.Property<string>("DoctorID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("PatientID")
-                        .HasColumnType("int");
+                    b.Property<string>("PatientID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
@@ -683,25 +658,6 @@ namespace OHCP_BK.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.AppUser_dat", b =>
-                {
-                    b.HasOne("OHCP_BK.Models.Doctor", "Doctor")
-                        .WithMany()
-                        .HasForeignKey("DoctorID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OHCP_BK.Models.Patient", "Patient")
-                        .WithMany()
-                        .HasForeignKey("PatientID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Doctor");
-
-                    b.Navigation("Patient");
-                });
-
             modelBuilder.Entity("OHCP_BK.Models.Appointment", b =>
                 {
                     b.HasOne("OHCP_BK.Models.Doctor", "Doctor")
@@ -735,8 +691,8 @@ namespace OHCP_BK.Migrations
             modelBuilder.Entity("OHCP_BK.Models.Doctor", b =>
                 {
                     b.HasOne("OHCP_BK.Models.AppUser_dat", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .WithOne("Doctor")
+                        .HasForeignKey("OHCP_BK.Models.Doctor", "DoctorID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -817,8 +773,8 @@ namespace OHCP_BK.Migrations
             modelBuilder.Entity("OHCP_BK.Models.Patient", b =>
                 {
                     b.HasOne("OHCP_BK.Models.AppUser_dat", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .WithOne("Patient")
+                        .HasForeignKey("OHCP_BK.Models.Patient", "PatientID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -876,20 +832,22 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("OHCP_BK.Models.AppUser_dat", b =>
                 {
+                    b.Navigation("Doctor");
+
                     b.Navigation("MessagesReceived");
 
                     b.Navigation("MessagesSent");
+
+                    b.Navigation("Patient");
 
                     b.Navigation("RefreshTokens");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.Appointment", b =>
                 {
-                    b.Navigation("Consultation")
-                        .IsRequired();
+                    b.Navigation("Consultation");
 
-                    b.Navigation("Invoice")
-                        .IsRequired();
+                    b.Navigation("Invoice");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.Doctor", b =>
