@@ -9,12 +9,12 @@ namespace OHCP_BK.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class MessageController_hiep : ControllerBase
+    public class MessageController : ControllerBase
     {
         private readonly OHCPContext _context;
-        private readonly ILogger<MessageController_hiep> _logger;
+        private readonly ILogger<MessageController> _logger;
 
-        public MessageController_hiep(OHCPContext context, ILogger<MessageController_hiep> logger)
+        public MessageController(OHCPContext context, ILogger<MessageController> logger)
         {
             _context = context;
             _logger = logger;

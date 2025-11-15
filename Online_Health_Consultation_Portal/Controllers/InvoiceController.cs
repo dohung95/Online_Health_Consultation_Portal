@@ -9,12 +9,12 @@ namespace OHCP_BK.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class InvoiceController_hiep : ControllerBase
+    public class InvoiceController : ControllerBase
     {
         private readonly OHCPContext _context;
-        private readonly ILogger<InvoiceController_hiep> _logger;
+        private readonly ILogger<InvoiceController> _logger;
 
-        public InvoiceController_hiep(OHCPContext context, ILogger<InvoiceController_hiep> logger)
+        public InvoiceController(OHCPContext context, ILogger<InvoiceController> logger)
         {
             _context = context;
             _logger = logger;

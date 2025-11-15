@@ -9,12 +9,12 @@ namespace OHCP_BK.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class NotificationController_hiep : ControllerBase
+    public class NotificationController : ControllerBase
     {
         private readonly OHCPContext _context;
-        private readonly ILogger<NotificationController_hiep> _logger;
+        private readonly ILogger<NotificationController> _logger;
 
-        public NotificationController_hiep(OHCPContext context, ILogger<NotificationController_hiep> logger)
+        public NotificationController(OHCPContext context, ILogger<NotificationController> logger)
         {
             _context = context;
             _logger = logger;
