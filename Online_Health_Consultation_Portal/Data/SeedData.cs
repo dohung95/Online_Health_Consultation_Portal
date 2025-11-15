@@ -3,7 +3,7 @@ using OHCP_BK.Models;
 
 namespace OHCP_BK.Data
 {
-    public class SeedData_dat
+    public class SeedData
     {
         public static async Task CreateRoles(IServiceProvider serviceProvider, UserManager<AppUser_dat> userManager)
         {

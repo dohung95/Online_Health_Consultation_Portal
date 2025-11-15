@@ -9,12 +9,12 @@ namespace OHCP_BK.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class PrescriptionController_hiep : ControllerBase
+    public class PrescriptionController : ControllerBase
     {
         private readonly OHCPContext _context;
-        private readonly ILogger<PrescriptionController_hiep> _logger;
+        private readonly ILogger<PrescriptionController> _logger;
 
-        public PrescriptionController_hiep(OHCPContext context, ILogger<PrescriptionController_hiep> logger)
+        public PrescriptionController(OHCPContext context, ILogger<PrescriptionController> logger)
         {
             _context = context;
             _logger = logger;

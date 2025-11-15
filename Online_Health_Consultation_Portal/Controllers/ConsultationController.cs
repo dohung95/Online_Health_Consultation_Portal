@@ -9,12 +9,12 @@ namespace OHCP_BK.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class ConsultationController_hiep : ControllerBase
+    public class ConsultationController : ControllerBase
     {
         private readonly OHCPContext _context;
-        private readonly ILogger<ConsultationController_hiep> _logger;
+        private readonly ILogger<ConsultationController> _logger;
 
-        public ConsultationController_hiep(OHCPContext context, ILogger<ConsultationController_hiep> logger)
+        public ConsultationController(OHCPContext context, ILogger<ConsultationController> logger)
         {
             _context = context;
             _logger = logger;

@@ -10,19 +10,19 @@ namespace OHCP_BK.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class AuthController_dat : ControllerBase
+    public class AuthController : ControllerBase
     {
 
         readonly UserManager<AppUser_dat> userManager;
         readonly SignInManager<AppUser_dat> signInManager;
         readonly ITokenService_dat tokenService;
-        readonly ILogger<AuthController_dat> logger;
+        readonly ILogger<AuthController> logger;
 
-        public AuthController_dat(
+        public AuthController(
             UserManager<AppUser_dat> userManager,
             SignInManager<AppUser_dat> signInManager,
             ITokenService_dat tokenService,
-            ILogger<AuthController_dat> logger)
+            ILogger<AuthController> logger)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;

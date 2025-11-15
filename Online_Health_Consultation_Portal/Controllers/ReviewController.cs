@@ -9,12 +9,12 @@ namespace OHCP_BK.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class ReviewController_hiep : ControllerBase
+    public class ReviewController : ControllerBase
     {
         private readonly OHCPContext _context;
-        private readonly ILogger<ReviewController_hiep> _logger;
+        private readonly ILogger<ReviewController> _logger;
 
-        public ReviewController_hiep(OHCPContext context, ILogger<ReviewController_hiep> logger)
+        public ReviewController(OHCPContext context, ILogger<ReviewController> logger)
         {
             _context = context;
             _logger = logger;

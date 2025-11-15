@@ -9,12 +9,12 @@ namespace OHCP_BK.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class AppointmentController_hiep : ControllerBase
+    public class AppointmentController : ControllerBase
     {
         private readonly OHCPContext _context;
-        private readonly ILogger<AppointmentController_hiep> _logger;
+        private readonly ILogger<AppointmentController> _logger;
 
-        public AppointmentController_hiep(OHCPContext context, ILogger<AppointmentController_hiep> logger)
+        public AppointmentController(OHCPContext context, ILogger<AppointmentController> logger)
         {
             _context = context;
             _logger = logger;
