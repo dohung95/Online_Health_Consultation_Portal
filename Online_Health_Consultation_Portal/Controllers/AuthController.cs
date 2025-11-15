@@ -8,7 +8,7 @@ using OHCP_BK.Services;
 
 namespace OHCP_BK.Controllers
 {
-    [Route("api/auth")]
+    [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
