@@ -1,19 +1,34 @@
-﻿namespace OHCP_BK.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace OHCP_BK.Models
 {
     public class Appointment
     {
+        [Key]
         public int AppointmentID { get; set; }
-        public int PatientID { get; set; }
-        public int DoctorID { get; set; }
+
+        [Required]
+        [ForeignKey(nameof(Patient))]
+        public string PatientID { get; set; } = null!;
+
+        [Required]
+        [ForeignKey(nameof(Doctor))]
+        public string DoctorID { get; set; } = null!;
+        
         public DateTime AppointmentTime { get; set; }
-        public string ConsultationType { get; set; }
+        
+        [Required]
+        public string ConsultationType { get; set; } = null!;
+        
+        [Required]
         public string Status { get; set; } = "Scheduled";
 
-        public Patient Patient { get; set; }
-        public Doctor Doctor { get; set; }
+        public virtual Patient Patient { get; set; } = null!;
+        public virtual Doctor Doctor { get; set; } = null!;
 
-        public Consultation Consultation { get; set; }
-        public Invoice Invoice { get; set; }
+        public virtual Consultation? Consultation { get; set; }
+        public virtual Invoice? Invoice { get; set; }
     }
 
 }

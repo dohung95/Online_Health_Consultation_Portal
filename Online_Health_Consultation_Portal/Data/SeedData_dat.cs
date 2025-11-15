@@ -40,20 +40,66 @@ namespace OHCP_BK.Data
                 }
             }
             
-            // create user admin
-            var DocterUser = await userManager.FindByEmailAsync("docter@gmail.com");
-            if (DocterUser == null)
+            // create user doctor
+            var DoctorUser = await userManager.FindByEmailAsync("doctor@gmail.com");
+            if (DoctorUser == null)
             {
                 var user = new AppUser_dat
                 {
-                    UserName = "Docter",
-                    Email = "docter@gmail.com"
+                    UserName = "Doctor",
+                    Email = "doctor@gmail.com"
                 };
-                var createdUser = await userManager.CreateAsync(user, "Docter@123!#");
+                var createdUser = await userManager.CreateAsync(user, "Doctor@123!#");
 
                 if (createdUser.Succeeded)
                 {
                     await userManager.AddToRoleAsync(user, "docter");
+
+                    // Create Doctor record with DoctorID = user.Id
+                    var context = serviceProvider.GetRequiredService<OHCPContext>();
+                    var doctor = new Doctor
+                    {
+                        DoctorID = user.Id,
+                        FullName = "Dr. John Doe",
+                        Qualifications = "MD",
+                        Specialty = "General Medicine",
+                        YearsOfExperience = 10,
+                        LanguageSpoken = "English",
+                        Location = "New York"
+                    };
+                    context.Doctors.Add(doctor);
+                    await context.SaveChangesAsync();
+                }
+            }
+
+            // create user patient
+            var PatientUser = await userManager.FindByEmailAsync("patient@gmail.com");
+            if (PatientUser == null)
+            {
+                var user = new AppUser_dat
+                {
+                    UserName = "Patient",
+                    Email = "patient@gmail.com"
+                };
+                var createdUser = await userManager.CreateAsync(user, "Patient@123!#");
+
+                if (createdUser.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(user, "patient");
+
+                    // Create Patient record with PatientID = user.Id
+                    var context = serviceProvider.GetRequiredService<OHCPContext>();
+                    var patient = new Patient
+                    {
+                        PatientID = user.Id,
+                        FullName = "Jane Smith",
+                        DateOfBirth = new DateTime(1990, 5, 15),
+                        MedicalHistorySummary = "No major health issues",
+                        InsuranceProvider = "HealthCare Inc.",
+                        InsurancePolicyNumber = "POL123456"
+                    };
+                    context.Patients.Add(patient);
+                    await context.SaveChangesAsync();
                 }
             }
         }

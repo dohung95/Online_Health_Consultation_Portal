@@ -7,12 +7,12 @@ namespace OHCP_BK.Models
     {
         public DateTime? CreatedDate { get; set; }
 
-        // Navigation properties to domain entities
-        public virtual Patient Patient { get; set; }
-        public virtual Doctor Doctor { get; set; }
+        // Navigation properties to domain entities (nullable vì user có thể không phải doctor/patient)
+        public virtual Patient? Patient { get; set; }
+        public virtual Doctor? Doctor { get; set; }
 
-        public virtual ICollection<Message> MessagesSent { get; set; }
-        public virtual ICollection<Message> MessagesReceived { get; set; }
+        public virtual ICollection<Message> MessagesSent { get; set; } = new List<Message>();
+        public virtual ICollection<Message> MessagesReceived { get; set; } = new List<Message>();
 
         public virtual ICollection<RefreshToken_dat> RefreshTokens { get; set; } = new List<RefreshToken_dat>();
     }
