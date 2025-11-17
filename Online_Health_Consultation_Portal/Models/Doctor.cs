@@ -30,7 +30,7 @@ namespace OHCP_BK.Models
         [Required]
         public string Location { get; set; } = null!;
 
-        public virtual AppUser_dat User { get; set; } = null!;
+        public virtual AppUser User { get; set; } = null!;
 
         public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();

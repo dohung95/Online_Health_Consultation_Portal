@@ -64,28 +64,9 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        // POST: api/Doctor
-        [HttpPost]
-        public async Task<ActionResult<Doctor>> CreateDoctor([FromBody] Doctor doctor)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                _context.Doctors.Add(doctor);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(GetDoctor), new { id = doctor.DoctorID }, doctor);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error creating doctor: {ex.Message}");
-                return StatusCode(500, "Internal server error");
-            }
-        }
+        // NOTE: Doctor account creation is handled by admin only:
+        // - Admin creation: POST /api/Admin/create/doctor [Authorize(Roles="admin")]
+        // This controller only handles CRUD operations on existing doctor profiles
 
         // PUT: api/Doctor/5
         [HttpPut("{id}")]

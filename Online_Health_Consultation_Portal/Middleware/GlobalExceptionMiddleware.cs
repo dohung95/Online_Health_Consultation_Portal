@@ -5,12 +5,12 @@ using System.Text.Json;
 
 namespace OHCP_BK.Middleware
 {
-    public class GlobalExceptionMiddleware_dat
+    public class GlobalExceptionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger<GlobalExceptionMiddleware_dat> _logger;
+        private readonly ILogger<GlobalExceptionMiddleware> _logger;
 
-        public GlobalExceptionMiddleware_dat(RequestDelegate next, ILogger<GlobalExceptionMiddleware_dat> logger)
+        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
         {
             _next = next;
             _logger = logger;
@@ -32,7 +32,7 @@ namespace OHCP_BK.Middleware
         {
             context.Response.ContentType = "application/json";
 
-            var response = new ErrorResponse_dat(exception.Message);
+            var response = new ErrorResponse(exception.Message);
             var statusCode = HttpStatusCode.InternalServerError;
 
             // Handle specific exception types
@@ -40,38 +40,38 @@ namespace OHCP_BK.Middleware
             {
                 case ValidationException ve:
                     statusCode = (HttpStatusCode)ve.StatusCode;
-                    response = new ErrorResponse_dat(ve.Message, ve.ErrorCode, ve.StatusCode);
+                    response = new ErrorResponse(ve.Message, ve.ErrorCode, ve.StatusCode);
                     response.ValidationErrors = ve.Errors;
                     break;
 
                 case UnauthorizedException ue:
                     statusCode = (HttpStatusCode)ue.StatusCode;
-                    response = new ErrorResponse_dat(ue.Message, ue.ErrorCode, ue.StatusCode);
+                    response = new ErrorResponse(ue.Message, ue.ErrorCode, ue.StatusCode);
                     break;
 
                 case ForbiddenException fe:
                     statusCode = (HttpStatusCode)fe.StatusCode;
-                    response = new ErrorResponse_dat(fe.Message, fe.ErrorCode, fe.StatusCode);
+                    response = new ErrorResponse(fe.Message, fe.ErrorCode, fe.StatusCode);
                     break;
 
                 case NotFoundException nfe:
                     statusCode = (HttpStatusCode)nfe.StatusCode;
-                    response = new ErrorResponse_dat(nfe.Message, nfe.ErrorCode, nfe.StatusCode);
+                    response = new ErrorResponse(nfe.Message, nfe.ErrorCode, nfe.StatusCode);
                     break;
 
                 case ConflictException ce:
                     statusCode = (HttpStatusCode)ce.StatusCode;
-                    response = new ErrorResponse_dat(ce.Message, ce.ErrorCode, ce.StatusCode);
+                    response = new ErrorResponse(ce.Message, ce.ErrorCode, ce.StatusCode);
                     break;
 
-                case ApiException_dat ae:
+                case ApiException ae:
                     statusCode = (HttpStatusCode)ae.StatusCode;
-                    response = new ErrorResponse_dat(ae.Message, ae.ErrorCode, ae.StatusCode);
+                    response = new ErrorResponse(ae.Message, ae.ErrorCode, ae.StatusCode);
                     break;
 
                 default:
                     statusCode = HttpStatusCode.InternalServerError;
-                    response = new ErrorResponse_dat(
+                    response = new ErrorResponse(
                         "An unexpected error occurred",
                         "INTERNAL_SERVER_ERROR",
                         500

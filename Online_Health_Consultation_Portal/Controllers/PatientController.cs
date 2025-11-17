@@ -65,28 +65,10 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        // POST: api/Patient
-        [HttpPost]
-        public async Task<ActionResult<Patient>> CreatePatient([FromBody] Patient patient)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                _context.Patients.Add(patient);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(GetPatient), new { id = patient.PatientID }, patient);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error creating patient: {ex.Message}");
-                return StatusCode(500, "Internal server error");
-            }
-        }
+        // NOTE: Patient account creation has been moved to:
+        // - Public registration: POST /api/Account/register/patient [AllowAnonymous]
+        // - Admin creation: POST /api/Admin/create/patient [Authorize(Roles="admin")]
+        // This controller only handles CRUD operations on existing patient profiles
 
         // PUT: api/Patient/5
         [HttpPut("{id}")]

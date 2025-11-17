@@ -1,6 +1,6 @@
 ﻿namespace OHCP_BK.Models
 {
-    public class TokenResponse_dat
+    public class TokenResponse
     {
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }

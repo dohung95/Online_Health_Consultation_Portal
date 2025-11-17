@@ -21,7 +21,7 @@ namespace OHCP_BK.Models
         public string Content { get; set; } = null!;
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
-        public virtual AppUser_dat Sender { get; set; } = null!;
-        public virtual AppUser_dat Receiver { get; set; } = null!;
+        public virtual AppUser Sender { get; set; } = null!;
+        public virtual AppUser Receiver { get; set; } = null!;
     }
 }

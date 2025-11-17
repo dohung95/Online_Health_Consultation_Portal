@@ -5,11 +5,11 @@ namespace OHCP_BK.Data
 {
     public class SeedData
     {
-        public static async Task CreateRoles(IServiceProvider serviceProvider, UserManager<AppUser_dat> userManager)
+        public static async Task CreateRoles(IServiceProvider serviceProvider, UserManager<AppUser> userManager)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            string[] roleNames = { "admin", "docter", "patient" };
+            string[] roleNames = { "admin", "doctor", "patient" };
 
             IdentityResult roleResult;
 
@@ -27,7 +27,7 @@ namespace OHCP_BK.Data
             var adminUser = await userManager.FindByEmailAsync("admin@gmail.com");
             if (adminUser == null)
             {
-                var user = new AppUser_dat
+                var user = new AppUser
                 {
                     UserName = "Administrator",
                     Email = "admin@gmail.com"
@@ -44,7 +44,7 @@ namespace OHCP_BK.Data
             var DoctorUser = await userManager.FindByEmailAsync("doctor@gmail.com");
             if (DoctorUser == null)
             {
-                var user = new AppUser_dat
+                var user = new AppUser
                 {
                     UserName = "Doctor",
                     Email = "doctor@gmail.com"
@@ -53,7 +53,7 @@ namespace OHCP_BK.Data
 
                 if (createdUser.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(user, "docter");
+                    await userManager.AddToRoleAsync(user, "doctor");
 
                     // Create Doctor record with DoctorID = user.Id
                     var context = serviceProvider.GetRequiredService<OHCPContext>();
@@ -76,7 +76,7 @@ namespace OHCP_BK.Data
             var PatientUser = await userManager.FindByEmailAsync("patient@gmail.com");
             if (PatientUser == null)
             {
-                var user = new AppUser_dat
+                var user = new AppUser
                 {
                     UserName = "Patient",
                     Email = "patient@gmail.com"
