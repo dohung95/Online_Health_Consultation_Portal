@@ -14,14 +14,14 @@ using ValidationException = OHCP_BK.Exceptions.ValidationException;
 
 namespace OHCP_BK.Services
 {
-    public class TokenService_dat : ITokenService_dat
+    public class TokenService : ITokenService
     {
         readonly IConfiguration config;
-        readonly UserManager<AppUser_dat> userManager;
+        readonly UserManager<AppUser> userManager;
         readonly OHCPContext dbContext;
-        readonly ILogger<TokenService_dat> logger;
+        readonly ILogger<TokenService> logger;
 
-        public TokenService_dat(IConfiguration config, UserManager<AppUser_dat> userManager, OHCPContext dbContext, ILogger<TokenService_dat> logger)
+        public TokenService(IConfiguration config, UserManager<AppUser> userManager, OHCPContext dbContext, ILogger<TokenService> logger)
         {
             this.config = config;
             this.userManager = userManager;
@@ -29,7 +29,7 @@ namespace OHCP_BK.Services
             this.logger = logger;
         }
 
-        public async Task<TokenResponse_dat> GenerateTokenAsync(AppUser_dat user)
+        public async Task<TokenResponse> GenerateTokenAsync(AppUser user)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace OHCP_BK.Services
 
                 var expiryHours = int.Parse(config["Jwt:ExpiryHours"] ?? "1");
 
-                return new TokenResponse_dat
+                return new TokenResponse
                 {
                     AccessToken = accessToken,
                     RefreshToken = refreshToken,
@@ -57,7 +57,7 @@ namespace OHCP_BK.Services
             }
         }
 
-        private async Task<string> GenerateAccessTokenAsync(AppUser_dat user)
+        private async Task<string> GenerateAccessTokenAsync(AppUser user)
         {
             try
             {
@@ -119,7 +119,7 @@ namespace OHCP_BK.Services
             }
         }
 
-        public async Task<string> GenerateRefreshTokenAsync(AppUser_dat user)
+        public async Task<string> GenerateRefreshTokenAsync(AppUser user)
         {
             try
             {
@@ -138,7 +138,7 @@ namespace OHCP_BK.Services
                 var refreshToken = Convert.ToBase64String(randomNumber);
 
                 // Save to database
-                var refreshTokenEntity = new RefreshToken_dat
+                var refreshTokenEntity = new RefreshToken
                 {
                     UserId = user.Id,
                     Token = refreshToken,
@@ -169,7 +169,7 @@ namespace OHCP_BK.Services
             }
         }
 
-        public async Task<TokenResponse_dat> RefreshTokenAsync(string refreshToken)
+        public async Task<TokenResponse> RefreshTokenAsync(string refreshToken)
         {
             try
             {
@@ -178,7 +178,7 @@ namespace OHCP_BK.Services
 
                 // Find the refresh token in database
                 var storedToken = await dbContext.RefreshTokens
-                    .Include(rt => rt.AppUser_dat)
+                    .Include(rt => rt.AppUser)
                     .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
                 if (storedToken == null)
@@ -189,18 +189,18 @@ namespace OHCP_BK.Services
 
                 if (storedToken.IsRevoked)
                 {
-                    logger.LogWarning($"Refresh token has been revoked for user '{storedToken.AppUser_dat?.Email}'");
+                    logger.LogWarning($"Refresh token has been revoked for user '{storedToken.AppUser?.Email}'");
                     throw new UnauthorizedException("Refresh token has been revoked");
                 }
 
                 if (storedToken.ExpiryDate < DateTime.UtcNow)
                 {
-                    logger.LogWarning($"Refresh token has expired for user '{storedToken.AppUser_dat?.Email}'");
+                    logger.LogWarning($"Refresh token has expired for user '{storedToken.AppUser?.Email}'");
                     throw new UnauthorizedException("Refresh token has expired");
                 }
 
                 // Generate new tokens
-                var user = storedToken.AppUser_dat;
+                var user = storedToken.AppUser;
                 if (user == null)
                     throw new InternalServerException("User associated with token not found");
 
@@ -215,7 +215,7 @@ namespace OHCP_BK.Services
                 var expiryHours = int.Parse(config["Jwt:ExpiryHours"] ?? "1");
 
                 logger.LogInformation($"Token refreshed successfully for user '{user.Email}'");
-                return new TokenResponse_dat
+                return new TokenResponse
                 {
                     AccessToken = newAccessToken,
                     RefreshToken = newRefreshToken,
@@ -284,7 +284,7 @@ namespace OHCP_BK.Services
 
         // Keep old method for backward compatibility
         [Obsolete("Use GenerateTokenAsync instead")]
-        public async Task<string> GenerateToken(AppUser_dat user)
+        public async Task<string> GenerateToken(AppUser user)
         {
             return (await GenerateTokenAsync(user)).AccessToken;
         }

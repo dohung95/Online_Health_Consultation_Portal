@@ -23,7 +23,7 @@ namespace OHCP_BK.Models
         
         public string? InsurancePolicyNumber { get; set; }
 
-        public virtual AppUser_dat User { get; set; } = null!;
+        public virtual AppUser User { get; set; } = null!;
 
         public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();

@@ -2,7 +2,7 @@
 
 namespace OHCP_BK.Models
 {
-    public class RefreshTokenRequest_dat
+    public class RefreshTokenRequest
     {
         [Required(ErrorMessage = "Refresh token is required")]
         [MinLength(1, ErrorMessage = "Refresh token cannot be empty")]

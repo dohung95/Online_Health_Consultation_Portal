@@ -2,7 +2,7 @@
 
 namespace OHCP_BK.Models
 {
-    public class RegisterModel_dat
+    public class RegisterModel
     {
         [Required(ErrorMessage = "Username is required")]
         [MaxLength(50, ErrorMessage = "Username must not exceed 50 characters")]

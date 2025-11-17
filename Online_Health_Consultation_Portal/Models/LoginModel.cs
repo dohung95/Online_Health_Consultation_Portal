@@ -2,7 +2,7 @@
 
 namespace OHCP_BK.Models
 {
-    public class LoginModel_dat
+    public class LoginModel
     {
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address format")]

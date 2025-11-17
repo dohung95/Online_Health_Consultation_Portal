@@ -1,6 +1,6 @@
 ﻿namespace OHCP_BK.Dtos
 {
-    public class UserDTO_dat
+    public class UserDTO
     {        
         /// Unique user identifier
         public string Id { get; set; }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OHCP_BK.Models
 {
-    public class RefreshToken_dat
+    public class RefreshToken
     {
         [Key]
         public int Id { get; set; }
@@ -23,6 +23,6 @@ namespace OHCP_BK.Models
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         // Navigation property
-        public virtual AppUser_dat AppUser_dat { get; set; }
+        public virtual AppUser AppUser { get; set; }
     }
 }

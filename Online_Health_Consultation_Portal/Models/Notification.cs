@@ -18,6 +18,6 @@ namespace OHCP_BK.Models
         public bool IsRead { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public virtual AppUser_dat User { get; set; } = null!;
+        public virtual AppUser User { get; set; } = null!;
     }
 }

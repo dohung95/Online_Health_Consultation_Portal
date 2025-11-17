@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace OHCP_BK.Models
 {
-    public class AppUser_dat : IdentityUser
+    public class AppUser : IdentityUser
     {
         public DateTime? CreatedDate { get; set; }
 
@@ -14,6 +14,6 @@ namespace OHCP_BK.Models
         public virtual ICollection<Message> MessagesSent { get; set; } = new List<Message>();
         public virtual ICollection<Message> MessagesReceived { get; set; } = new List<Message>();
 
-        public virtual ICollection<RefreshToken_dat> RefreshTokens { get; set; } = new List<RefreshToken_dat>();
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }
