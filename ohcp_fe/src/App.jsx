@@ -11,7 +11,6 @@ import Chat from './components/Chat';
 import Payment from './components/Payment';
 import Reminders from './components/Reminders';
 import Admin from './components/Admin';
-import Dashboard from './components/Dashboard';
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
 import Navbar from './components/Navbar'; // Import the new Navbar component
@@ -35,7 +34,6 @@ function App() {
             <Route path="/payment" element={<Payment />} />
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/login" element={<Sign_in />} />
             <Route path="/register" element={<Sign_up />} />
           </Routes>
