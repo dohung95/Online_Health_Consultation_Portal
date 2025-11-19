@@ -22,7 +22,7 @@ function App() {
     <Router>
       <div className="App">
         <Navbar /> {/* Use the Navbar component */}
-        <div className="container mt-4">
+        <div className="container mt-4 background_hung">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/schedule" element={<Schedule />} />
