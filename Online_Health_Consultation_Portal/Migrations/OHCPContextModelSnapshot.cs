@@ -155,7 +155,7 @@ namespace OHCP_BK.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.AppUser_dat", b =>
+            modelBuilder.Entity("OHCP_BK.Models.AppUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -537,7 +537,7 @@ namespace OHCP_BK.Migrations
                     b.ToTable("Prescriptions");
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.RefreshToken_dat", b =>
+            modelBuilder.Entity("OHCP_BK.Models.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -615,7 +615,7 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", null)
+                    b.HasOne("OHCP_BK.Models.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -624,7 +624,7 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", null)
+                    b.HasOne("OHCP_BK.Models.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -639,7 +639,7 @@ namespace OHCP_BK.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", null)
+                    b.HasOne("OHCP_BK.Models.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -648,7 +648,7 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", null)
+                    b.HasOne("OHCP_BK.Models.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -687,7 +687,7 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("OHCP_BK.Models.Doctor", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", "User")
+                    b.HasOne("OHCP_BK.Models.AppUser", "User")
                         .WithOne("Doctor")
                         .HasForeignKey("OHCP_BK.Models.Doctor", "DoctorID")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -739,13 +739,13 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("OHCP_BK.Models.Message", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", "Receiver")
+                    b.HasOne("OHCP_BK.Models.AppUser", "Receiver")
                         .WithMany("MessagesReceived")
                         .HasForeignKey("ReceiverId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", "Sender")
+                    b.HasOne("OHCP_BK.Models.AppUser", "Sender")
                         .WithMany("MessagesSent")
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -758,7 +758,7 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("OHCP_BK.Models.Notification", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", "User")
+                    b.HasOne("OHCP_BK.Models.AppUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -769,7 +769,7 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("OHCP_BK.Models.Patient", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", "User")
+                    b.HasOne("OHCP_BK.Models.AppUser", "User")
                         .WithOne("Patient")
                         .HasForeignKey("OHCP_BK.Models.Patient", "PatientID")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -797,15 +797,15 @@ namespace OHCP_BK.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.RefreshToken_dat", b =>
+            modelBuilder.Entity("OHCP_BK.Models.RefreshToken", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.AppUser_dat", "AppUser_dat")
+                    b.HasOne("OHCP_BK.Models.AppUser", "AppUser")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AppUser_dat");
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.Review", b =>
@@ -827,7 +827,7 @@ namespace OHCP_BK.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.AppUser_dat", b =>
+            modelBuilder.Entity("OHCP_BK.Models.AppUser", b =>
                 {
                     b.Navigation("Doctor");
 

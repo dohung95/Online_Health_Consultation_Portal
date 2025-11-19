@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Data;
+using OHCP_BK.Dtos;
 using OHCP_BK.Models;
+using System.Security.Claims;
 
 namespace OHCP_BK.Controllers
 {
@@ -66,9 +68,13 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        // POST: api/Appointment
+        /// <summary>
+        /// POST /api/Appointment
+        /// Create a new appointment (patient only)
+        /// </summary>
         [HttpPost]
-        public async Task<ActionResult<Appointment>> CreateAppointment([FromBody] Appointment appointment)
+        [Authorize(Roles = "patient")]
+        public async Task<ActionResult<Appointment>> CreateAppointment([FromBody] AppointmentCreateDTO dto)
         {
             try
             {
@@ -77,10 +83,65 @@ namespace OHCP_BK.Controllers
                     return BadRequest(ModelState);
                 }
 
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized();
+                }
+
+                // Verify doctor exists
+                var doctorExists = await _context.Doctors.AnyAsync(d => d.DoctorID == dto.DoctorID);
+                if (!doctorExists)
+                {
+                    return NotFound("Doctor not found");
+                }
+
+                // Validate appointment time is in the future
+                if (dto.AppointmentTime <= DateTime.UtcNow)
+                {
+                    return BadRequest("Appointment time must be in the future");
+                }
+
+                // Validate appointment time is within standard time slots
+                var hour = dto.AppointmentTime.Hour;
+                var isValidTimeSlot = (hour >= 7 && hour <= 11) || (hour >= 13 && hour <= 17);
+                if (!isValidTimeSlot)
+                {
+                    return BadRequest("Appointment time must be within working hours (7-11 AM or 1-5 PM)");
+                }
+
+                // Check if the time slot is already booked for this doctor
+                var isTimeSlotTaken = await _context.Appointments
+                    .AnyAsync(a => a.DoctorID == dto.DoctorID 
+                        && a.AppointmentTime.Date == dto.AppointmentTime.Date
+                        && a.AppointmentTime.Hour == dto.AppointmentTime.Hour
+                        && a.Status == "Scheduled");
+
+                if (isTimeSlotTaken)
+                {
+                    return Conflict(new { message = "This time slot is already booked for the selected doctor" });
+                }
+
+                // Create appointment with auto-populated PatientID
+                var appointment = new Appointment
+                {
+                    PatientID = userId,
+                    DoctorID = dto.DoctorID,
+                    AppointmentTime = dto.AppointmentTime,
+                    ConsultationType = dto.ConsultationType,
+                    Status = "Scheduled"
+                };
+
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetAppointment), new { id = appointment.AppointmentID }, appointment);
+                return CreatedAtAction(nameof(GetAppointment), new { id = appointment.AppointmentID }, new
+                {
+                    appointmentID = appointment.AppointmentID,
+                    status = appointment.Status,
+                    appointmentTime = appointment.AppointmentTime,
+                    doctorID = appointment.DoctorID
+                });
             }
             catch (Exception ex)
             {

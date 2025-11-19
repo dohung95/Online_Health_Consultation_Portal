@@ -83,12 +83,9 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(o =>
 {
-    var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
-        ?? builder.Configuration["Jwt:SecretKey"]!;
-    var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
-        ?? builder.Configuration["Jwt:Issuer"]!;
-    var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
-        ?? builder.Configuration["Jwt:Audience"]!;
+    var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]!;
+    var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
+    var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
     o.TokenValidationParameters = new TokenValidationParameters
     {
