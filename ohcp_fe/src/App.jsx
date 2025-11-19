@@ -15,6 +15,8 @@ import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
 import Navbar from './components/Navbar'; // Import the new Navbar component
 import Footer from './components/Footer'; // Import the Footer component
+import ContactUs from './components/ContactUs';
+import AboutUs from './components/AboutUs';
 import './App.css';
 
 function App() {
@@ -25,6 +27,8 @@ function App() {
         <div className="container mt-4 background_hung">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/contactus" element={<ContactUs />} />
+            <Route path="/aboutus" element={<AboutUs />} />
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/records" element={<Records />} />

@@ -17,7 +17,9 @@ function Navbar() {
             <div className="topbar">
                 <div className="container d-flex justify-content-between align-items-center flex-wrap">
                     <div className="logo d-flex align-items-center">
-                        <img src="/logo_footer.png" alt="Logo" className="logo-img" />
+                        <NavLink to="/" className="nav-link" end>
+                            <img src="/logo_footer.png" alt="Logo" className="logo-img" />
+                        </NavLink>
                     </div>
 
                     <div className="topbar-right d-flex align-items-center flex-wrap justify-content-center">
@@ -53,6 +55,7 @@ function Navbar() {
                     {/* Desktop Menu */}
                     <ul className="nav-menu d-none d-lg-flex m-0">
                         <li><NavLink to="/" className="nav-link" end>Home</NavLink></li>
+                        <li><NavLink to="/aboutus" className="nav-link" end>About Us</NavLink></li>
                         <li><NavLink to="/schedule" className="nav-link">Schedule</NavLink></li>
                         <li><NavLink to="/doctors" className="nav-link">Doctors</NavLink></li>
                         <li><NavLink to="/records" className="nav-link">Records</NavLink></li>
@@ -61,6 +64,7 @@ function Navbar() {
                         <li><NavLink to="/chat" className="nav-link">Chat</NavLink></li>
                         <li><NavLink to="/payment" className="nav-link">Payment</NavLink></li>
                         <li><NavLink to="/reminders" className="nav-link">Reminders</NavLink></li>
+                        <li><NavLink to="/contactus" className="nav-link" end>Contact Us</NavLink></li>
                         {isAdmin && (
                             <li><NavLink to="/admin" className="nav-link">Admin Panel</NavLink></li>
                         )}
