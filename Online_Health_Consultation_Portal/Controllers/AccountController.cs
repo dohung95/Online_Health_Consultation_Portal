@@ -71,7 +71,7 @@ namespace OHCP_BK.Controllers
                 token = tokenResponse.AccessToken,
                 refreshToken = tokenResponse.RefreshToken,
                 expiresIn = tokenResponse.ExpiresIn,
-                patientId = result.ProfileId
+                patientId = result.UserId
             });
         }
 
