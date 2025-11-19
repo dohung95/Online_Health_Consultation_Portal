@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Css/Footer.css';
+import { NavLink } from 'react-router-dom';
 
 function Footer() {
   const [isVisible, setIsVisible] = useState(false);
@@ -33,7 +34,9 @@ function Footer() {
             {/* Cột 1: Logo + mô tả + social */}
             <div className="col-md-3">
               <div className="footer-logo">
-                <img src="/logo_footer.png" alt="Logo" />
+                <NavLink to="/" className="nav-link" end onClick={scrollToTop}>
+                  <img src="/logo_footer.png" alt="Logo" />
+                </NavLink>
               </div>
 
               <div className="footer-description">
