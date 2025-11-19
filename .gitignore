@@ -19,6 +19,7 @@ Online_Health_Consultation_Portal/serviceAccountKey_DAT.json
 # Lờ thư mục thư viện
 ohcp_fe/node_modules/
 ohcp_fe/OHCP_FE.esproj.user
+/ohcp_fe/obj/
 
 # Lờ các file build output
 /dist/
