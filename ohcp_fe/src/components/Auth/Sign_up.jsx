@@ -12,6 +12,7 @@ export function Sign_up() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const role = "patient";
 
     const containerStyle = {
         maxWidth: '400px',
@@ -58,14 +59,11 @@ export function Sign_up() {
         setLoading(true);
 
         try {
-            const success = await register(username, phonenumber, email, password, confirmPassword);
-            if (success) {
-                navigate('/profile');
-            } else {
-                setError('Registration failed');
-            }
+            await register(username, phonenumber, email, password, confirmPassword, role);
+            navigate('/');
         } catch (err) {
             setError(err.message || 'Registration failed');
+            console.log("Registration failed by error: ", err.message)
         } finally {
             setLoading(false);
         }

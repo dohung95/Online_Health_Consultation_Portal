@@ -16,11 +16,13 @@ import Sign_up from './components/Auth/Sign_up';
 import Navbar from './components/Navbar'; // Import the new Navbar component
 import Footer from './components/Footer'; // Import the Footer component
 import './App.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function App() {
   return (
     <Router>
       <div className="App">
+        <Chat />
         <Navbar /> {/* Use the Navbar component */}
         <div className="container mt-4 background_hung">
           <Routes>
@@ -30,7 +32,6 @@ function App() {
             <Route path="/records" element={<Records />} />
             <Route path="/video" element={<Video />} />
             <Route path="/prescription" element={<Prescription />} />
-            <Route path="/chat" element={<Chat />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/admin" element={<Admin />} />

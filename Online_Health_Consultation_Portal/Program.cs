@@ -10,9 +10,20 @@ using OHCP_BK.Services;
 using System;
 using System.Text;
 
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+
 var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.Load(); // U have this line so u don't need the manual .env reading code 💀                   SIGN: kudatdepzaine
+
+// === THÊM KHỐI CODE KHỞI TẠO FIREBASE ADMIN NÀY VÀO ===
+var saPath = Path.Combine(AppContext.BaseDirectory, "serviceAccountKey.json");
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile(saPath),
+});
+// =======================================================
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -49,31 +60,37 @@ builder.Services.AddDbContext<OHCPContext>(options =>
 );
 
 // Builder Services
-    // for identity
-    builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
-    {
-        // Disable cookie redirects for API
-        options.SignIn.RequireConfirmedAccount = false;
-        options.User.AllowedUserNameCharacters += " ";
-    })
-        .AddEntityFrameworkStores<OHCPContext>()
-        .AddDefaultTokenProviders();
 
-    // Configure authentication to use JWT as default and prevent redirects
-    builder.Services.ConfigureApplicationCookie(options =>
+//  FIREBASE
+builder.Services.AddDbContext<OHCPContext>(options => // <-- Khối này phải ở dưới FirebaseApp.Create
+    options.UseSqlServer(connectionString)
+);
+
+// for identity
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+{
+    // Disable cookie redirects for API
+    options.SignIn.RequireConfirmedAccount = false;
+    options.User.AllowedUserNameCharacters += " ";
+})
+    .AddEntityFrameworkStores<OHCPContext>()
+    .AddDefaultTokenProviders();
+
+// Configure authentication to use JWT as default and prevent redirects
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // Disable automatic redirects for API calls
+    options.Events.OnRedirectToLogin = context =>
     {
-        // Disable automatic redirects for API calls
-        options.Events.OnRedirectToLogin = context =>
-        {
-            context.Response.StatusCode = 401;
-            return Task.CompletedTask;
-        };
-        options.Events.OnRedirectToAccessDenied = context =>
-        {
-            context.Response.StatusCode = 403;
-            return Task.CompletedTask;
-        };
-    });
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = 403;
+        return Task.CompletedTask;
+    };
+});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -108,8 +125,8 @@ builder.Services.AddAuthorization(o =>
             policy => policy.RequireRole("Admin"));
     });
 
-    builder.Services.AddTransient<ITokenService, TokenService>();
-    builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddTransient<ITokenService, TokenService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 // Cấu hình CORS
 var corsAllowedOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(';', StringSplitOptions.RemoveEmptyEntries) // Sửa: dùng ; thay vì ,

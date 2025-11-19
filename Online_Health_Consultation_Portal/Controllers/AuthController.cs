@@ -6,6 +6,9 @@ using OHCP_BK.Exceptions;
 using OHCP_BK.Models;
 using OHCP_BK.Services;
 
+using FirebaseAdmin.Auth;
+using System.Security.Claims;
+
 namespace OHCP_BK.Controllers
 {
     [Route("api/[controller]")]
@@ -30,7 +33,7 @@ namespace OHCP_BK.Controllers
             this.logger = logger;
         }
 
-        
+
 
         // Patient login
         // POST: api/Auth/login
@@ -147,6 +150,46 @@ namespace OHCP_BK.Controllers
                 throw new InternalServerException("Logout failed");
             }
         }
+
+        /// GET: api/auth/firebase-token
+        [HttpGet("firebase-token")]
+        [Authorize] // <-- RẤT QUAN TRỌNG: Chỉ user đã login C# mới được gọi
+        public async Task<IActionResult> GetFirebaseToken()
+        {
+
+            logger.LogWarning(">>> [DEBUG] Đã TRUY CẬP HÀM GetFirebaseToken!");
+            // 1. Lấy ID của user (từ C# accessToken mà React gửi lên)
+            // Đây là claim "sub" (subject)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+            {
+                return Unauthorized("C# Token không hợp lệ hoặc thiếu User ID");
+            }
+
+            // 2. Dùng Firebase Admin SDK để tạo Custom Token
+            try
+            {
+                var firebaseUserId = userId.Substring(0, 32);
+                logger.LogWarning($">>> [DEBUG] Đang tạo token cho Firebase UID: {firebaseUserId}");
+                // (Quan trọng: Nếu bạn đã cắt ID (substring(0, 32)) ở Zego, 
+                // bạn cũng phải cắt ở đây để 2 User ID khớp nhau)
+
+
+                // Tạo một token Firebase cho chính user ID đó
+                string firebaseToken = await FirebaseAuth.DefaultInstance
+                    .CreateCustomTokenAsync(firebaseUserId);
+
+                // 3. Trả token Firebase về cho React
+                return Ok(new { FirebaseToken = firebaseToken });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ">>> [DEBUG] LỖI TỪ FIREBASE ADMIN SDK: {ErrorMessage}", ex.Message);
+                logger.LogError(ex, "Không thể tạo Firebase token cho user {UserId}", userId);
+                return StatusCode(500, "Không thể tạo Firebase token: " + ex.Message);
+            }
+        }
+        
     }
 }
-    
