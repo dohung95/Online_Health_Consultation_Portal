@@ -38,3 +38,24 @@
   font-weight: bold;
   color: #007bff !important;
 }
+.background_hung {
+  background-image: url('/public/background.jpg');   
+  background-size: cover;                /* Ảnh phủ toàn bộ màn hình */
+  background-position: center center;    /* Căn giữa ảnh */
+  background-repeat: no-repeat;          /* Không lặp lại ảnh */
+  background-attachment: fixed;          /* Tạo hiệu ứng parallax nhẹ, rất sang */
+  position: relative;
+  min-height: 100vh;                     /* Đảm bảo chiếm toàn bộ chiều cao màn hình */
+}
+.background_hung::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.85);     /* Nền trắng mờ (dùng cho theme sáng) */
+  backdrop-filter: blur(3px);                /* Hiệu ứng mờ nền mờ hiện đại */
+  z-index: 1;
+}
+.background_hung > * {
+  position: relative;
+  z-index: 2;
+}

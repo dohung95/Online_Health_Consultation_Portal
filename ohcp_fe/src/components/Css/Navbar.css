@@ -1,0 +1,159 @@
+/* ================================================================== */
+/* TOÀN BỘ CSS DƯỚI ĐÂY CHỈ ẢNH HƯỞNG ĐẾN NAVBAR – KHÔNG ẢNH HƯỞNG FOOTER */
+/* ================================================================== */
+
+/* Topbar – vẫn giữ nguyên vì nó nằm ngoài navbar */
+.topbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e7ff;
+  font-size: 14px;
+}
+.logo-img { width: 400px; margin-right: 15px; }
+.logo-Call {
+  width: 100px;            /* kích thước ban đầu */
+}
+
+.logo-title { font-size: 26px; font-weight: 800; color: #3eb7e9; margin: 0; line-height: 1; letter-spacing: 1px; }
+.logo-subtitle { font-size: 11px; color: #777; margin: 4px 0 0; font-weight: 500; }
+.contact-info p { margin: 6px 0; color: #555; }
+.contact-info i { color: #0066cc; margin-right: 10px; font-size: 15px; }
+.btn-appointment {
+  background-color: #3eb7e9; color: white; padding: 12px 30px; border-radius: 50px;
+  font-weight: 600; text-decoration: none; transition: all 0.3s ease;
+}
+.btn-appointment:hover {
+  background-color: #0088cc; transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 170, 255, 0.3);
+}
+
+/* ====================== MAIN NAVBAR (chỉ áp dụng bên trong .main-navbar) ====================== */
+.main-navbar {
+  background-color: #006492;
+  padding: 0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Menu desktop */
+.main-navbar .nav-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* Tất cả các link trong navbar */
+.main-navbar .nav-link {
+  position: relative;
+  color: white !important;
+  padding: 20px 18px !important;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Hiệu ứng nền + gạch chân */
+.main-navbar .nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; width: 0; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition: all 0.6s ease;
+  transform: translateX(-50%);
+}
+.main-navbar .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%; width: 0; height: 3px;
+  background: #00e0ff;
+  border-radius: 3px;
+  transition: all 0.4s ease;
+  transform: translateX(-50%);
+}
+
+/* Hover */
+.main-navbar .nav-link:hover {
+  color: #ffffff !important;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(10px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+.main-navbar .nav-link:hover::before { width: 200%; }
+.main-navbar .nav-link:hover::after { width: 70%; }
+
+/* ==================== TRẠNG THÁI ACTIVE – CHỮ TRẮNG + GẠCH TRẮNG SÁNG ==================== */
+.main-navbar .nav-link.active,
+.main-navbar .nav-link.active:hover {
+  color: #ffffff !important;
+  background: rgba(255,255,255,0.18) !important;
+  font-weight: 600;
+  transform: translateY(-2px);
+}
+.main-navbar .nav-link.active::after {
+  width: 90% !important;           /* Gạch chân dài hơn một chút */
+  background: #ffffff !important;   /* Trắng sáng */
+  box-shadow: 0 0 20px rgba(255,255,255,0.8) !important;
+}
+
+/* Click effect */
+.main-navbar .nav-link:active {
+  transform: translateY(0);
+  transition: transform 0.1s;
+}
+
+/* Nút Login/Register/Logout trong navbar */
+.main-navbar .btn-login,
+.main-navbar .btn-register {
+  color: white;
+  background-color: #3eb7e9;
+  padding: 8px 20px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 500;
+}
+.main-navbar .btn-logout {
+  background: none;
+  border: 2px solid white;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.main-navbar .btn-logout:hover {
+  background: white;
+  color: #006492;
+}
+
+/* Mobile */
+.main-navbar .mobile-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+}
+.main-navbar .mobile-menu-container {
+  background-color: #0055aa;
+}
+.main-navbar .mobile-menu {
+  list-style: none;
+  padding: 20px;
+  margin: 0;
+}
+.main-navbar .mobile-menu a,
+.main-navbar .mobile-menu button {
+  display: block;
+  color: white;
+  padding: 12px 0;
+  text-decoration: none;
+  font-size: 16px;
+}
+.main-navbar .btn-mobile-logout {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-weight: bold;
+}
