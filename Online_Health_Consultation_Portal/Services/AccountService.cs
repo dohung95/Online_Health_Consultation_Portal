@@ -45,7 +45,7 @@ namespace OHCP_BK.Services
                 // Create Identity user
                 var user = new AppUser
                 {
-                    UserName = dto.Email,
+                    UserName = dto.FullName,
                     Email = dto.Email,
                     EmailConfirmed = isAdminCreated, // Admin-created accounts are auto-confirmed
                     CreatedDate = DateTime.UtcNow
