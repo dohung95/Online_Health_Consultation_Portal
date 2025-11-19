@@ -10,7 +10,18 @@ using OHCP_BK.Services;
 using System;
 using System.Text;
 
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// =================== FIREBASE ==========================
+var saPath = Path.Combine(AppContext.BaseDirectory, "serviceAccountKey.json");
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile(saPath),
+});
+// =======================================================
 
 DotNetEnv.Env.Load(); // U have this line so u don't need the manual .env reading code 💀                   SIGN: kudatdepzaine
 
@@ -49,8 +60,19 @@ builder.Services.AddDbContext<OHCPContext>(options =>
 );
 
 // Builder Services
+<<<<<<< Updated upstream
     // for identity
     builder.Services.AddIdentity<AppUser_dat, IdentityRole>(options =>
+=======
+
+//FIREBASE
+builder.Services.AddDbContext<OHCPContext>(options => // <-- Khối này phải ở dưới FirebaseApp.Create
+    options.UseSqlServer(connectionString)
+);
+
+// for identity
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+>>>>>>> Stashed changes
     {
         // Disable cookie redirects for API
         options.SignIn.RequireConfirmedAccount = false;
@@ -59,21 +81,21 @@ builder.Services.AddDbContext<OHCPContext>(options =>
         .AddEntityFrameworkStores<OHCPContext>()
         .AddDefaultTokenProviders();
 
-    // Configure authentication to use JWT as default and prevent redirects
-    builder.Services.ConfigureApplicationCookie(options =>
+// Configure authentication to use JWT as default and prevent redirects
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // Disable automatic redirects for API calls
+    options.Events.OnRedirectToLogin = context =>
     {
-        // Disable automatic redirects for API calls
-        options.Events.OnRedirectToLogin = context =>
-        {
-            context.Response.StatusCode = 401;
-            return Task.CompletedTask;
-        };
-        options.Events.OnRedirectToAccessDenied = context =>
-        {
-            context.Response.StatusCode = 403;
-            return Task.CompletedTask;
-        };
-    });
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = 403;
+        return Task.CompletedTask;
+    };
+});
 
 builder.Services.AddAuthentication(options =>
 {

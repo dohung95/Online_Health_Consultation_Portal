@@ -14,7 +14,11 @@ import Dashboard from './components/Dashboard'; // Thêm Dashboard
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
 import './App.css';
+<<<<<<< Updated upstream
 import { useAuth } from './context/AuthContext';
+=======
+import 'bootstrap-icons/font/bootstrap-icons.css';
+>>>>>>> Stashed changes
 
 function App() {
 
@@ -26,6 +30,7 @@ function App() {
   return (
     <Router>
       <div className="App">
+<<<<<<< Updated upstream
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
           <div className="container-fluid">
             <Link className="navbar-brand" to="/">Health Portal</Link>
@@ -110,6 +115,10 @@ function App() {
             </div>
           </div>
         </nav>
+=======
+            <Chat />
+            <Navbar /> {/* Use the Navbar component */}
+>>>>>>> Stashed changes
         <div className="container mt-4">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -118,7 +127,6 @@ function App() {
             <Route path="/records" element={<Records />} />
             <Route path="/video" element={<Video />} />
             <Route path="/prescription" element={<Prescription />} />
-            <Route path="/chat" element={<Chat />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/admin" element={<Admin />} />

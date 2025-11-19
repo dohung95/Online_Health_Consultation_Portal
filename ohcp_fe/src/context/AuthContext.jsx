@@ -1,6 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { login as loginAPI, register as registerAPI, logout as logoutAPI, setupAxiosInterceptors } from '../api/auth';
+﻿import React, { createContext, useContext, useState, useEffect } from "react";
+import { login as loginAPI, register as registerAPI, logout as logoutAPI, setupAxiosInterceptors, getFirebaseTokenAPI } from '../api/auth';
 import { decodeToken, getTokenExpiresIn } from '../utils/tokenUtils';
+
+import { signInWithCustomToken, signOut } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 const AuthContext = createContext();
 
@@ -90,57 +94,88 @@ export function AuthProvider({ children }) {
         }
 
         // Set logout timer for token expiry (5 minutes before actual expiry)
-        const timeoutMs = (expiresIn - 300) * 1000; // 300 seconds = 5 minutes
-        if (timeoutMs > 0) {
-            const timer = setTimeout(() => {
-                logout();
-                alert('Your session has expired. Please login again.');
-            }, timeoutMs);
+        //const timeoutMs = (expiresIn - 300) * 1000; // 300 seconds = 5 minutes
+        //if (timeoutMs > 0) {
+        //    const timer = setTimeout(() => {
+        //        logout();
+        //        alert('Your session has expired. Please login again.');
+        //    }, timeoutMs);
 
-            return () => clearTimeout(timer);
-        }
+        //    return () => clearTimeout(timer);
+        //}
     }, [token]);
 
+    ///=>> use for identity and firebase
     const login = async (email, password) => {
         try {
-            const response = await loginAPI(email, password);
-            if (response && response.accessToken) {
-                setToken(response.accessToken);
-                setRefreshToken(response.refreshToken);
-                localStorage.setItem('token', response.accessToken);
-                localStorage.setItem('refreshToken', response.refreshToken);
-                return true;
+            // 1. ĐĂNG NHẬP C# (Như cũ)
+            const csharpResponse = await loginAPI(email, password);
+            if (!csharpResponse || !csharpResponse.accessToken) {
+                throw new Error("Đăng nhập C# thất bại");
             }
-            return false;
+
+            const csharpToken = csharpResponse.accessToken;
+            localStorage.setItem('token', csharpToken);
+            setToken(csharpToken); // Cập nhật state C#
+
+            // 2. ĐĂNG NHẬP FIREBASE (Bước mới)
+            const firebaseResponse = await getFirebaseTokenAPI(csharpToken);
+            const firebaseToken = firebaseResponse.firebaseToken;
+
+            await signInWithCustomToken(auth, firebaseToken);
+
+            // (Hàm 'onAuthStateChanged' của Firebase sẽ tự động cập nhật user)
+            return true;
         } catch (error) {
-            // Re-throw error to be caught by LoginPage
+            console.error("Lỗi đăng nhập kép:", error);
+            logout();
             throw error;
         }
     };
 
-    const register = async (username, phonenumber, email, password, confirmPassword) => {
+    ///=>> use for identity and firebase
+    const register = async (username, phonenumber, email, password, confirmPassword, role) => {
         try {
-            const response = await registerAPI(username, phonenumber, email, password, confirmPassword);
-            if (response && response.accessToken) {
-                setToken(response.accessToken);
-                setRefreshToken(response.refreshToken);
-                localStorage.setItem('token', response.accessToken);
-                localStorage.setItem('refreshToken', response.refreshToken);
-                return true;
-            }
-            return false;
+            await registerAPI(username, phonenumber, email, password, confirmPassword);
+            const csharpResponse = await loginAPI(email, password);
+            const csharpToken = csharpResponse.accessToken;
+            localStorage.setItem('token', csharpToken);
+            setToken(csharpToken);
+
+            // 3. ĐĂNG NHẬP FIREBASE (Bước mới)
+            const firebaseResponse = await getFirebaseTokenAPI(csharpToken);
+            const firebaseToken = firebaseResponse.firebaseToken;
+            const userCredential = await signInWithCustomToken(auth, firebaseToken);
+            const user = userCredential.user; // Lấy user Firebase
+
+            // 4. TẠO "DANH BẠ" (Lưu user vào Firestore)
+            const userRef = doc(db, "users", user.uid);
+            await setDoc(userRef, {
+                uid: user.uid,
+                displayName: username,
+                email: email,
+                photoURL: "", // (Ảnh mặc định)
+                role: role // <-- LƯU ROLE VÀO DATABASE
+            }, { merge: true });
+
+            console.log("dmmm role lon:      ", role)
+            return true;
         } catch (error) {
-            // Re-throw error to be caught by RegisterPage
+            console.error("Lỗi register kép:", error);
+            logout();
             throw error;
         }
+
     };
 
+    ///=>> use for identity and firebase
     const logout = async () => {
-        // Call logout API to revoke refresh token
+        // (Hàm 'logoutAPI' của C# là không bắt buộc, vì token C# sẽ tự hết hạn)
         if (refreshToken) {
             await logoutAPI(refreshToken);
         }
-
+        // Đăng xuất khỏi Firebase
+        await signOut(auth);
         setToken(null);
         setRefreshToken(null);
         setUser(null);
