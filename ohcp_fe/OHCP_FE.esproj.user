@@ -7,7 +7,7 @@
   "type": "edge",
   "request": "launch",
   "url": "http://localhost:63527",
-  "webRoot": "D:\\Aptech\\Sem_3\\eProject\\Code\\Online_Health_Consultation_Portal\\OHCP_FE"
+  "webRoot": "D:\\hoc_tap\\bai_hoc\\sem3\\Eproject\\Online_Health_Consultation_Portal\\OHCP_FE"
 }</LaunchJsonTarget>
   </PropertyGroup>
 </Project>
