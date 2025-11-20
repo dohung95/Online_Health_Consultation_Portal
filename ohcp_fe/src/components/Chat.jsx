@@ -253,7 +253,7 @@ export default function Chat() {
                         )}
 
                         <h5 className="mb-0 fs-6">
-                            {isDoctor && !chatPartner && "Danh bạ Bệnh nhân"}
+                            {isDoctor && !chatPartner && "Patient List"}
                             {isDoctor && chatPartner && `Chat with ${chatPartner.displayName}`}
                             {isPatient && `Chat with ${chatPartner.displayName}`}
                         </h5>
@@ -270,7 +270,7 @@ export default function Chat() {
                             <>
                                 {!chatPartner ? (
                                     <ul className="list-group list-group-flush">
-                                        {userList.length === 0 && <li className="list-group-item">Không tìm thấy bệnh nhân nào.</li>}
+                                        {userList.length === 0 && <li className="list-group-item">No patient list.</li>}
                                         {userList.map(u => (
                                             <li
                                                 key={u.id}
