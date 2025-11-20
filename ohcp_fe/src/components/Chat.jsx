@@ -248,7 +248,7 @@ export default function Chat() {
                                 className="btn btn-sm btn-link text-decoration-none"
                                 onClick={() => setChatPartner(null)}
                             >
-                                &lt; Quay lại
+                                &lt; go back
                             </button>
                         )}
 
