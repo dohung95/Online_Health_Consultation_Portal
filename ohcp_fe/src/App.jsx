@@ -13,8 +13,7 @@ import Reminders from './components/Reminders';
 import Admin from './components/Admin';
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
-import Navbar from './components/Navbar'; // Import the new Navbar component
-import Footer from './components/Footer'; // Import the Footer component
+import Footer from './components/Footer';
 import ContactUs from './components/ContactUs';
 import AboutUs from './components/AboutUs';
 import './App.css';
@@ -25,8 +24,7 @@ function App() {
     <Router>
       <div className="App">
         <Chat />
-        <Navbar /> {/* Use the Navbar component */}
-        <div className="container mt-4 background_hung">
+        <div>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/contactus" element={<ContactUs />} />
