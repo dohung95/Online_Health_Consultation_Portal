@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import Navbar from '../Navbar';
 
 export function Sign_up() {
     const navigate = useNavigate();
@@ -19,7 +20,7 @@ export function Sign_up() {
         margin: '50px auto',
         padding: '20px',
         border: '1px solid #ddd',
-        borderRadius: '4px'
+        borderRadius: '4px',
     };
 
     const inputStyle = {
@@ -70,73 +71,80 @@ export function Sign_up() {
     };
 
     return (
-        <div style={containerStyle}>
-            <h2>Register</h2>
-            {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>User Name:</label>
-                    <input
-                        type="text"
-                        required
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        disabled={loading}
-                        style={inputStyle}
-                    />
+        <>
+            <div >
+                <div className='container'>
+                    <Navbar />
                 </div>
-                <div>
-                    <label>Email:</label>
-                    <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        disabled={loading}
-                        style={inputStyle}
-                    />
+                <div style={containerStyle}>
+                    <h2>Register</h2>
+                    {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
+                    <form onSubmit={handleSubmit}>
+                        <div>
+                            <label>User Name:</label>
+                            <input
+                                type="text"
+                                required
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                disabled={loading}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label>Email:</label>
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={loading}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label>Phone Number:</label>
+                            <input
+                                type="text"
+                                required
+                                value={phonenumber}
+                                onChange={(e) => setPhonenumber(e.target.value)}
+                                disabled={loading}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label>Password:</label>
+                            <input
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={loading}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label>Confirm Password:</label>
+                            <input
+                                type="password"
+                                required
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                disabled={loading}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <button type="submit" disabled={loading} style={buttonStyle}>
+                            {loading ? 'Loading...' : 'Register'}
+                        </button>
+                    </form>
+                    <p style={{ marginTop: '10px' }}>
+                        Already have an account? <Link to="/login">Login</Link>
+                    </p>
                 </div>
-                <div>
-                    <label>Phone Number:</label>
-                    <input
-                        type="text"
-                        required
-                        value={phonenumber}
-                        onChange={(e) => setPhonenumber(e.target.value)}
-                        disabled={loading}
-                        style={inputStyle}
-                    />
-                </div>
-                <div>
-                    <label>Password:</label>
-                    <input
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={loading}
-                        style={inputStyle}
-                    />
-                </div>
-                <div>
-                    <label>Confirm Password:</label>
-                    <input
-                        type="password"
-                        required
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        disabled={loading}
-                        style={inputStyle}
-                    />
-                </div>
-                <button type="submit" disabled={loading} style={buttonStyle}>
-                    {loading ? 'Loading...' : 'Register'}
-                </button>
-            </form>
-            <p style={{ marginTop: '10px' }}>
-                Already have an account? <Link to="/login">Login</Link>
-            </p>
-        </div>
+            </div>
+        </>
     );
 }
 
