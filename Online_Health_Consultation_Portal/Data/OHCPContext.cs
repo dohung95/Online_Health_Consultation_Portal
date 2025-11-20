@@ -4,7 +4,7 @@ using OHCP_BK.Models;
 
 namespace OHCP_BK.Data
 {
-    public class OHCPContext : IdentityDbContext<AppUser_dat>
+    public class OHCPContext : IdentityDbContext<AppUser>
     {
         public OHCPContext(DbContextOptions options) : base(options)
         {
@@ -27,7 +27,7 @@ namespace OHCP_BK.Data
         public DbSet<Invoice> Invoices { get; set; }
 
 
-        public DbSet<RefreshToken_dat> RefreshTokens { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -76,19 +76,19 @@ namespace OHCP_BK.Data
 
             builder.Entity<Doctor>()
                 .HasOne(d => d.User)
-                .WithMany()
-                .HasForeignKey(d => d.UserId)
+                .WithOne(u => u.Doctor)
+                .HasForeignKey<Doctor>(d => d.DoctorID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.Entity<Patient>()
                 .HasOne(p => p.User)
-                .WithMany()
-                .HasForeignKey(p => p.UserId)
+                .WithOne(u => u.Patient)
+                .HasForeignKey<Patient>(p => p.PatientID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure RefreshToken relationships
-            builder.Entity<RefreshToken_dat>()
-                .HasOne(rt => rt.AppUser_dat)
+            builder.Entity<RefreshToken>()
+                .HasOne(rt => rt.AppUser)
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);

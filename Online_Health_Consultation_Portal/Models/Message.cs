@@ -1,17 +1,27 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace OHCP_BK.Models
 {
     public class Message
     {
+        [Key]
         public int MessageID { get; set; }
 
         // FK to User.Id (Identity)
-        public string SenderId { get; set; }
-        public string ReceiverId { get; set; }
+        [Required]
+        [ForeignKey(nameof(Sender))]
+        public string SenderId { get; set; } = null!;
+        
+        [Required]
+        [ForeignKey(nameof(Receiver))]
+        public string ReceiverId { get; set; } = null!;
 
-        public string Content { get; set; }
+        [Required]
+        public string Content { get; set; } = null!;
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
-        public virtual AppUser_dat Sender { get; set; }
-        public virtual AppUser_dat Receiver { get; set; }
+        public virtual AppUser Sender { get; set; } = null!;
+        public virtual AppUser Receiver { get; set; } = null!;
     }
 }

@@ -11,31 +11,32 @@ import Chat from './components/Chat';
 import Payment from './components/Payment';
 import Reminders from './components/Reminders';
 import Admin from './components/Admin';
-import Dashboard from './components/Dashboard';
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
-import Navbar from './components/Navbar'; // Import the new Navbar component
-import Footer from './components/Footer'; // Import the Footer component
+import Footer from './components/Footer';
+import ContactUs from './components/ContactUs';
+import AboutUs from './components/AboutUs';
 import './App.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function App() {
   return (
     <Router>
       <div className="App">
-        <Navbar /> {/* Use the Navbar component */}
-        <div className="container mt-4">
+        <Chat />
+        <div>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/contactus" element={<ContactUs />} />
+            <Route path="/aboutus" element={<AboutUs />} />
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/records" element={<Records />} />
             <Route path="/video" element={<Video />} />
             <Route path="/prescription" element={<Prescription />} />
-            <Route path="/chat" element={<Chat />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/login" element={<Sign_in />} />
             <Route path="/register" element={<Sign_up />} />
           </Routes>

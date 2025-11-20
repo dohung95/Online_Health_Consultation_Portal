@@ -10,9 +10,20 @@ using OHCP_BK.Services;
 using System;
 using System.Text;
 
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+
 var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.Load(); // U have this line so u don't need the manual .env reading code 💀                   SIGN: kudatdepzaine
+
+// === THÊM KHỐI CODE KHỞI TẠO FIREBASE ADMIN NÀY VÀO ===
+var saPath = Path.Combine(AppContext.BaseDirectory, "serviceAccountKey.json");
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile(saPath),
+});
+// =======================================================
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -42,38 +53,44 @@ builder.WebHost.ConfigureKestrel(options =>
 var dbServer = Environment.GetEnvironmentVariable("DB_SERVER") ?? ".";
 var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "OHCP_DB";
 var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
-var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "1234";
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "123";
 var connectionString = $"Server={dbServer};Database={dbName};User Id={dbUser};Password={dbPassword};TrustServerCertificate=True;MultipleActiveResultSets=true";
 builder.Services.AddDbContext<OHCPContext>(options =>
     options.UseSqlServer(connectionString)
 );
 
 // Builder Services
-    // for identity
-    builder.Services.AddIdentity<AppUser_dat, IdentityRole>(options =>
-    {
-        // Disable cookie redirects for API
-        options.SignIn.RequireConfirmedAccount = false;
-        options.User.AllowedUserNameCharacters += " ";
-    })
-        .AddEntityFrameworkStores<OHCPContext>()
-        .AddDefaultTokenProviders();
 
-    // Configure authentication to use JWT as default and prevent redirects
-    builder.Services.ConfigureApplicationCookie(options =>
+//  FIREBASE
+builder.Services.AddDbContext<OHCPContext>(options => // <-- Khối này phải ở dưới FirebaseApp.Create
+    options.UseSqlServer(connectionString)
+);
+
+// for identity
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+{
+    // Disable cookie redirects for API
+    options.SignIn.RequireConfirmedAccount = false;
+    options.User.AllowedUserNameCharacters += " ";
+})
+    .AddEntityFrameworkStores<OHCPContext>()
+    .AddDefaultTokenProviders();
+
+// Configure authentication to use JWT as default and prevent redirects
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // Disable automatic redirects for API calls
+    options.Events.OnRedirectToLogin = context =>
     {
-        // Disable automatic redirects for API calls
-        options.Events.OnRedirectToLogin = context =>
-        {
-            context.Response.StatusCode = 401;
-            return Task.CompletedTask;
-        };
-        options.Events.OnRedirectToAccessDenied = context =>
-        {
-            context.Response.StatusCode = 403;
-            return Task.CompletedTask;
-        };
-    });
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = 403;
+        return Task.CompletedTask;
+    };
+});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -83,12 +100,9 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(o =>
 {
-    var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
-        ?? builder.Configuration["Jwt:SecretKey"]!;
-    var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
-        ?? builder.Configuration["Jwt:Issuer"]!;
-    var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
-        ?? builder.Configuration["Jwt:Audience"]!;
+    var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]!;
+    var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
+    var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
     o.TokenValidationParameters = new TokenValidationParameters
     {
@@ -108,7 +122,8 @@ builder.Services.AddAuthorization(o =>
             policy => policy.RequireRole("Admin"));
     });
 
-    builder.Services.AddTransient<ITokenService_dat, TokenService_dat>();
+builder.Services.AddTransient<ITokenService, TokenService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 // Cấu hình CORS
 var corsAllowedOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(';', StringSplitOptions.RemoveEmptyEntries) // Sửa: dùng ; thay vì ,
@@ -154,7 +169,7 @@ app.UseExceptionHandler(errorApp =>
 
 // Sử dụng middleware
 // Add global exception middleware
-app.UseMiddleware<GlobalExceptionMiddleware_dat>();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -163,8 +178,8 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var userManager = services.GetRequiredService<UserManager<AppUser_dat>>();
-    await SeedData_dat.CreateRoles(services, userManager);
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    await SeedData.CreateRoles(services, userManager);
 }
 
 app.Run();

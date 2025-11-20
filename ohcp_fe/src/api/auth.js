@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'https://localhost:7267/api/auth';
+const API_URL_register = 'https://localhost:7267/api/account';
 
 export async function login(email, password) {
     try {
@@ -34,11 +35,11 @@ export async function login(email, password) {
 
 export async function register(username, phonenumber, email, password, confirmPassword) {
     try {
-        const res = await axios.post(`${API_URL}/register`, {
+        const res = await axios.post(`${API_URL_register}/register/patient`, {
             email,
             password,
             confirmPassword,
-            username,
+            FullName: username,
             phonenumber
         });
         return res.data;
@@ -164,3 +165,11 @@ export function setupAxiosInterceptors() {
         }
     );
 }
+
+// Hàm helper mới để gọi API "Đổi Token"
+export const getFirebaseTokenAPI = async (csharpToken) => {
+    const response = await axios.get(`${API_URL}/firebase-token`, { // (Giả sử bạn dùng 'axios')
+        headers: { 'Authorization': `Bearer ${csharpToken}` }
+    });
+    return response.data; // Trả về { firebaseToken: "..." }
+};
