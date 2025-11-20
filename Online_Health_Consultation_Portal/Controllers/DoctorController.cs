@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Data;
+using OHCP_BK.Dtos;
 using OHCP_BK.Models;
 
 namespace OHCP_BK.Controllers
@@ -128,6 +129,40 @@ namespace OHCP_BK.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error deleting doctor {id}: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("search")]
+        [AllowAnonymous] // can see list no need login
+        public async Task<ActionResult<IEnumerable<Doctor>>> SearchDoctors([FromQuery] DoctorSearchDTO search)
+        {
+            try
+            {
+                var query = _context.Doctors.Include(d => d.User).AsQueryable();
+
+                if (!string.IsNullOrEmpty(search.Specialty))
+                {
+                    query = query.Where(d => d.Specialty.Contains(search.Specialty));
+                }
+
+                if (!string.IsNullOrEmpty(search.Name))
+                {
+                    query = query.Where(d => d.FullName.Contains(search.Name));
+                }
+
+                if (!string.IsNullOrEmpty(search.Location))
+                {
+                    query = query.Where(d => d.Location.Contains(search.Location));
+                }
+
+                // Can .Include(d => d.Reviews) to get reviews if needed
+                var doctors = await query.ToListAsync();
+                return Ok(doctors);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
                 return StatusCode(500, "Internal server error");
             }
         }

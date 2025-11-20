@@ -183,6 +183,7 @@ export function AuthProvider({ children }) {
         setTokenExpiry(null);
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
     };
 
     const value = {
