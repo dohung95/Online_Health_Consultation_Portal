@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import Navbar from '../Navbar';
+import Loading from '../Loading';
 
 export function Sign_in() {
     const navigate = useNavigate();
@@ -46,7 +48,7 @@ export function Sign_in() {
         try {
             const success = await login(email, password);
             if (success) {
-                navigate('/profile');
+                navigate('/');
             } else {
                 setError('Invalid email or password');
             }
@@ -58,40 +60,48 @@ export function Sign_in() {
     };
 
     return (
-        <div style={containerStyle}>
-            <h2>Login</h2>
-            {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Email:</label>
-                    <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        disabled={loading}
-                        style={inputStyle}
-                    />
+        <>
+            <div className='Background_Sign_in'>
+                <div className='container'>
+                    <Navbar />
                 </div>
-                <div>
-                    <label>Password:</label>
-                    <input
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={loading}
-                        style={inputStyle}
-                    />
+                <div style={containerStyle}>
+                    <h2>Login</h2>
+                    {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
+                    <form onSubmit={handleSubmit}>
+                        <div>
+                            <label>Email:</label>
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={loading}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label>Password:</label>
+                            <input
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={loading}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <button type="submit" disabled={loading} style={buttonStyle}>
+                            {loading ? 'Loading...' : 'Login'}
+                        </button>
+                    </form>
+                    <p style={{ marginTop: '10px' }}>
+                        Don't have an account? <Link to="/register">Register</Link>
+                    </p>
                 </div>
-                <button type="submit" disabled={loading} style={buttonStyle}>
-                    {loading ? 'Loading...' : 'Login'}
-                </button>
-            </form>
-            <p style={{ marginTop: '10px' }}>
-                Don't have an account? <Link to="/register">Register</Link>
-            </p>
-        </div>
+            </div>
+        </>
+
     );
 }
 
