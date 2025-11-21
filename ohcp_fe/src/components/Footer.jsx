@@ -106,27 +106,27 @@ function Footer() {
               <ul>
                 <li>
                   <NavLink to="/" onClick={scrollToTop}>
-                    <i className="fas fa-home me-2"></i>Home
+                    <i className="fas fa-home me-2"></i>➺ Home
                   </NavLink>
                 </li>
                 <li>
                   <NavLink to="/about_us" onClick={scrollToTop}>
-                    <i className="fas fa-info-circle me-2"></i>About Us
+                    <i className="fas fa-info-circle me-2"></i>➺ About Us
                   </NavLink>
                 </li>
                 <li>
                   <NavLink to="/doctors" onClick={scrollToTop}>
-                    <i className="fas fa-user-md me-2"></i>Doctors
+                    <i className="fas fa-user-md me-2"></i>➺ Doctors
                   </NavLink>
                 </li>
                 <li>
                   <a href="#" onClick={handleAppointmentClick}>
-                    <i className="fas fa-calendar-alt me-2"></i>Schedule
+                    <i className="fas fa-calendar-alt me-2"></i>➺ Schedule
                   </a>
                 </li>
                 <li>
                   <NavLink to="/contact_us" onClick={scrollToTop}>
-                    <i className="fas fa-envelope me-2"></i>Contact Us
+                    <i className="fas fa-envelope me-2"></i>➺ Contact Us
                   </NavLink>
                 </li>
               </ul>
@@ -137,9 +137,51 @@ function Footer() {
               <h5>News Feeds</h5>
               <hr className="footer-title-line" />
               <ul>
-                <li><a href="#">Health Tips 2025</a></li>
-                <li><a href="#">COVID-19 Updates</a></li>
-                <li><a href="#">New AI Features</a></li>
+                <li>
+                  <div className='row'>
+                    <div className='col-md-4'>
+                      <img src="/Hung/discussion.jpg" alt="" style={{ width: "90px", height: "60px" }} />
+                    </div>
+                    <div className='col-md-8'>
+                      <div>
+                        <h6>Jan 20, 2025</h6>
+                      </div>
+                      <div>
+                        <a href="#">Health Tips 2025</a>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div className='row'>
+                    <div className='col-md-4'>
+                      <img src="/Hung/covid19.jpg" alt="" style={{ width: "90px", height: "60px" }} />
+                    </div>
+                    <div className='col-md-8'>
+                      <div>
+                        <h6>Jan 25, 2025</h6>
+                      </div>
+                      <div>
+                        <a href="#">COVID-19 Updates</a>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div className='row'>
+                    <div className='col-md-4'>
+                      <img src="/Hung/medical_AI.png" alt="" style={{ width: "90px", height: "60px" }} />
+                    </div>
+                    <div className='col-md-8'>
+                      <div>
+                        <h6>Jan 30, 2025</h6>
+                      </div>
+                      <div>
+                        <a href="#">New AI Features</a>
+                      </div>
+                    </div>
+                  </div>
+                </li>
               </ul>
             </div>
 
