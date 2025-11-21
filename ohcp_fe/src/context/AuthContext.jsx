@@ -190,24 +190,6 @@ export function AuthProvider({ children }) {
         window.location.href = '/login';
     };
 
-    const value = {
-        user,
-        token,
-        refreshToken,
-        roles,
-        tokenExpiry,
-        login,
-        logout,
-        register,
-        isAuthenticated: !!token,
-        hasRole: (role) => roles.includes(role),
-
-        initiateCall,
-        acceptCall,
-        declineCall,
-        incomingCall
-    }
-
     useEffect(() => {
         // Nếu có token (đã login) VÀ chưa có kết nối
         if (token && !connection) {
@@ -260,7 +242,7 @@ export function AuthProvider({ children }) {
                         const userName = decodedUser.preferred_username || decodedUser.email;
 
                         // Mở cửa sổ Zego (vì BẠN là người gọi)
-                        const callUrl = `/videocall?roomID=${roomId}&userID=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
+                        const callUrl = `/video-calling?roomID=${roomId}&userID=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
                         const windowSpecs = 'width=1000,height=700,noopener,noreferrer';
                         window.open(callUrl, '_blank', windowSpecs);
                     });
@@ -291,11 +273,54 @@ export function AuthProvider({ children }) {
     }, [token, connection]);
 
     // 1. Khi BẠN bấm nút "Gọi"
-    const initiateCall = async (targetUserId, roomId) => {
-        if (connection) {
-            // Gửi tin nhắn cho server, báo server "gọi" targetUserId
-            await connection.invoke("InitiateCall", targetUserId, roomId);
-            // (Bạn nên hiển thị màn hình "Đang gọi..." ở đây)
+    const initiateCall = async (targetUserId, roomId, targetUserName = "User") => {
+        try {
+            // Lấy token và decode để lấy thông tin người gọi
+            const currentToken = localStorage.getItem('token');
+            if (!currentToken) {
+                alert("Lỗi: Bạn chưa đăng nhập. Vui lòng đăng nhập lại.");
+                return;
+            }
+
+            const decodedUser = decodeToken(currentToken);
+            if (!decodedUser) {
+                alert("Lỗi: Token không hợp lệ.");
+                return;
+            }
+
+            const currentUserId = decodedUser.sub;
+            const currentUserName = decodedUser.preferred_username || decodedUser.email || "User";
+
+            console.log('Initiating call:', {
+                currentUserId,
+                currentUserName,
+                targetUserId,
+                targetUserName,
+                roomId
+            });
+
+            // ===== THÊM ĐOẠN NÀY: GỬI THÔNG BÁO CHO NGƯỜI NHẬN =====
+            if (connection) {
+                // Gửi thông báo qua SignalR cho bệnh nhân
+                await connection.invoke("InitiateCall", targetUserId, roomId);
+                console.log(`✓ Đã gửi thông báo cuộc gọi đến ${targetUserName}`);
+            } else {
+                console.error("Lỗi: Không có kết nối SignalR");
+                alert("Lỗi: Không thể gửi thông báo cuộc gọi. Vui lòng thử lại.");
+                return;
+            }
+            // =========================================================
+
+            // Điều hướng người gọi đến trang video call
+            const callUrl = `/video-calling?roomID=${roomId}&userID=${encodeURIComponent(currentUserId)}&userName=${encodeURIComponent(currentUserName)}`;
+
+            // Mở trong tab mới hoặc điều hướng trực tiếp
+            const windowSpecs = 'width=1000,height=700,noopener,noreferrer';
+            window.open(callUrl, '_blank', windowSpecs);
+
+        } catch (error) {
+            console.error("Error initiating call:", error);
+            alert("Không thể bắt đầu cuộc gọi: " + error.message);
         }
     };
 
@@ -330,7 +355,7 @@ export function AuthProvider({ children }) {
             await connection.invoke("AcceptCall", incomingCall.callerId, incomingCall.roomId);
 
             // 6. Mở cửa sổ Zego (vì BẠN là người nhận)
-            const callUrl = `/videocall?roomID=${incomingCall.roomId}&userID=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
+            const callUrl = `/video-calling?roomID=${incomingCall.roomId}&userID=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
             const windowSpecs = 'width=1000,height=700,noopener,noreferrer';
             window.open(callUrl, '_blank', windowSpecs);
 
@@ -348,6 +373,24 @@ export function AuthProvider({ children }) {
             setIncomingCall(null); // Đóng pop-up
         }
     };
+
+    const value = {
+        user,
+        token,
+        refreshToken,
+        roles,
+        tokenExpiry,
+        login,
+        logout,
+        register,
+        isAuthenticated: !!token,
+        hasRole: (role) => roles.includes(role),
+
+        initiateCall,
+        acceptCall,
+        declineCall,
+        incomingCall
+    }
 
     return (
         <AuthContext.Provider value={value}>

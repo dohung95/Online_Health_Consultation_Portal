@@ -106,12 +106,43 @@ const MyAppointments = () => {
         }
     };
 
-    const handleVideoCall = (patientId) => {
-        const targetUserId = patientId;
-        const uniqueRoomId = `consultation-${Date.now()}`;
-        initiateCall(targetUserId, uniqueRoomId);
-    };
+    const handleVideoCall = async (appointment) => {
+        try {
+            // Lấy thông tin từ appointment
+            const patientID = appointment.patientID;
+            const doctorID = appointment.doctorID;
+            const patientName = appointment.patient?.fullName || "Patient";
+            const doctorName = appointment.doctor?.fullName || "Doctor";
 
+            // Kiểm tra xem user hiện tại là ai
+            const isDoctor = roles && roles.some(r => String(r).trim().toLowerCase() === 'doctor');
+
+            // Xác định target user (người được gọi)
+            const targetUserId = isDoctor ? patientID : doctorID;
+            const targetUserName = isDoctor ? patientName : doctorName;
+
+            // Tạo Room ID bằng cách trộn DoctorID + PatientID và lấy 40 ký tự
+            const combinedId = doctorID + patientID;
+            const roomId = combinedId.substring(0, 40);
+
+            console.log('Video Call Info:', {
+                patientID,
+                doctorID,
+                patientName,
+                doctorName,
+                roomId,
+                targetUserId,
+                targetUserName
+            });
+
+            // Gọi hàm initiateCall với thông tin đầy đủ
+            initiateCall(targetUserId, roomId, targetUserName);
+
+        } catch (error) {
+            console.error("Error initiating video call:", error);
+            alert("Không thể bắt đầu cuộc gọi video.");
+        }
+    };
     const getStatusBadge = (status) => {
         switch (status) {
             case 'Scheduled': return 'bg-success';
@@ -194,10 +225,10 @@ const MyAppointments = () => {
                                                 </button>
                                             )}
 
-                                            {item.consultationType === 'video_call' && item.status === 'Scheduled' && (
+                                            {item.consultationType === 'video call' && item.status === 'Scheduled' && (
                                                 <button
                                                     className="btn btn-sm btn-success"
-                                                    onClick={() => handleVideoCall(item.patientId)}
+                                                    onClick={() => handleVideoCall(item)}  // ← Truyền cả object "item"
                                                     title="Start video call"
                                                 >
                                                     <i className="bi bi-camera-video me-1"></i>
