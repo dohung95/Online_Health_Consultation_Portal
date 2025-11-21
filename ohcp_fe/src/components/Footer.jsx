@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import './Css/Footer.css';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Footer() {
   const [isVisible, setIsVisible] = useState(false);
+  const { isAuthenticated, roles } = useAuth();
+  const navigate = useNavigate();
+
+  const isAdmin = roles.includes('admin');
+  const isDoctor = roles.includes('doctor');
+  const isUser = roles.includes('patient');
 
   const toggleVisibility = () => {
     if (window.pageYOffset > 300) {
@@ -18,6 +25,27 @@ function Footer() {
       top: 0,
       behavior: 'smooth'
     });
+  };
+
+  // Handle appointment button click with authentication and role check
+  const handleAppointmentClick = (e) => {
+    e.preventDefault();
+
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    // Check role - only Patient can access schedule
+    if (isUser) {
+      navigate('/schedule');
+      scrollToTop();
+    } else {
+      // Doctor or Admin - redirect to home
+      navigate('/');
+      scrollToTop();
+    }
   };
 
   useEffect(() => {
@@ -76,10 +104,31 @@ function Footer() {
               <h5>Links</h5>
               <hr className="footer-title-line" />
               <ul>
-                <li><a href="#">About Us</a></li>
-                <li><a href="#">Services</a></li>
-                <li><a href="#">Doctors</a></li>
-                <li><a href="#">Blog</a></li>
+                <li>
+                  <NavLink to="/" onClick={scrollToTop}>
+                    <i className="fas fa-home me-2"></i>➺ Home
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/about_us" onClick={scrollToTop}>
+                    <i className="fas fa-info-circle me-2"></i>➺ About Us
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/doctors" onClick={scrollToTop}>
+                    <i className="fas fa-user-md me-2"></i>➺ Doctors
+                  </NavLink>
+                </li>
+                <li>
+                  <a href="#" onClick={handleAppointmentClick}>
+                    <i className="fas fa-calendar-alt me-2"></i>➺ Schedule
+                  </a>
+                </li>
+                <li>
+                  <NavLink to="/contact_us" onClick={scrollToTop}>
+                    <i className="fas fa-envelope me-2"></i>➺ Contact Us
+                  </NavLink>
+                </li>
               </ul>
             </div>
 
@@ -88,9 +137,51 @@ function Footer() {
               <h5>News Feeds</h5>
               <hr className="footer-title-line" />
               <ul>
-                <li><a href="#">Health Tips 2025</a></li>
-                <li><a href="#">COVID-19 Updates</a></li>
-                <li><a href="#">New AI Features</a></li>
+                <li>
+                  <div className='row'>
+                    <div className='col-md-4'>
+                      <img src="/Hung/discussion.jpg" alt="" style={{ width: "90px", height: "60px" }} />
+                    </div>
+                    <div className='col-md-8'>
+                      <div>
+                        <h6>Jan 20, 2025</h6>
+                      </div>
+                      <div>
+                        <a href="#">Health Tips 2025</a>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div className='row'>
+                    <div className='col-md-4'>
+                      <img src="/Hung/covid19.jpg" alt="" style={{ width: "90px", height: "60px" }} />
+                    </div>
+                    <div className='col-md-8'>
+                      <div>
+                        <h6>Jan 25, 2025</h6>
+                      </div>
+                      <div>
+                        <a href="#">COVID-19 Updates</a>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div className='row'>
+                    <div className='col-md-4'>
+                      <img src="/Hung/medical_AI.png" alt="" style={{ width: "90px", height: "60px" }} />
+                    </div>
+                    <div className='col-md-8'>
+                      <div>
+                        <h6>Jan 30, 2025</h6>
+                      </div>
+                      <div>
+                        <a href="#">New AI Features</a>
+                      </div>
+                    </div>
+                  </div>
+                </li>
               </ul>
             </div>
 

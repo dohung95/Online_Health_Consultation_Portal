@@ -25,6 +25,9 @@ namespace OHCP_BK.Models
         [Required]
         public string Instructions { get; set; } = null!;
         public DateTime IssueDate { get; set; } = DateTime.Now;
+        
+        // Total number of days the medication supply will last
+        public int TotalSupplyDays { get; set; }
 
         public virtual Consultation Consultation { get; set; } = null!;
         public virtual Patient Patient { get; set; } = null!;

@@ -17,8 +17,8 @@ const BOT_USER = {
 const styles = {
     chatIcon: {
         position: 'fixed',
-        bottom: '30px',
-        right: '30px',
+        bottom: '70px',
+        right: '20px',
         width: '60px',
         height: '60px',
         cursor: 'pointer',
@@ -69,6 +69,20 @@ export default function Chat() {
             setFirebaseUser(user);
         });
         return unsubscribe;
+    }, []);
+
+    // Listen for custom event to open chat with pre-filled message
+    useEffect(() => {
+        const handleOpenChat = (event) => {
+            const { message } = event.detail || {};
+            setIsChatBoxOpen(true);
+            if (message) {
+                setFormValue(message);
+            }
+        };
+
+        window.addEventListener('openChatWithMessage', handleOpenChat);
+        return () => window.removeEventListener('openChatWithMessage', handleOpenChat);
     }, []);
 
     const isPatient = roles?.includes('patient');

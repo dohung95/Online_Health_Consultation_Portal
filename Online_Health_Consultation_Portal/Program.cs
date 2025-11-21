@@ -125,6 +125,11 @@ builder.Services.AddAuthorization(o =>
 builder.Services.AddTransient<ITokenService, TokenService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 
+// Đăng ký dịch vụ nhắc nhở
+builder.Services.AddScoped<IMedicationReminderService, MedicationReminderService>();
+builder.Services.AddScoped<IFollowUpReminderService, FollowUpReminderService>();
+builder.Services.AddHostedService<ReminderBackgroundService>();
+
 // Cấu hình CORS
 var corsAllowedOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(';', StringSplitOptions.RemoveEmptyEntries) // Sửa: dùng ; thay vì ,
     .Select(o => o.Trim()).ToArray() ?? ["http://localhost:63527"]; // Sửa: dùng 63527 thay 5173

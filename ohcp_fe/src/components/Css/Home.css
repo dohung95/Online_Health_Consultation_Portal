@@ -1,37 +1,215 @@
-.Background_Home {
-    /* Đường dẫn ảnh nền */
-    background-image: url('/public/Hung/Background_Home.jpg');
+/* ================================================================== */
+/* HOME PAGE CSS - SCOPED TO .home-page ONLY */
+/* ================================================================== */
 
-    /* Hiển thị toàn bộ ảnh, co giãn vừa khít màn hình mà không bị méo */
+/* ==================== BACKGROUND ==================== */
+.home-page .Background_Home {
+    background-image: url('/public/Hung/03_header.jpg');
     background-size: cover;
-
-    /* Ảnh nền nằm giữa, ưu tiên hiển thị phần trung tâm đẹp nhất */
     background-position: center center;
-
-    /* Không lặp lại ảnh */
     background-repeat: no-repeat;
-
-    /* Cố định nền khi cuộn trang (tùy chọn, rất phổ biến cho trang chủ) */
     background-attachment: fixed;
-
-    /* Đảm bảo lớp nền phủ toàn bộ chiều cao màn hình */
     min-height: 100vh;
-
-    /* Nếu muốn nội dung phía trên dễ đọc, có thể thêm lớp tối mờ (tùy chọn) */
     position: relative;
 }
 
-/* Tùy chọn: thêm lớp overlay tối để chữ trắng dễ đọc hơn */
-.Background_Home::before {
+.home-page .Background_Home::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 1;
-    background: rgba(0, 0, 0, 0.042);
+    background: rgba(255, 255, 255, 0.1);
 }
 
-/* Đảm bảo nội dung con nằm trên lớp overlay */
-.Background_Home > * {
+.home-page .Background_Home > * {
     position: relative;
     z-index: 2;
+}
+
+/* ==================== HERO SECTION ==================== */
+.home-page .hero-subtitle {
+    color: #006492;
+    padding: 5vh 0 2vh 0;
+    text-shadow: 0px 0px 8px #ffffff;
+}
+
+.home-page .hero-title {
+    font-size: 3vw;
+    font-weight: bolder;
+    padding: 0 0 2vh 0;
+}
+
+.home-page .hero-description {
+    font-weight: bold;
+    width: 60%;
+    padding: 0 0 4vh 0;
+}
+
+.home-page .btn-about-us {
+    background-color: #006492;
+    color: white;
+    border: none;
+    width: 200px;
+    height: 50px;
+    font-size: 1vw;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.home-page .btn-about-us:hover {
+    background-color: #004d70;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 100, 146, 0.3);
+}
+
+/* ==================== SERVICES SECTION ==================== */
+.home-page .services-row {
+    padding: 0 30vh;
+    color: white;
+    text-align: center;
+}
+
+.home-page .service-card {
+    padding-bottom: 20px;
+}
+
+.home-page .service-card-blue {
+    background-color: #3EB7E9;
+}
+
+.home-page .service-card-dark {
+    background-color: #006492;
+}
+
+.home-page .service-icon {
+    padding-top: 2vw;
+}
+
+.home-page .service-icon-large {
+    padding-top: 3vw;
+}
+
+.home-page .service-helper-text {
+    padding: 3% 0;
+}
+
+.home-page .service-title {
+    padding: 3% 0;
+    font-size: 1.5vw;
+}
+
+.home-page .service-description {
+    padding: 3% 0 5% 0;
+}
+
+.home-page .svg-doctor {
+    width: 4.5vw;
+}
+
+/* ==================== SERVICE BUTTONS WITH EFFECTS ==================== */
+.home-page .service-btn {
+    display: inline-block;
+    padding: 12px 30px;
+    border: 2px solid white;
+    border-radius: 50px;
+    background: transparent;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* Hiệu ứng nền trượt từ trái sang */
+.home-page .service-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: white;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: -1;
+}
+
+.home-page .service-btn:hover {
+    color: #006492;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+}
+
+.home-page .service-btn:hover::before {
+    left: 0;
+}
+
+.home-page .service-btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+/* ==================== BUTTON VARIANTS ==================== */
+/* Chat with AI Button - Màu xanh cyan */
+.home-page .service-btn-chat {
+    border-color: #00e0ff;
+}
+
+.home-page .service-btn-chat::before {
+    background: linear-gradient(135deg, #00e0ff 0%, #ffffff 100%);
+}
+
+.home-page .service-btn-chat:hover {
+    color: #006492;
+    box-shadow: 0 8px 25px rgba(0, 224, 255, 0.4);
+}
+
+/* View Doctor Button - Màu trắng */
+.home-page .service-btn-doctor {
+    border-color: #ffffff;
+}
+
+.home-page .service-btn-doctor::before {
+    background: linear-gradient(135deg, #ffffff 0%, #e0f7ff 100%);
+}
+
+.home-page .service-btn-doctor:hover {
+    color: #006492;
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4);
+}
+
+/* Appointment Button - Màu vàng nhạt */
+.home-page .service-btn-appointment {
+    border-color: #ffd700;
+}
+
+.home-page .service-btn-appointment::before {
+    background: linear-gradient(135deg, #ffd700 0%, #ffffff 100%);
+}
+
+.home-page .service-btn-appointment:hover {
+    color: #006492;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+}
+
+/* ==================== RIPPLE EFFECT ON CLICK ==================== */
+.home-page .service-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.home-page .service-btn:active::after {
+    width: 200px;
+    height: 200px;
 }

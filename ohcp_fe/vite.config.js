@@ -5,6 +5,6 @@ export default defineConfig({
     plugins: [react()],
     server: {
         port: 63527, // Cổng frontend
-        open: true,
+        open: false,
     },
 });

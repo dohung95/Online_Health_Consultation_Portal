@@ -19,6 +19,7 @@ import ContactUs from './components/ContactUs';
 import AboutUs from './components/AboutUs';
 import './App.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import ScrollToTop from './components/ScrollToTop';
 import { ChatProvider } from './context/ChatContext';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
       <Router>
         <div className="App">
           <Chat />
+          <ScrollToTop />
           <div>
             <Routes>
               <Route path="/" element={<Home />} />
