@@ -12,7 +12,7 @@ using OHCP_BK.Data;
 namespace OHCP_BK.Migrations
 {
     [DbContext(typeof(OHCPContext))]
-    [Migration("20251119113849_v1")]
+    [Migration("20251121061906_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -279,6 +279,9 @@ namespace OHCP_BK.Migrations
                     b.Property<DateTime?>("EndTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("FollowUpDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("StartTime")
                         .HasColumnType("datetime2");
 
@@ -530,6 +533,9 @@ namespace OHCP_BK.Migrations
                     b.Property<string>("PatientID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("TotalSupplyDays")
+                        .HasColumnType("int");
 
                     b.HasKey("PrescriptionID");
 
