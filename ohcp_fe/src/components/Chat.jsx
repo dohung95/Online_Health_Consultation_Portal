@@ -15,8 +15,8 @@ const BOT_USER = {
 const styles = {
     chatIcon: {
         position: 'fixed',
-        bottom: '30px',
-        right: '30px',
+        bottom: '70px',
+        right: '20px',
         width: '60px',
         height: '60px',
         cursor: 'pointer',
