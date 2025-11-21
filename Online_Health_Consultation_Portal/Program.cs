@@ -12,6 +12,7 @@ using OHCP_BK.Services;
 using System;
 using System.Text;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -155,6 +156,15 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true;
     });
+
+// Đăng ký dịch vụ SignalR
+builder.Services.AddSignalR();
+
+// === ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT ===
+// Dạy SignalR cách lấy User ID từ "sub" (Subject) trong JWT Token của bạn
+// (Vì chúng ta dùng "Con đường khó", chúng ta phải làm thủ công)
+builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -185,6 +195,8 @@ app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+// Đăng ký đường dẫn cho Hub
+app.MapHub<OHCP_BK.Hubs.NotificationCalling>("/notificationcalling");
 
 using (var scope = app.Services.CreateScope())
 {
