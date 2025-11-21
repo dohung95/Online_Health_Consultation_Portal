@@ -17,9 +17,10 @@ Online_Health_Consultation_Portal/serviceAccountKey.json
 
 # === Node.js (Cho React) ===
 # Lờ thư mục thư viện
-ohcp_fe/node_modules/
-ohcp_fe/OHCP_FE.esproj.user
+/ohcp_fe/node_modules/
+/ohcp_fe/OHCP_FE.esproj.user
 /ohcp_fe/obj/
+/ohcp_fe/src/config.js
 
 # Lờ các file build output
 /dist/

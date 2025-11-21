@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Gemini API Config (contains sensitive keys)
+src/config.js
