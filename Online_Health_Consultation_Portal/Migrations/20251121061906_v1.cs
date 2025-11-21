@@ -354,7 +354,8 @@ namespace OHCP_BK.Migrations
                     AppointmentID = table.Column<int>(type: "int", nullable: false),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DoctorNotes = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    DoctorNotes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FollowUpDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -430,7 +431,8 @@ namespace OHCP_BK.Migrations
                     MedicationName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Dosage = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Instructions = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IssueDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    IssueDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalSupplyDays = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
