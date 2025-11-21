@@ -71,6 +71,7 @@ const MyAppointments = () => {
                             <tr>
                                 <th>Date & Time</th>
                                 <th>Doctor</th>
+                                <th>Patient</th>
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -91,6 +92,14 @@ const MyAppointments = () => {
                                         <strong>{item.doctor?.fullName || "Unknown Doctor"}</strong>
                                         <br/>
                                         <small className="text-muted">{item.doctor?.specialty}</small>
+                                    </td>
+
+                                    <td>
+                                        <span className="text-capitalize">{item.patient?.fullName || "Unknown Patient"}</span>
+                                        <br />
+                                        <small className="text-muted">
+                                            {item.patient?.dateOfBirth ? new Date(item.patient.dateOfBirth).toLocaleDateString('vi-VN') : 'N/A'}
+                                        </small>
                                     </td>
 
                                     <td>

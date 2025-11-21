@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { collection, query, orderBy, limit, addDoc, serverTimestamp, onSnapshot, where, doc, setDoc } from "firebase/firestore";
-import getBotResponse from '../AI_BOT/BotBrain'
+import getBotResponse from '../AI_BOT/BotBrain';
+import { getGeminiResponse } from '../services/geminiService';
 
 const usersRef = collection(db, "users");
 
@@ -145,8 +146,8 @@ export default function Chat() {
         if (targetUid === BOT_USER.uid) {
             // === LOGIC CHO BOT (KHÔNG LƯU DB) ===
 
-            // Bot "suy nghĩ" (Hàm này được import từ 'BotBrain.js')
-            const botReplyText = getBotResponse(currentMessageText);
+            // Bot "suy nghĩ" với Gemini AI (tự động fallback nếu lỗi)
+            const botReplyText = await getGeminiResponse(currentMessageText, []);
 
             // Giả lập Bot đang gõ (1 giây)
             await new Promise(resolve => setTimeout(resolve, 1000));
