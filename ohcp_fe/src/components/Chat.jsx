@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 import { collection, query, orderBy, limit, addDoc, serverTimestamp, onSnapshot, where, doc, setDoc } from "firebase/firestore";
 import getBotResponse from '../AI_BOT/BotBrain';
 import { getGeminiResponse } from '../services/geminiService';
@@ -40,12 +41,19 @@ export default function Chat() {
     const scrollTo = useRef(null);
     const [messages, setMessages] = useState([]);
 
-    const [userList, setUserList] = useState([]); 
+    const [userList, setUserList] = useState([]);
     const [doctorList, setDoctorList] = useState([]);
-    const [chatPartner, setChatPartner] = useState(null);
+
+    // Use Context instead of local state
+    const {
+        isChatOpen: isChatBoxOpen,
+        setIsChatOpen: setIsChatBoxOpen,
+        selectedChatPartner: chatPartner,
+        setSelectedChatPartner: setChatPartner
+    } = useChat();
 
     const [loading, setLoading] = useState(false);
-    const [isChatBoxOpen, setIsChatBoxOpen] = useState(false);
+    // const [isChatBoxOpen, setIsChatBoxOpen] = useState(false); // Removed local state
 
     // State new for "mini-menu"
     const [showDoctorListModal, setShowDoctorListModal] = useState(false);
@@ -70,7 +78,10 @@ export default function Chat() {
     useEffect(() => {
         if (firebaseUser) {
             if (isPatient) {
-                setChatPartner(BOT_USER);
+                // Only set default bot if no partner is selected yet
+                if (!chatPartner) {
+                    setChatPartner(BOT_USER);
+                }
 
                 // load list doctor
                 const qDoctors = query(usersRef, where("role", "==", "doctor"));
@@ -95,8 +106,8 @@ export default function Chat() {
         if (firebaseUser && chatPartner) {
             setLoading(true);
 
-            const myUid = firebaseUser.uid;
-            const targetUid = chatPartner.uid;
+            const myUid = firebaseUser.uid.replace(/-/g, '');
+            const targetUid = chatPartner.uid.replace(/-/g, '');
             const chatRoomId = myUid < targetUid ? `${myUid}_${targetUid}` : `${targetUid}_${myUid}`;
 
             const messagesCollectionRef = collection(db, "chats", chatRoomId, "messages");
@@ -120,8 +131,8 @@ export default function Chat() {
 
         // 1. Lấy thông tin người gửi (LẤY CẢ 'displayName')
         const { uid, photoURL } = firebaseUser;
-        const myUid = uid;
-        const targetUid = chatPartner.uid;
+        const myUid = uid.replace(/-/g, '');
+        const targetUid = chatPartner.uid.replace(/-/g, '');
 
         const displayName = csharpUser.preferred_username || "User";
 
@@ -290,7 +301,7 @@ export default function Chat() {
                                         ))}
                                     </ul>
                                 ) : (
-                                    <> 
+                                    <>
                                         {loading && <p className="text-center text-muted">Loading message...</p>}
                                         {messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
                                         <div ref={scrollTo}></div>
