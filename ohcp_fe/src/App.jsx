@@ -19,12 +19,14 @@ import ContactUs from './components/ContactUs';
 import AboutUs from './components/AboutUs';
 import './App.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <Router>
       <div className="App">
         <Chat />
+        <ScrollToTop />
         <div>
           <Routes>
             <Route path="/" element={<Home />} />

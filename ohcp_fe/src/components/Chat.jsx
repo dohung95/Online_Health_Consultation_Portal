@@ -63,6 +63,20 @@ export default function Chat() {
         return unsubscribe;
     }, []);
 
+    // Listen for custom event to open chat with pre-filled message
+    useEffect(() => {
+        const handleOpenChat = (event) => {
+            const { message } = event.detail || {};
+            setIsChatBoxOpen(true);
+            if (message) {
+                setFormValue(message);
+            }
+        };
+
+        window.addEventListener('openChatWithMessage', handleOpenChat);
+        return () => window.removeEventListener('openChatWithMessage', handleOpenChat);
+    }, []);
+
     const isPatient = roles?.includes('patient');
     const isDoctor = roles?.includes('doctor');
 
