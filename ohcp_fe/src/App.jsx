@@ -20,34 +20,37 @@ import AboutUs from './components/AboutUs';
 import './App.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import ScrollToTop from './components/ScrollToTop';
+import { ChatProvider } from './context/ChatContext';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Chat />
-        <ScrollToTop />
-        <div>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/contact_us" element={<ContactUs />} />
-            <Route path="/about_us" element={<AboutUs />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/my-appointments" element={<MyAppointments />} />
-            <Route path="/doctors" element={<Doctors />} />
-            <Route path="/records" element={<Records />} />
-            <Route path="/video" element={<Video />} />
-            <Route path="/prescription" element={<Prescription />} />
-            <Route path="/payment" element={<Payment />} />
-            <Route path="/reminders" element={<Reminders />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/login" element={<Sign_in />} />
-            <Route path="/register" element={<Sign_up />} />
-          </Routes>
+    <ChatProvider>
+      <Router>
+        <div className="App">
+          <Chat />
+          <ScrollToTop />
+          <div>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/contactus" element={<ContactUs />} />
+              <Route path="/aboutus" element={<AboutUs />} />
+              <Route path="/schedule" element={<Schedule />} />
+              <Route path="/my-appointments" element={<MyAppointments />} />
+              <Route path="/doctors" element={<Doctors />} />
+              <Route path="/records" element={<Records />} />
+              <Route path="/video" element={<Video />} />
+              <Route path="/prescription" element={<Prescription />} />
+              <Route path="/payment" element={<Payment />} />
+              <Route path="/reminders" element={<Reminders />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/login" element={<Sign_in />} />
+              <Route path="/register" element={<Sign_up />} />
+            </Routes>
+          </div>
+          <Footer />
         </div>
-        <Footer />
-      </div>
-    </Router>
+      </Router>
+    </ChatProvider>
   );
 }
 
