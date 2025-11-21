@@ -21,11 +21,14 @@ import './App.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import ScrollToTop from './components/ScrollToTop';
 import { ChatProvider } from './context/ChatContext';
+import VideocallPage from './pages/video-calling';
+import IncomingCallModal from './components/IncomingCallModal';
 
 function App() {
   return (
     <ChatProvider>
       <Router>
+        <IncomingCallModal />
         <div className="App">
           <Chat />
           <ScrollToTop />
@@ -45,6 +48,7 @@ function App() {
               <Route path="/admin" element={<Admin />} />
               <Route path="/login" element={<Sign_in />} />
               <Route path="/register" element={<Sign_up />} />
+              <Route path="/video-call" element={<VideocallPage />} />
             </Routes>
           </div>
           <Footer />

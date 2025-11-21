@@ -10,7 +10,7 @@ const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const { roles } = useAuth();
+    const { roles, initiateCall } = useAuth();
     const { openChatWith } = useChat();
 
     useEffect(() => {
@@ -106,8 +106,10 @@ const MyAppointments = () => {
         }
     };
 
-    const handleVideoCall = (appointment) => {
-        navigate(`/video-call/${appointment.appointmentID}`);
+    const handleVideoCall = (patientId) => {
+        const targetUserId = patientId;
+        const uniqueRoomId = `consultation-${Date.now()}`;
+        initiateCall(targetUserId, uniqueRoomId);
     };
 
     const getStatusBadge = (status) => {
@@ -195,7 +197,7 @@ const MyAppointments = () => {
                                             {item.consultationType === 'video_call' && item.status === 'Scheduled' && (
                                                 <button
                                                     className="btn btn-sm btn-success"
-                                                    onClick={() => handleVideoCall(item)}
+                                                    onClick={() => handleVideoCall(item.patientId)}
                                                     title="Start video call"
                                                 >
                                                     <i className="bi bi-camera-video me-1"></i>
