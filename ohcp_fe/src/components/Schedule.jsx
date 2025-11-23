@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { appointmentService } from '../api/appointmentApi';
-import { useNavigate } from 'react-router-dom';
-import Navbar from './Navbar';
+import { doctorService } from '../api/doctorApi';
+import { useNavigate, useParams } from 'react-router-dom';
 import './Css/Schedule.css';
 import Loading from './Loading';
 
@@ -14,15 +14,20 @@ function Schedule() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [consultationType, setConsultationType] = useState('video');
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const { doctorId } = useParams();
 
   // 1. Load list of Doctors
   useEffect(() => {
     async function fetchDoctors() {
       try {
-        const data = await appointmentService.searchDoctors({});
+        const data = await doctorService.getAllDoctors();
+
         setDoctors(data);
-        // Automatically select the first doctor
-        if (data.length > 0) setSelectedDoctor(data[0].doctorID);
+
+        // if (data.length > 0) setSelectedDoctor(data[0].doctorID);
+        if (doctorId) {
+          setSelectedDoctor(doctorId);
+        }
       } catch (error) {
         console.error("Failed to load doctors", error);
       }
@@ -93,9 +98,6 @@ function Schedule() {
   return (
     <>
       <div className='Background_Schedule'>
-        <div className='container'>
-                    <Navbar />
-                </div>
         <div className="section container mt-4">
           <h2>Virtual Consultation Scheduling</h2>
           <p>Browse and select from available doctors and schedule your appointment.</p>
@@ -106,6 +108,7 @@ function Schedule() {
               className="form-control"
               value={selectedDoctor}
               onChange={(e) => setSelectedDoctor(e.target.value)}
+              disabled={!!doctorId}
             >
               <option value="">-- Choose a Doctor --</option>
               {doctors.map(doc => (
@@ -114,6 +117,11 @@ function Schedule() {
                 </option>
               ))}
             </select>
+            {doctorId && (
+              <div className="form-text">
+                Booking for specific doctor. <a href="/doctors">Change doctor?</a>
+              </div>
+            )}
           </div>
 
           <div className="form-group mb-3">

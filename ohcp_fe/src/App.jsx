@@ -23,6 +23,8 @@ import ScrollToTop from './components/ScrollToTop';
 import { ChatProvider } from './context/ChatContext';
 import VideocallPage from './pages/video-calling';
 import IncomingCallModal from './components/IncomingCallModal';
+import Navbar from './components/Navbar';
+import DoctorProfile from './components/DoctorProfile';
 
 function App() {
   return (
@@ -43,7 +45,7 @@ function AppContent() {
     <>
       {!isVideoCallPage && <IncomingCallModal />}
       <div className="App">
-        {!isVideoCallPage && <Chat />}
+        {!isVideoCallPage && <Chat /> && <Navbar />}
         <ScrollToTop />
         <div>
           <Routes>
@@ -51,8 +53,10 @@ function AppContent() {
             <Route path="/contactus" element={<ContactUs />} />
             <Route path="/aboutus" element={<AboutUs />} />
             <Route path="/schedule" element={<Schedule />} />
+            <Route path="/book/:doctorId" element={<Schedule />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
             <Route path="/doctors" element={<Doctors />} />
+            <Route path="/doctor/:id" element={<DoctorProfile />} />
             <Route path="/records" element={<Records />} />
             <Route path="/video" element={<Video />} />
             <Route path="/prescription" element={<Prescription />} />
