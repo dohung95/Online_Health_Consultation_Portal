@@ -9,7 +9,6 @@ namespace OHCP_BK.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class DoctorController : ControllerBase
     {
         private readonly OHCPContext _context;
@@ -21,15 +20,71 @@ namespace OHCP_BK.Controllers
             _logger = logger;
         }
 
-        // GET: api/Doctor
+        // =============================================================
+        // 1. PUBLIC API: SEARCH (?ã s?a ?? dùng logic Phân trang)
+        // =============================================================
+        [HttpGet("search")]
+        [AllowAnonymous]
+        public async Task<ActionResult<PagedResult<DoctorDetailDTO>>> SearchDoctors([FromQuery] DoctorFilterInputDTO search)
+        {
+            try
+            {
+                // G?i hàm riêng (private method) ? d??i ?? x? lý
+                var result = await GetPagedDoctorsAsync(search);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error searching doctors: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // =============================================================
+        // 2. PUBLIC API: GET DETAIL
+        // =============================================================
+        [HttpGet("{id}")]
+        public async Task<ActionResult<DoctorDetailDTO>> GetDoctor(string id)
+        {
+            var doctor = await _context.Doctors
+                .Include(d => d.Reviews).ThenInclude(r => r.Patient)
+                .FirstOrDefaultAsync(d => d.DoctorID == id);
+
+            if (doctor == null) return NotFound();
+
+            return Ok(new DoctorDetailDTO
+            {
+                DoctorID = doctor.DoctorID,
+                FullName = doctor.FullName,
+                Specialty = doctor.Specialty,
+                Qualifications = doctor.Qualifications,
+                YearsOfExperience = doctor.YearsOfExperience,
+                LanguageSpoken = doctor.LanguageSpoken,
+                Location = doctor.Location,
+                AverageRating = doctor.Reviews.Any() ? doctor.Reviews.Average(r => r.Rating) : 0,
+                TotalReviews = doctor.Reviews.Count,
+                Reviews = doctor.Reviews.Select(r => new ReviewDTO
+                {
+                    ReviewID = r.ReviewID,
+                    PatientName = r.Patient?.FullName ?? "Hidden",
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    ReviewDate = r.ReviewDate
+                }).ToList()
+            });
+        }
+
+        // =============================================================
+        // 3. ADMIN API: CRUD (Gi? nguyên cho Admin qu?n lý)
+        // =============================================================
+
+        // GET: api/Doctor (Danh sách thô cho Admin)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
         {
             try
             {
-                var doctors = await _context.Doctors
-                    .Include(d => d.User)
-                    .ToListAsync();
+                var doctors = await _context.Doctors.Include(d => d.User).ToListAsync();
                 return Ok(doctors);
             }
             catch (Exception ex)
@@ -39,57 +94,16 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        // GET: api/Doctor/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Doctor>> GetDoctor(string id)
-        {
-            try
-            {
-                var doctor = await _context.Doctors
-                    .Include(d => d.User)
-                    .Include(d => d.Appointments)
-                    .Include(d => d.Reviews)
-                    .FirstOrDefaultAsync(d => d.DoctorID == id);
-
-                if (doctor == null)
-                {
-                    return NotFound($"Doctor with ID {id} not found");
-                }
-
-                return Ok(doctor);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error getting doctor {id}: {ex.Message}");
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
-        // NOTE: Doctor account creation is handled by admin only:
-        // - Admin creation: POST /api/Admin/create/doctor [Authorize(Roles="admin")]
-        // This controller only handles CRUD operations on existing doctor profiles
-
         // PUT: api/Doctor/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDoctor(string id, [FromBody] Doctor doctor)
         {
             try
             {
-                if (id != doctor.DoctorID)
-                {
-                    return BadRequest("Doctor ID mismatch");
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+                if (id != doctor.DoctorID) return BadRequest("Doctor ID mismatch");
 
                 var existingDoctor = await _context.Doctors.FindAsync(id);
-                if (existingDoctor == null)
-                {
-                    return NotFound($"Doctor with ID {id} not found");
-                }
+                if (existingDoctor == null) return NotFound($"Doctor with ID {id} not found");
 
                 existingDoctor.FullName = doctor.FullName;
                 existingDoctor.Qualifications = doctor.Qualifications;
@@ -99,7 +113,6 @@ namespace OHCP_BK.Controllers
                 existingDoctor.Location = doctor.Location;
 
                 await _context.SaveChangesAsync();
-
                 return NoContent();
             }
             catch (Exception ex)
@@ -116,14 +129,10 @@ namespace OHCP_BK.Controllers
             try
             {
                 var doctor = await _context.Doctors.FindAsync(id);
-                if (doctor == null)
-                {
-                    return NotFound($"Doctor with ID {id} not found");
-                }
+                if (doctor == null) return NotFound($"Doctor with ID {id} not found");
 
                 _context.Doctors.Remove(doctor);
                 await _context.SaveChangesAsync();
-
                 return NoContent();
             }
             catch (Exception ex)
@@ -133,36 +142,74 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        [HttpGet("search")]
-        [AllowAnonymous] // can see list no need login
-        public async Task<ActionResult<IEnumerable<Doctor>>> SearchDoctors([FromQuery] DoctorSearchDTO search)
+        // =============================================================
+        // 4. PRIVATE HELPER METHODS (Logic x? lý tách bi?t)
+        // =============================================================
+        private async Task<PagedResult<DoctorDetailDTO>> GetPagedDoctorsAsync(DoctorFilterInputDTO search)
+        {
+            var query = _context.Doctors.Include(d => d.Reviews).AsQueryable();
+
+            // 1. Filter
+            if (!string.IsNullOrEmpty(search.Specialty)) query = query.Where(d => d.Specialty.Contains(search.Specialty));
+            if (!string.IsNullOrEmpty(search.Name)) query = query.Where(d => d.FullName.Contains(search.Name));
+            if (!string.IsNullOrEmpty(search.Location)) query = query.Where(d => d.Location.Contains(search.Location));
+            if (!string.IsNullOrEmpty(search.Language)) query = query.Where(d => d.LanguageSpoken.Contains(search.Language));
+
+            // 2. Pagination
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((search.Page - 1) * search.PageSize)
+                .Take(search.PageSize)
+                .Select(d => new DoctorDetailDTO
+                {
+                    DoctorID = d.DoctorID,
+                    FullName = d.FullName,
+                    Specialty = d.Specialty,
+                    Qualifications = d.Qualifications,
+                    YearsOfExperience = d.YearsOfExperience,
+                    LanguageSpoken = d.LanguageSpoken,
+                    Location = d.Location,
+                    AverageRating = d.Reviews.Any() ? d.Reviews.Average(r => r.Rating) : 0,
+                    TotalReviews = d.Reviews.Count,
+                    Reviews = null // Danh sách t?ng quát không c?n load t?ng review
+                }).ToListAsync();
+
+            return new PagedResult<DoctorDetailDTO>
+            {
+                Items = items,
+                TotalItems = totalCount,
+                Page = search.Page,
+                PageSize = search.PageSize,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)search.PageSize)
+            };
+        }
+
+        // =============================================================
+        // 5. PUBLIC API: GET ALL (Dành cho Dropdown ??t l?ch)
+        // Không phân trang, ch? l?y ID, Name, Specialty ?? nh? d? li?u
+        // =============================================================
+        [HttpGet("all")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<DoctorDetailDTO>>> GetAllDoctorsForDropdown()
         {
             try
             {
-                var query = _context.Doctors.Include(d => d.User).AsQueryable();
+                var doctors = await _context.Doctors
+                    .Select(d => new DoctorDetailDTO // Ch? l?y thông tin c?n thi?t
+                    {
+                        DoctorID = d.DoctorID,
+                        FullName = d.FullName,
+                        Specialty = d.Specialty,
+                        // Các tr??ng khác có th? ?? null ho?c default cho nh?
+                        // Location = d.Location 
+                    })
+                    .ToListAsync();
 
-                if (!string.IsNullOrEmpty(search.Specialty))
-                {
-                    query = query.Where(d => d.Specialty.Contains(search.Specialty));
-                }
-
-                if (!string.IsNullOrEmpty(search.Name))
-                {
-                    query = query.Where(d => d.FullName.Contains(search.Name));
-                }
-
-                if (!string.IsNullOrEmpty(search.Location))
-                {
-                    query = query.Where(d => d.Location.Contains(search.Location));
-                }
-
-                // Can .Include(d => d.Reviews) to get reviews if needed
-                var doctors = await query.ToListAsync();
-                return Ok(doctors);
+                return Ok(doctors); // Tr? v? M?ng [] tr?c ti?p, không b?c PagedResult
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError($"Error getting all doctors: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
         }
