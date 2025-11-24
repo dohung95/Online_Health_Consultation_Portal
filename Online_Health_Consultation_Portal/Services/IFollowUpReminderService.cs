@@ -3,10 +3,10 @@ namespace OHCP_BK.Services
     public interface IFollowUpReminderService
     {
         /// <summary>
-        /// Kiểm tra tất cả phiên tư vấn và tạo thông báo nhắc nhở tái khám
-        /// khi ngày tái khám còn ít hơn 7 ngày
+        /// Check all consultations and create follow-up reminders
+        /// when follow-up date is less than 7 days away
         /// </summary>
-        /// <returns>Số lượng thông báo được tạo</returns>
+        /// <returns>Number of notifications created</returns>
         Task<int> CheckAndCreateFollowUpRemindersAsync();
     }
 }
