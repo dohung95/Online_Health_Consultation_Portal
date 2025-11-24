@@ -9,6 +9,7 @@ using OHCP_BK.Data;
 using OHCP_BK.Middleware;
 using OHCP_BK.Models;
 using OHCP_BK.Services;
+using OHCP_BK.Hubs;
 using System;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -114,6 +115,21 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey))
     };
+
+    // Cấu hình JWT cho SignalR
+    o.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization(o =>
@@ -147,6 +163,9 @@ builder.Services.AddCors(c =>
 
 // Thêm logging
 builder.Services.AddLogging(logging => logging.AddConsole().SetMinimumLevel(LogLevel.Debug));
+
+// Thêm SignalR
+builder.Services.AddSignalR();
 
 // Thêm dịch vụ Controllers
 builder.Services.AddControllers()
@@ -197,6 +216,9 @@ app.UseAuthorization();
 app.MapControllers();
 // Đăng ký đường dẫn cho Hub
 app.MapHub<OHCP_BK.Hubs.NotificationCalling>("/notificationcalling");
+
+// Map SignalR Hub
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 using (var scope = app.Services.CreateScope())
 {
