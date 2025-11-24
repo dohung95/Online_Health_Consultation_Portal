@@ -63,7 +63,7 @@ function Home() {
     <>
       <div className="home-page">
         <div className="Background_Home">
-          <div className="container" align="center">
+          <div className="container" align="center" style={{ paddingTop: '230px'}}>
             <div className="hero-subtitle">
               <b>
                 WE ARE HERE FOR YOUR CARE

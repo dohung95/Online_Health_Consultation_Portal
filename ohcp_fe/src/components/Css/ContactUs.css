@@ -19,6 +19,7 @@
     
     /* Nếu muốn nội dung phía trên dễ đọc, có thể thêm lớp tối mờ (tùy chọn) */
     position: relative;
+    padding-top: 270px;
 }
 
 /* Tùy chọn: thêm lớp overlay tối để chữ trắng dễ đọc hơn */

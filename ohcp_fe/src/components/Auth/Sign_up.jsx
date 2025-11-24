@@ -19,7 +19,6 @@ export function Sign_up() {
         maxWidth: '400px',
         padding: '20px',
         borderRadius: '4px',
-        marginTop: '30px',
         backgroundColor: '#eeeeee7e'
     };
 

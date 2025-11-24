@@ -12,12 +12,10 @@ export function Sign_in() {
 
     const containerStyle = {
         maxWidth: '400px',
-        margin: '50px auto',
         padding: '20px',
         border: '1px solid #000000ff',
         borderRadius: '4px',
-        backgroundColor: '#eeeeee'
-
+        backgroundColor: '#eeeeee',
     };
 
     const inputStyle = {
@@ -61,8 +59,8 @@ export function Sign_in() {
 
     return (
         <>
-            <div className='Background_Sign_In'>
-                <div style={containerStyle}>
+            <div className='Background_Sign_In '>
+                <div style={containerStyle} className='container' >
                     <h2>Login</h2>
                     {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
                     <form onSubmit={handleSubmit} >
