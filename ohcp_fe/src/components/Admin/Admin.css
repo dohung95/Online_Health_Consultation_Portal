@@ -1,0 +1,77 @@
+/* ==== SCOPED STYLES – ONLY AFFECT ADMIN PAGE ==== */
+.admin-dashboard-wrapper * {
+  box-sizing: border-box;
+}
+
+/* Sidebar */
+.admin-sidebar {
+  width: 250px;
+  transition: width 0.3s ease;
+  z-index: 1000;
+}
+.admin-sidebar.collapsed {
+  width: 70px;
+}
+.admin-sidebar.collapsed .admin-menu-label,
+.admin-sidebar.collapsed .admin-logo h4 {
+  display: none;
+}
+.admin-sidebar.collapsed .admin-logo {
+  padding: 1rem;
+}
+
+/* Hover & Active */
+.admin-nav-hover:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.75rem;
+}
+.admin-active {
+  background-color: #0d6efd !important;
+  border-radius: 0.75rem;
+}
+
+/* Main layout */
+.admin-main {
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+}
+.admin-sidebar-collapsed {
+  margin-left: 70px !important;
+}
+
+/* Topbar */
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+/* Content */
+.admin-content {
+  background-color: #f5f7fb;
+}
+
+/* Stat icons */
+.admin-stat-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .admin-sidebar {
+    width: 70px;
+  }
+  .admin-sidebar .admin-menu-label,
+  .admin-sidebar .admin-logo h4 {
+    display: none;
+  }
+  .admin-main,
+  .admin-sidebar-collapsed {
+    margin-left: 70px;
+  }
+}

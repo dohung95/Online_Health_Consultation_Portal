@@ -4,7 +4,7 @@
 
 /* ==================== BACKGROUND ==================== */
 .home-page .Background_Home {
-    background-image: url('/public/Hung/03_header.jpg');
+    background-image: url('/public/Hung/Home01.jpg');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -30,7 +30,64 @@
     z-index: 2;
 }
 
+.home-page .Background_Home3 {
+    background-image: url('/public/Hung/Home05.jpg');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 70vh;
+    position: relative;
+}
+
+.home-page .Background_Home3::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    background: rgba(52, 52, 52, 0.351);
+}
+
+.home-page .Background_Home3>* {
+    position: relative;
+    z-index: 2;
+}
+
+
+.home-page .Background_Home2 {
+    background-image: url('/public/Hung/Home02.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 68vh;
+    position: relative;
+}
+
+.home-page .Background_Home2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.home-page .Background_Home2>* {
+    position: relative;
+    z-index: 2;
+}
+
 /* ==================== HERO SECTION ==================== */
+.home-page .Background_Home .container {
+    text-align: center;
+}
+
 .home-page .hero-subtitle {
     color: #006492;
     padding: 5vh 0 2vh 0;
@@ -47,6 +104,7 @@
     font-weight: bold;
     width: 60%;
     padding: 0 0 4vh 0;
+    margin: 0 auto;
 }
 
 .home-page .btn-about-us {
@@ -87,10 +145,12 @@
 
 .home-page .service-icon {
     padding-top: 2vw;
+    text-align: center;
 }
 
 .home-page .service-icon-large {
     padding-top: 3vw;
+    text-align: center;
 }
 
 .home-page .service-helper-text {
@@ -216,4 +276,159 @@
 .home-page .service-btn:active::after {
     width: 200px;
     height: 200px;
+}
+
+/* ==================== SECTION 2: WELCOME TO OHCP ==================== */
+.home-page .welcome-section {
+    padding: 5% 10%;
+}
+
+.home-page .welcome-title {
+    font-size: 2vw;
+}
+
+.home-page .welcome-highlight {
+    color: #3EB7E9;
+}
+
+.home-page .welcome-description {
+    color: #A5A5A5;
+}
+
+.home-page .signature {
+    font-family: "Segoe Script";
+    font-size: 2vw;
+    margin-top: 2vh;
+}
+
+.home-page .welcome-image {
+    background-image: url('/public/Hung/Home03.jpg');
+    background-size: cover;
+    background-position: center;
+    min-height: 250px;
+    max-height: 400px;
+}
+
+.home-page .open-hours-card {
+    background-color: #222;
+    color: white;
+    max-height: 400px;
+}
+
+.home-page .open-hours-title {
+    color: #3EB7E9;
+    font-size: 1.5vw;
+    padding: 3vw 3vw 1vw 2vw;
+}
+
+.home-page .open-hours-list {
+    padding-left: 1.5vw;
+}
+
+.home-page .hours-row {
+    text-align: left;
+    padding-bottom: 0.5vw;
+}
+
+/* ==================== SECTION 3: WHY CHOOSE US ==================== */
+.home-page .why-choose-section {
+    padding: 5% 10%;
+}
+
+.home-page .section-subtitle {
+    color: #006492;
+    font-size: 1.5vw;
+}
+
+.home-page .section-main-title {
+    font-size: 3vw;
+    margin-top: 1vh;
+    margin-bottom: 2vh;
+}
+
+.home-page .section-text {
+    color: #A5A5A5;
+}
+
+.home-page .stats-row {
+    padding-top: 2%;
+}
+
+.home-page .stat-number {
+    color: #006492;
+    font-size: 2vw;
+}
+
+.home-page .why-choose-image {
+    background-image: url('/public/Hung/Home04.jpg');
+    background-size: cover;
+    background-position: center;
+    min-height: 400px;
+}
+
+.home-page .doctor-cta-card {
+    position: absolute;
+    bottom: -20px;
+    right: 20px;
+    background-color: #51bdebe6;
+    color: white;
+    padding: 20px 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: left;
+    max-width: 320px;
+    z-index: 10;
+}
+
+.home-page .cta-title {
+    font-size: 1.2vw;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.home-page .cta-description {
+    font-size: 1vw;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.home-page .cta-button {
+    border: none;
+    background-color: #FFF;
+    color: #3EB7E9;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1.5vh;
+}
+
+.home-page .cta-button:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+/* ==================== SECTION 4: TESTIMONIALS ==================== */
+.home-page .testimonials-section {
+    padding: 0 30%;
+    text-align: center;
+    color: white;
+}
+
+.home-page .testimonials-subtitle {
+    padding: 10% 0 2% 0;
+}
+
+.home-page .testimonials-title {
+    font-size: 2.5vw;
+    padding: 2% 0;
+}
+
+.home-page .testimonials-divider {
+    padding: 2% 0;
+}
+
+.home-page .testimonials-divider svg {
+    width: 30px;
+    height: auto;
+    fill: white;
 }

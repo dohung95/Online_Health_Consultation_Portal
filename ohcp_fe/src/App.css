@@ -1,40 +1,51 @@
+/* ================================================================== */
+/* APP.CSS - SCOPED TO .App CONTAINER */
+/* ================================================================== */
+
 .App {
   font-family: Arial, sans-serif;
 }
 
-.navbar {
+/* Scoped navbar styles - only affects .navbar inside .App */
+.App .navbar {
   margin-bottom: 20px;
 }
 
-.section {
+/* Scoped section styles - only affects .section inside .App */
+.App .section {
   padding: 20px;
   border: 1px solid #ddd;
   border-radius: 5px;
   background-color: #f9f9f9;
 }
 
-.form-group {
+/* Scoped form-group - only affects .form-group inside .App */
+.App .form-group {
   margin-bottom: 15px;
 }
 
-.form-control {
+/* Scoped form-control - only affects .form-control inside .App */
+.App .form-control {
   width: 100%;
   max-width: 300px;
   margin-top: 5px;
 }
 
-.btn {
+/* Scoped btn - only affects .btn inside .App */
+.App .btn {
   margin-right: 10px;
 }
 
-.doctor-profile {
+/* Scoped doctor-profile - only affects .doctor-profile inside .App */
+.App .doctor-profile {
   margin-bottom: 20px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
-.nav-link.active {
+/* Scoped nav-link active state - only affects .nav-link.active inside .App */
+.App .nav-link.active {
   font-weight: bold;
   color: #007bff !important;
 }

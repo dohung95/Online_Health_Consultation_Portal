@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
     const [token, setToken] = useState(() => localStorage.getItem('token') || null)
     const [refreshToken, setRefreshToken] = useState(() => localStorage.getItem('refreshToken') || null)
     const [tokenExpiry, setTokenExpiry] = useState(null);
+    const [loading, setLoading] = useState(true); // Thêm loading state
 
     const [connection, setConnection] = useState(null); // Lưu trữ kết nối
     const [incomingCall, setIncomingCall] = useState(null);
@@ -80,10 +81,12 @@ export function AuthProvider({ children }) {
             }
 
             setRoles(userRoles);
+            setLoading(false); // Đã load xong
         } else {
             setUser(null);
             setRoles([]);
             setTokenExpiry(null);
+            setLoading(false); // Đã load xong (không có token)
         }
     }, [token]);
 
@@ -187,7 +190,7 @@ export function AuthProvider({ children }) {
         setTokenExpiry(null);
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        window.location.href = '/';
     };
 
     useEffect(() => {
@@ -380,6 +383,7 @@ export function AuthProvider({ children }) {
         refreshToken,
         roles,
         tokenExpiry,
+        loading,
         login,
         logout,
         register,
