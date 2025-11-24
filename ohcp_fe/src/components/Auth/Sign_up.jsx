@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar';
+import '../Css/Sign_up.css';
 
 export function Sign_up() {
     const navigate = useNavigate();
@@ -17,17 +18,17 @@ export function Sign_up() {
 
     const containerStyle = {
         maxWidth: '400px',
-        margin: '50px auto',
         padding: '20px',
-        border: '1px solid #ddd',
         borderRadius: '4px',
+        marginTop: '30px',
+        backgroundColor: '#eeeeee7e'
     };
 
     const inputStyle = {
         width: '100%',
         padding: '8px',
         margin: '10px 0',
-        border: '1px solid #ddd',
+        border: 'none',
         borderRadius: '4px',
         boxSizing: 'border-box'
     };
@@ -35,7 +36,7 @@ export function Sign_up() {
     const buttonStyle = {
         width: '100%',
         padding: '10px',
-        backgroundColor: '#28a745',
+        backgroundColor: '#3cb1e6',
         color: 'white',
         border: 'none',
         borderRadius: '4px',
@@ -72,11 +73,11 @@ export function Sign_up() {
 
     return (
         <>
-            <div >
+            <div className='Background_Sign_Up'>
                 <div className='container'>
                     <Navbar />
                 </div>
-                <div style={containerStyle}>
+                <div style={containerStyle} className='container'>
                     <h2>Register</h2>
                     {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
                     <form onSubmit={handleSubmit}>
