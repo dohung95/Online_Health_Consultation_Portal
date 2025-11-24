@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import './Css/Home.css';
-import Navbar from './Navbar';
 import Loading from './Loading';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -64,9 +63,6 @@ function Home() {
     <>
       <div className="home-page">
         <div className="Background_Home">
-          <div className='container'>
-            <Navbar />
-          </div>
           <div className="container" align="center">
             <div className="hero-subtitle">
               <b>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Css/Navbar.css'; // Đảm bảo dùng đúng file CSS đã sửa
@@ -6,12 +6,40 @@ import './Css/Navbar.css'; // Đảm bảo dùng đúng file CSS đã sửa
 function Navbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
     const { isAuthenticated, roles, logout } = useAuth();
     const navigate = useNavigate();
 
     const isAdmin = roles.includes('admin');
     const isDoctor = roles.includes('doctor');
     const isUser = roles.includes('patient');
+
+    // Handle scroll to show/hide navbar
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+
+            if (currentScrollY < 10) {
+                // Always show navbar at top
+                setIsVisible(true);
+            } else if (currentScrollY > lastScrollY) {
+                // Scrolling down - hide navbar
+                setIsVisible(false);
+            } else {
+                // Scrolling up - show navbar
+                setIsVisible(true);
+            }
+
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, [lastScrollY]);
 
     // Handle appointment button click with authentication and role check
     const handleAppointmentClick = (e) => {
@@ -34,7 +62,7 @@ function Navbar() {
 
     return (
         <>
-            <div style={{paddingTop:"2%"}}>
+            <div className={`navbar-wrapper container ${isVisible ? 'navbar-visible' : 'navbar-hidden'}`}>
                 {/* ============ TOP BAR ============ */}
                 <div className="topbar">
                     <div className="container d-flex justify-content-between align-items-center flex-wrap">

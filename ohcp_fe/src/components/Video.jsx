@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
-import Navbar from './Navbar';
 import { useState, useEffect } from 'react';
 import Loading from './Loading';
 
@@ -72,9 +71,6 @@ export default function Video() {
 
   return (
     <div>
-      <div className='container'>
-          <Navbar />
-        </div>
       <div
         className="myCallContainer"
         ref={myMeeting}

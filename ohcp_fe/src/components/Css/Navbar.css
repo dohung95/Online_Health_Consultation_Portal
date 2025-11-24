@@ -1,3 +1,21 @@
+/* ==================== NAVBAR WRAPPER (FIXED OVERLAY) ==================== */
+.navbar-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  transition: transform 0.3s ease-in-out;
+  padding-top: 2%;
+}
+
+.navbar-wrapper.navbar-visible {
+  transform: translateY(0);
+}
+
+.navbar-wrapper.navbar-hidden {
+  transform: translateY(-100%);
+}
 
 /* ==================== TOPBAR ==================== */
 .topbar {

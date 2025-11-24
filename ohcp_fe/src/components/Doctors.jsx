@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { doctorService } from '../api/doctorApi'; // Import từ file API mới
 import { useNavigate } from 'react-router-dom';
-import Navbar from './Navbar';
 import './Css/Doctors.css';
 
 const Doctors = () => {
@@ -115,9 +114,6 @@ const Doctors = () => {
   return (
     <div className='Background_Doctors'>
       <div className="container">
-        <div className='container' style={{ paddingBottom: "3%" }}>
-          <Navbar />
-        </div>
         <div className="row" style={{backgroundColor:"#ffffffa4", padding:"3%"}}>
           {/* --- SIDEBAR BỘ LỌC (FILTER) --- */}
           {/* --- SIDEBAR BỘ LỌC (FILTER) --- */}

@@ -1,5 +1,4 @@
 import './Css/ContactUs.css';
-import Navbar from './Navbar';
 import { useState, useEffect } from 'react';
 import Loading from './Loading';
 function ContactUs() {
@@ -20,9 +19,6 @@ function ContactUs() {
   return (
     <>
     <div className='Background_ContactUs'>
-      <div className='container'>
-          <Navbar /> 
-        </div>
     </div>
     </>
   );

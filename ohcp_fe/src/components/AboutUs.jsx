@@ -1,5 +1,4 @@
 import './Css/AboutUs.css';
-import Navbar from './Navbar';
 import { useState, useEffect } from 'react';
 import Loading from './Loading';
 function AboutUs() {
@@ -20,9 +19,6 @@ function AboutUs() {
   return (
     <>
     <div className='Background_AboutUs'>
-      <div className='container'>
-          <Navbar /> 
-        </div>
     </div>
     </>
   );
