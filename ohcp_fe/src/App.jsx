@@ -45,13 +45,13 @@ function AppContent() {
     <>
       {!isVideoCallPage && <IncomingCallModal />}
       <div className="App">
-        {!isVideoCallPage && <Chat /> && <Navbar />}
+        {!isVideoCallPage && <Chat />}
         <ScrollToTop />
         <div>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/contactus" element={<ContactUs />} />
-            <Route path="/aboutus" element={<AboutUs />} />
+            <Route path="/contact_us" element={<ContactUs />} />
+            <Route path="/about_us" element={<AboutUs />} />
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/book/:doctorId" element={<Schedule />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
@@ -62,7 +62,6 @@ function AppContent() {
             <Route path="/prescription" element={<Prescription />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/reminders" element={<Reminders />} />
-            <Route path="/admin" element={<Admin />} />
             <Route path="/login" element={<Sign_in />} />
             <Route path="/register" element={<Sign_up />} />
             <Route path="/video-calling" element={<VideocallPage />} />

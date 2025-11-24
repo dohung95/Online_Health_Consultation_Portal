@@ -9,7 +9,7 @@ function ContactUs() {
     // Giả lập thời gian load trang (có thể thay bằng logic load data thực tế)
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1500); // 1.5 giây
+    }, 1000); // 1.5 giây
 
     return () => clearTimeout(timer);
   }, []);

@@ -4,6 +4,7 @@ import { doctorService } from '../api/doctorApi';
 import { useNavigate, useParams } from 'react-router-dom';
 import './Css/Schedule.css';
 import Loading from './Loading';
+import Navbar from './Navbar';
 
 function Schedule() {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ function Schedule() {
     // Giả lập thời gian load trang (có thể thay bằng logic load data thực tế)
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1500); // 1.5 giây
+    }, 1000); // 1.5 giây
 
     return () => clearTimeout(timer);
   }, []);
@@ -98,6 +99,11 @@ function Schedule() {
   return (
     <>
       <div className='Background_Schedule'>
+        <div>
+          <div className='container'>
+            <Navbar />
+          </div>
+        </div>
         <div className="section container mt-4">
           <h2>Virtual Consultation Scheduling</h2>
           <p>Browse and select from available doctors and schedule your appointment.</p>

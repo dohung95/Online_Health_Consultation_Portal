@@ -15,7 +15,7 @@
 .loading-logo {
     width: 15vh;
     height: auto;
-    animation: breathe 2s ease-in-out infinite;
+    animation: breathe 1s ease-in-out infinite;
 }
 
 @keyframes breathe {

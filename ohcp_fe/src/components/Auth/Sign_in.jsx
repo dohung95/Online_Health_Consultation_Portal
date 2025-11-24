@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar';
-import Loading from '../Loading';
-
+import '../Css/Sign_in.css';
 export function Sign_in() {
     const navigate = useNavigate();
     const { login } = useAuth();
@@ -16,8 +15,10 @@ export function Sign_in() {
         maxWidth: '400px',
         margin: '50px auto',
         padding: '20px',
-        border: '1px solid #ddd',
-        borderRadius: '4px'
+        border: '1px solid #000000ff',
+        borderRadius: '4px',
+        backgroundColor: '#eeeeee'
+
     };
 
     const inputStyle = {
@@ -32,7 +33,7 @@ export function Sign_in() {
     const buttonStyle = {
         width: '100%',
         padding: '10px',
-        backgroundColor: '#007bff',
+        backgroundColor: '#009cde',
         color: 'white',
         border: 'none',
         borderRadius: '4px',
@@ -61,14 +62,14 @@ export function Sign_in() {
 
     return (
         <>
-            <div className='Background_Sign_in'>
+            <div className='Background_Sign_In'>
                 <div className='container'>
                     <Navbar />
                 </div>
                 <div style={containerStyle}>
                     <h2>Login</h2>
                     {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} >
                         <div>
                             <label>Email:</label>
                             <input
