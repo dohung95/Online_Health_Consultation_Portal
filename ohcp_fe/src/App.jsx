@@ -11,7 +11,7 @@ import Prescription from './components/Prescription';
 import Chat from './components/Chat';
 import Payment from './components/Payment';
 import Reminders from './components/Reminders';
-import Admin from './components/Admin';
+import Admin from './components/Admin/Admin';
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
 import Footer from './components/Footer';
@@ -25,6 +25,7 @@ import VideocallPage from './pages/video-calling';
 import IncomingCallModal from './components/IncomingCallModal';
 import Navbar from './components/Navbar';
 import DoctorProfile from './components/DoctorProfile';
+import AdminRoute from './components/Admin/AdminRoute';
 
 function App() {
   return (
@@ -40,14 +41,15 @@ function App() {
 function AppContent() {
   const location = useLocation();
   const isVideoCallPage = location.pathname === '/video-calling';
+  const isAdminPage = location.pathname === '/admin';
 
   return (
     <>
-      {!isVideoCallPage && <IncomingCallModal />}
+      {!isVideoCallPage && !isAdminPage && <IncomingCallModal />}
       <div className="App">
-        {!isVideoCallPage && <Chat />}
+        {!isVideoCallPage && !isAdminPage && <Chat />}
         <ScrollToTop />
-        {!isVideoCallPage && <Navbar />}
+        {!isVideoCallPage && !isAdminPage && <Navbar />}
         <div>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -66,9 +68,17 @@ function AppContent() {
             <Route path="/login" element={<Sign_in />} />
             <Route path="/register" element={<Sign_up />} />
             <Route path="/video-calling" element={<VideocallPage />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
+              }
+            />
           </Routes>
         </div>
-        {!isVideoCallPage && <Footer />}
+        {!isVideoCallPage && !isAdminPage && <Footer />}
       </div>
     </>
   );

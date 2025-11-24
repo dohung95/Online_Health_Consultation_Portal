@@ -83,7 +83,7 @@ function Home() {
             </div>
           </div>
         </div>
-        <div className='row services-row'>
+        <div className='row services-row' style={{ '--bs-gutter-x': '0' }}>
           <div className='col-md-4 service-card service-card-blue'>
             <div align="center" className="service-icon">
               <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
