@@ -47,6 +47,7 @@ function AppContent() {
       <div className="App">
         {!isVideoCallPage && <Chat />}
         <ScrollToTop />
+        {!isVideoCallPage && <Navbar />}
         <div>
           <Routes>
             <Route path="/" element={<Home />} />

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Navbar from '../Navbar';
 import '../Css/Sign_up.css';
 
 export function Sign_up() {
@@ -74,9 +73,6 @@ export function Sign_up() {
     return (
         <>
             <div className='Background_Sign_Up'>
-                <div className='container'>
-                    <Navbar />
-                </div>
                 <div style={containerStyle} className='container'>
                     <h2>Register</h2>
                     {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
