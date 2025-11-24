@@ -11,17 +11,21 @@
     background-attachment: fixed;
     min-height: 100vh;
     position: relative;
+    padding-top: 270px;
 }
 
 .home-page .Background_Home::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 1;
     background: rgba(255, 255, 255, 0.1);
 }
 
-.home-page .Background_Home > * {
+.home-page .Background_Home>* {
     position: relative;
     z-index: 2;
 }
