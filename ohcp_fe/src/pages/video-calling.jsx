@@ -43,7 +43,7 @@ export default function VideoCallPage() {
             console.log(roomID)
 
             if (!roomID || !userID_encoded || !userName_encoded) {
-                setError("Lỗi: Thiếu thông tin phòng hoặc người dùng.");
+                setError("Error: Missing room or user information.");
                 setIsLoading(false);
                 return;
             }
@@ -74,8 +74,8 @@ export default function VideoCallPage() {
             });
 
         } catch (err) {
-            console.error("Lỗi khởi tạo Zego:", err);
-            setError("Không thể khởi tạo cuộc gọi.");
+            console.error("Error initializing Zego:", err);
+            setError("Error: Unable to initialize call.");
             setIsLoading(false);
         }
 
@@ -88,7 +88,7 @@ export default function VideoCallPage() {
     }
 
     if (isLoading) {
-        return <div style={{ padding: '20px' }}>Đang khởi tạo cuộc gọi...</div>;
+        return <div style={{ padding: '20px' }}>Initializing call...</div>;
     }
 
     // Gắn ref vào div

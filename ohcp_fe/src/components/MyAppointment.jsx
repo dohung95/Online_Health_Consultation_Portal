@@ -24,7 +24,7 @@ const MyAppointments = () => {
         } catch (error) {
             console.error("Error loading appointments:", error);
             if (error.response && error.response.status === 401) {
-                alert("Phiên đăng nhập hết hạn.");
+                alert("Session expired.");
                 navigate('/login');
             }
         } finally {
@@ -122,8 +122,15 @@ const MyAppointments = () => {
             const targetUserName = isDoctor ? patientName : doctorName;
 
             // Tạo Room ID bằng cách trộn DoctorID + PatientID và lấy 40 ký tự
-            const combinedId = doctorID + patientID;
-            const roomId = combinedId.substring(0, 40);
+            // const combinedId = doctorID + patientID;
+            // const roomId = combinedId.substring(0, 40);
+
+            // Tạo Room ID ngẫu nhiên 45 ký tự
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let roomId = '';
+            for (let i = 0; i < 45; i++) {
+                roomId += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
 
             console.log('Video Call Info:', {
                 patientID,
@@ -140,7 +147,7 @@ const MyAppointments = () => {
 
         } catch (error) {
             console.error("Error initiating video call:", error);
-            alert("Không thể bắt đầu cuộc gọi video.");
+            alert("Unable to start video call.");
         }
     };
     const getStatusBadge = (status) => {
