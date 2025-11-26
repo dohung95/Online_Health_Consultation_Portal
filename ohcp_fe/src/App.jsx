@@ -11,10 +11,20 @@ import Prescription from './components/Prescription';
 import Chat from './components/Chat';
 import Payment from './components/Payment';
 import Reminders from './components/Reminders';
+
 import Admin from './components/Admin/Admin';
+import Patients from './components/Admin/Patients';
+import Appointments from './components/Admin/Appointments';
+import MedicalRecords from './components/Admin/MedicalRecords';
+import DoctorsAdmin from './components/Admin/DoctorsAdmin';
+import Settings from './components/Admin/Settings';
+import Invoices from './components/Admin/Invoices';
+
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
+
 import Footer from './components/Footer';
+
 import ContactUs from './components/ContactUs';
 import AboutUs from './components/AboutUs';
 import './App.css';
@@ -41,7 +51,7 @@ function App() {
 function AppContent() {
   const location = useLocation();
   const isVideoCallPage = location.pathname === '/video-calling';
-  const isAdminPage = location.pathname === '/admin';
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
     <>
@@ -68,14 +78,15 @@ function AppContent() {
             <Route path="/login" element={<Sign_in />} />
             <Route path="/register" element={<Sign_up />} />
             <Route path="/video-calling" element={<VideocallPage />} />
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <Admin />
-                </AdminRoute>
-              }
-            />
+
+            <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>} />
+            <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>}/>
+            <Route path="/admin/appointments" element={<AdminRoute> <Appointments /> </AdminRoute>}/>
+            <Route path="/admin/medical-records" element={<AdminRoute> <MedicalRecords /> </AdminRoute>}/>
+            <Route path="/admin/doctors" element={<AdminRoute> <DoctorsAdmin /> </AdminRoute>}/>
+            <Route path="/admin/invoices" element={<AdminRoute> <Invoices /> </AdminRoute>}/>
+            <Route  path="/admin/settings" element={<AdminRoute> <Settings /> </AdminRoute>}/>
+            
           </Routes>
         </div>
         {!isVideoCallPage && !isAdminPage && <Footer />}
