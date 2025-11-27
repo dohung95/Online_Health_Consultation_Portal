@@ -35,8 +35,13 @@ import VideocallPage from './pages/video-calling';
 import IncomingCallModal from './components/IncomingCallModal';
 import Navbar from './components/Navbar';
 import DoctorProfile from './components/DoctorProfile';
+
+import DoctorPage from './components/DoctorPage';
+import ProtectedRoute from './components/ProtectedRoute';
+
 import AdminRoute from './components/Admin/AdminRoute';
 import HealthRecords from './components/HealthRecords';
+
 
 function App() {
   return (
@@ -52,6 +57,14 @@ function App() {
 function AppContent() {
   const location = useLocation();
   const isVideoCallPage = location.pathname === '/video-calling';
+
+  const isDoctorPage = location.pathname === '/doctor-page';
+  const isAdminPage = location.pathname === '/admin';
+  const isLoginPage = location.pathname === '/login';
+  
+  // Don't show navbar/footer on video call, doctor page, admin page, or login page
+  const hideLayout = isVideoCallPage || isDoctorPage || isAdminPage || isLoginPage;
+
   const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
@@ -60,25 +73,87 @@ function AppContent() {
       <div className="App">
         {!isVideoCallPage && !isAdminPage && <Chat />}
         <ScrollToTop />
+        {!hideLayout && <Navbar />}
         {!isVideoCallPage && !isAdminPage && <Navbar />}
+
         <div>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/contact_us" element={<ContactUs />} />
             <Route path="/about_us" element={<AboutUs />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/book/:doctorId" element={<Schedule />} />
-            <Route path="/my-appointments" element={<MyAppointments />} />
-            <Route path="/doctors" element={<Doctors />} />
-            <Route path="/doctor/:id" element={<DoctorProfile />} />
-            <Route path="/records" element={<Records />} />
-            <Route path="/video" element={<Video />} />
-            <Route path="/prescription" element={<Prescription />} />
-            <Route path="/payment" element={<Payment />} />
-            <Route path="/reminders" element={<Reminders />} />
             <Route path="/login" element={<Sign_in />} />
             <Route path="/register" element={<Sign_up />} />
             <Route path="/video-calling" element={<VideocallPage />} />
+            
+            {/* Admin only */}
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <Admin />
+              </ProtectedRoute>
+            } />
+            
+            {/* Doctor only */}
+            <Route path="/doctor-page" element={
+              <ProtectedRoute allowedRoles={['Doctor']}>
+                <DoctorPage />
+              </ProtectedRoute>
+            } />
+            
+            {/* Patient only routes */}
+            <Route path="/schedule" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <Schedule />
+              </ProtectedRoute>
+            } />
+            <Route path="/book/:doctorId" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <Schedule />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-appointments" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <MyAppointments />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctors" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <Doctors />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/:id" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <DoctorProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/records" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <Records />
+              </ProtectedRoute>
+            } />
+            <Route path="/video" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <Video />
+              </ProtectedRoute>
+            } />
+            <Route path="/prescription" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <Prescription />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <Payment />
+              </ProtectedRoute>
+            } />
+            <Route path="/reminders" element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <Reminders />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </div>
+        {!hideLayout && <Footer />}
+
             <Route path="/health-records" element={<HealthRecords />} />
 
             <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>} />
@@ -92,6 +167,7 @@ function AppContent() {
           </Routes>
         </div>
         {!isVideoCallPage && !isAdminPage && <Footer />}
+
       </div>
     </>
   );

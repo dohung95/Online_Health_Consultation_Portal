@@ -1,0 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+:root {
+    --primary: #137fec;
+    --background-light: #f6f7f8;
+    --border-light: #cfdbe7;
+    --text-light-primary: #0d141b;
+    --text-light-secondary: #4c739a;
+    --secondary-button-light: #e7edf3;
+    --slate-200: #e2e8f0;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-light);
+    min-height: 100vh;
+}
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-size: 1.25rem;
+}
+
+.bg-custom-white {
+    background-color: #fff;
+}
+
+.sidebar {
+    width: 288px;
+    border-right: 1px solid var(--slate-200);
+    background-color: #fff;
+    padding: 1.5rem;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.nav-link-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    color: var(--slate-800);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.nav-link-custom:hover {
+    background-color: var(--slate-200);
+    color: var(--slate-800);
+}
+
+.nav-link-active {
+    background-color: rgba(19, 127, 236, 0.1); /* bg-primary/10 */
+    color: var(--primary) !important;
+    font-weight: 700;
+}
+
+.nav-link-active .material-symbols-outlined {
+    color: var(--primary);
+}
+
+.nav-link-custom .material-symbols-outlined {
+    color: var(--slate-500);
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    background-color: #d1fae5;
+    color: #065f46;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: #10b981;
+}
+
+.doctor-profile-img {
+    width: 3rem; 
+    height: 3rem;
+    border-radius: 50%;
+    background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAmRcwFR5_qtKD1lUDR_dIjSfpN06HC77gUFpVlbiQOrzazOEDEPmrFGmUtQ3CCG-H9i39M2UiT2DSjHmBvS-K24HLv5uZcb9ep1F1wtWCGdTpWV-eCUuDvqMvN1AGRvWVu55N3FdJMAnK3w_wyI8UiyYhgmo9KSb952Iq_SjiyisOpaykvO3WgwGQ6pj-ex4h_nCTzIaQYN6CHRqxWhYgNRCNHa-J5V6KuIhDUPNYRNTZoPMPUL5iTTh-0kY455-7YKm-jL1vAmww"); 
+    background-size: cover;
+    background-position: center;
+}
+
+.info-card {
+    border: 1px solid var(--slate-200);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    min-height: 400px;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--slate-500);
+    padding-top: 1rem;
+    padding-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--slate-800);
+    border-color: transparent;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary);
+    border-color: var(--primary);
+    background-color: transparent;
+}
+
+.detail-item {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    border-top: 1px solid var(--slate-200);
+}
+
+.detail-label {
+    color: var(--slate-500);
+    font-size: 0.875rem;
+}
+
+.detail-value {
+    color: var(--slate-800);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.badge-video {
+    background-color: #bfdbfe; /* blue-100 */
+    color: #1d4ed8; /* blue-700 */
+}
+
+.badge-chat {
+    background-color: #f3e8ff; /* purple-100 */
+    color: #7e22ce; /* purple-700 */
+}
+
+.badge-scheduled {
+    background-color: #d1fae5; /* green-100 */
+    color: #065f46; /* green-700 */
+}
+
+.btn-view {
+    border: 1px solid var(--slate-200);
+    color: var(--slate-800);
+    background-color: #fff;
+    font-weight: bold;
+    font-size: 0.875rem;
+    height: 2.25rem; /* h-9 */
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+.btn-view:hover {
+    background-color: var(--slate-200);
+    color: var(--slate-800);
+}
+
+.table-header th{
+    background-color: #f8fafc; /* slate-50 */
+    color: var(--slate-500);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.hover-table-row:hover {
+    background-color: var(--background-light);
+}
+
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.type-video {
+    background-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.type-audio {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.type-chat {
+    background-color: #f3e8ff;
+    color: #7e22ce;
+}
+
+/* Appointment Detail Styles */
+.bg-content-light {
+    background-color: #fff;
+}
+
+.border-border-light {
+    border-color: var(--border-light);
+}
+
+.text-text-light-primary {
+    color: var(--text-light-primary);
+}
+
+.text-text-light-secondary {
+    color: var(--text-light-secondary);
+}
+
+.btn-secondary-custom {
+    background-color: var(--secondary-button-light);
+    color: var(--text-light-primary);
+    font-weight: bold;
+    border: none;
+}
+
+.btn-secondary-custom:hover {
+    background-color: #dbe4ec;
+    color: var(--text-light-primary);
+}
+
+.profile-avatar {
+    width: 6rem; /* w-24 */
+    height: 6rem; /* h-24 */
+    background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDkpAwSdCV2UwK_btKDfeATsoj6tI4pT1T4-yKSy2LcBPFP1M-gr6E28PFP54jWRiLd2EQgo8xwwYidMACt-fEBIYHAV2CYUmx3eyaYbf9djr-k4FGgbVZnel60CVtegUi2B1VNmD-W1F7-6StpaH8Xl6yDTKsh32lPvvR0GDgNIGuvnXN4vFcHhtt0FK72p2TN3qham5xcndWfJBePHdC81LsSzMtJKEIPre0C6_6EtsusRdV-I7w7XRoXDgrDozAply6NkPaRTuY"); 
+    background-size: cover;
+    background-position: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+    .profile-avatar {
+        width: 8rem; /* md:w-32 */
+        height: 8rem; /* md:h-32 */
+    }
+}
+
+.badge-blue {
+    background-color: #bfdbfe; /* blue-100 */
+    color: #1e40af; /* blue-800 */
+    padding: 0.25rem 0.625rem; /* px-2.5 py-1 */
+    font-weight: 500;
+}
+
+.badge-red {
+    background-color: #fee2e2; /* red-100 */
+    color: #b91c1c; /* red-800 */
+    padding: 0.25rem 0.625rem; /* px-2.5 py-1 */
+    font-weight: 500;
+}
+
+.border-dashed {
+    border-style: dashed !important;
+}
