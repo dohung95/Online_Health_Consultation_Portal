@@ -171,7 +171,7 @@ namespace OHCP_BK.Controllers
                 await _context.SaveChangesAsync();
 
                 // ---------------------------------------------------------
-                // TODO: Integration with calendar system (Yêu c?u ?? bài)
+                // TODO: Integration with calendar system (Yï¿½u c?u ?? bï¿½i)
                 // You can Notification ho?c send Email confirm
                 // Ex: _emailService.SendBookingConfirmation(userId, appointment);
                 // ---------------------------------------------------------
@@ -256,6 +256,41 @@ namespace OHCP_BK.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(new { message = "Appointment cancelled successfully." });
+        }
+
+        // GET: api/Appointment/doctor/{doctorId}
+        [HttpGet("doctor/{doctorId}")]
+        [Authorize(Roles = "doctor,admin")]
+        public async Task<ActionResult<IEnumerable<object>>> GetAppointmentsByDoctor(string doctorId)
+        {
+            try
+            {
+                var appointments = await _context.Appointments
+                    .Where(a => a.DoctorID == doctorId)
+                    .Include(a => a.Patient)
+                    .OrderByDescending(a => a.AppointmentTime)
+                    .Select(a => new
+                    {
+                        appointmentID = a.AppointmentID,
+                        doctorID = a.DoctorID,
+                        patient = new
+                        {
+                            patientID = a.Patient.PatientID,
+                            fullName = a.Patient.FullName
+                        },
+                        appointmentTime = a.AppointmentTime,
+                        status = a.Status,
+                        consultationType = a.ConsultationType
+                    })
+                    .ToListAsync();
+
+                return Ok(appointments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting appointments for doctor {doctorId}: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
         }
     }
 }

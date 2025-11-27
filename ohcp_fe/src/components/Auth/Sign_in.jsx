@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { decodeToken } from '../../utils/tokenUtils';
 import '../Css/Sign_in.css';
 export function Sign_in() {
     const navigate = useNavigate();
@@ -46,7 +47,29 @@ export function Sign_in() {
         try {
             const success = await login(email, password);
             if (success) {
-                navigate('/');
+                // Get token and decode to extract roles
+                const token = localStorage.getItem('token');
+                const decoded = decodeToken(token);
+                
+                // Extract roles from token
+                let userRoles = [];
+                const roleClaimType = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+                if (decoded?.[roleClaimType]) {
+                    const roleValue = decoded[roleClaimType];
+                    userRoles = Array.isArray(roleValue) ? roleValue : [roleValue];
+                } else if (decoded?.role) {
+                    const roleValue = decoded.role;
+                    userRoles = Array.isArray(roleValue) ? roleValue : [roleValue];
+                }
+                
+                // Navigate based on role (priority: Admin > Doctor > Patient)
+                if (userRoles.some(r => r.toLowerCase() === 'admin')) {
+                    navigate('/admin');
+                } else if (userRoles.some(r => r.toLowerCase() === 'doctor')) {
+                    navigate('/doctor-page');
+                } else {
+                    navigate('/');
+                }
             } else {
                 setError('Invalid email or password');
             }
