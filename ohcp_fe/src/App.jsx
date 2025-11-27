@@ -36,6 +36,7 @@ import IncomingCallModal from './components/IncomingCallModal';
 import Navbar from './components/Navbar';
 import DoctorProfile from './components/DoctorProfile';
 import AdminRoute from './components/Admin/AdminRoute';
+import HealthRecords from './components/HealthRecords';
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function AppContent() {
             <Route path="/login" element={<Sign_in />} />
             <Route path="/register" element={<Sign_up />} />
             <Route path="/video-calling" element={<VideocallPage />} />
+            <Route path="/health-records" element={<HealthRecords />} />
 
             <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>} />
             <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>}/>
@@ -86,7 +88,7 @@ function AppContent() {
             <Route path="/admin/doctors" element={<AdminRoute> <DoctorsAdmin /> </AdminRoute>}/>
             <Route path="/admin/invoices" element={<AdminRoute> <Invoices /> </AdminRoute>}/>
             <Route  path="/admin/settings" element={<AdminRoute> <Settings /> </AdminRoute>}/>
-            
+                                          
           </Routes>
         </div>
         {!isVideoCallPage && !isAdminPage && <Footer />}

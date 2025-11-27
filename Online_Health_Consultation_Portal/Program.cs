@@ -211,6 +211,7 @@ app.UseExceptionHandler(errorApp =>
 // Add global exception middleware
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors("AllowReactApp");
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

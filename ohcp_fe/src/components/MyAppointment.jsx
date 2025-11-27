@@ -162,6 +162,7 @@ const MyAppointments = () => {
     if (loading) return <div className="container mt-4">Loading...</div>;
 
     return (
+        <div className='Background_Doctors'>
         <div className="container mt-5">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2>My Appointments</h2>
@@ -259,6 +260,7 @@ const MyAppointments = () => {
                     </table>
                 </div>
             )}
+        </div>
         </div>
     );
 };

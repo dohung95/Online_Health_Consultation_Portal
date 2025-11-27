@@ -15,7 +15,7 @@ namespace OHCP_BK.Models
         public DateTime LastUpdated { get; set; } = DateTime.Now;
 
         public virtual Patient Patient { get; set; } = null!;
-        public ICollection<MedicalDocument> Documents { get; set; } = new List<MedicalDocument>();
+        public virtual ICollection<MedicalDocument> MedicalDocuments { get; set; } = new List<MedicalDocument>();
     }
 
 }

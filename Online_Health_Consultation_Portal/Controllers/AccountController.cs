@@ -37,7 +37,7 @@ namespace OHCP_BK.Controllers
         /// <returns>Token and patient ID</returns>
         [AllowAnonymous]
         [HttpPost("register/patient")]
-        public async Task<IActionResult> RegisterPatient([FromBody] PatientCreateDTO dto)
+        public async Task<IActionResult> RegisterPatient([FromBody] PatientDTO dto)
         {
             if (!ModelState.IsValid)
             {
