@@ -407,6 +407,13 @@ namespace OHCP_BK.Migrations
                     DocumentName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DocumentType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FileLocation = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Category = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TestResults = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReferenceRange = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TestStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DocumentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PerformedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>

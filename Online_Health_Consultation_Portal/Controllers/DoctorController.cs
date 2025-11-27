@@ -20,16 +20,13 @@ namespace OHCP_BK.Controllers
             _logger = logger;
         }
 
-        // =============================================================
-        // 1. PUBLIC API: SEARCH (?ã s?a ?? dùng logic Phân trang)
-        // =============================================================
+        // 1. PUBLIC API: SEARCH (pagination)
         [HttpGet("search")]
         [AllowAnonymous]
         public async Task<ActionResult<PagedResult<DoctorDetailDTO>>> SearchDoctors([FromQuery] DoctorFilterInputDTO search)
         {
             try
             {
-                // G?i hàm riêng (private method) ? d??i ?? x? lý
                 var result = await GetPagedDoctorsAsync(search);
                 return Ok(result);
             }
@@ -40,9 +37,7 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        // =============================================================
         // 2. PUBLIC API: GET DETAIL
-        // =============================================================
         [HttpGet("{id}")]
         public async Task<ActionResult<DoctorDetailDTO>> GetDoctor(string id)
         {
@@ -74,11 +69,7 @@ namespace OHCP_BK.Controllers
             });
         }
 
-        // =============================================================
-        // 3. ADMIN API: CRUD (Gi? nguyên cho Admin qu?n lý)
-        // =============================================================
-
-        // GET: api/Doctor (Danh sách thô cho Admin)
+        // GET: api/Doctor
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
         {
@@ -142,9 +133,7 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        // =============================================================
-        // 4. PRIVATE HELPER METHODS (Logic x? lý tách bi?t)
-        // =============================================================
+        // 4. PRIVATE HELPER METHODS (Logic private)
         private async Task<PagedResult<DoctorDetailDTO>> GetPagedDoctorsAsync(DoctorFilterInputDTO search)
         {
             var query = _context.Doctors.Include(d => d.Reviews).AsQueryable();
@@ -171,7 +160,7 @@ namespace OHCP_BK.Controllers
                     Location = d.Location,
                     AverageRating = d.Reviews.Any() ? d.Reviews.Average(r => r.Rating) : 0,
                     TotalReviews = d.Reviews.Count,
-                    Reviews = null // Danh sách t?ng quát không c?n load t?ng review
+                    Reviews = null // List reviews not need load
                 }).ToListAsync();
 
             return new PagedResult<DoctorDetailDTO>
@@ -184,10 +173,7 @@ namespace OHCP_BK.Controllers
             };
         }
 
-        // =============================================================
-        // 5. PUBLIC API: GET ALL (Dành cho Dropdown ??t l?ch)
-        // Không phân trang, ch? l?y ID, Name, Specialty ?? nh? d? li?u
-        // =============================================================
+        // 5. PUBLIC API: GET ALL (no pagination)
         [HttpGet("all")]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<DoctorDetailDTO>>> GetAllDoctorsForDropdown()
@@ -195,17 +181,16 @@ namespace OHCP_BK.Controllers
             try
             {
                 var doctors = await _context.Doctors
-                    .Select(d => new DoctorDetailDTO // Ch? l?y thông tin c?n thi?t
+                    .Select(d => new DoctorDetailDTO
                     {
                         DoctorID = d.DoctorID,
                         FullName = d.FullName,
                         Specialty = d.Specialty,
-                        // Các tr??ng khác có th? ?? null ho?c default cho nh?
                         // Location = d.Location 
                     })
                     .ToListAsync();
 
-                return Ok(doctors); // Tr? v? M?ng [] tr?c ti?p, không b?c PagedResult
+                return Ok(doctors);
             }
             catch (Exception ex)
             {

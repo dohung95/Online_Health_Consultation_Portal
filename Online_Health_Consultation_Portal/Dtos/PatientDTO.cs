@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OHCP_BK.Dtos
 {
-    public class PatientCreateDTO
+    public class PatientDTO
     {
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address format")]
@@ -29,5 +29,19 @@ namespace OHCP_BK.Dtos
 
         [MaxLength(50, ErrorMessage = "Insurance policy number must not exceed 50 characters")]
         public string? InsurancePolicyNumber { get; set; }
+    }
+
+    // DTO update Medical History
+    public class UpdateMedicalHistoryDTO
+    {
+        public string MedicalHistorySummary { get; set; }
+    }
+
+    // DTO get Profile
+    public class PatientProfileDTO
+    {
+        public string PatientID { get; set; }
+        public string FullName { get; set; }
+        public string? MedicalHistorySummary { get; set; }
     }
 }

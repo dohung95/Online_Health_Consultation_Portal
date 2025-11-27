@@ -10,7 +10,7 @@ function Navbar() {
     const [lastScrollY, setLastScrollY] = useState(0);
     const { isAuthenticated, roles, logout } = useAuth();
     const navigate = useNavigate();
-
+    const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
     const isAdmin = roles.includes('admin');
     const isDoctor = roles.includes('doctor');
     const isUser = roles.includes('patient');
@@ -42,23 +42,19 @@ function Navbar() {
     }, [lastScrollY]);
 
     // Handle appointment button click with authentication and role check
-    const handleAppointmentClick = (e) => {
-        e.preventDefault();
+    // const handleAppointmentClick = (e) => {
+    //     e.preventDefault();
 
-        // Check if user is authenticated
-        if (!isAuthenticated) {
-            navigate('/login');
-            return;
-        }
+    //     // Check role - only Patient can access schedule
+    //     if (isAuthenticated && !isUser) {
+    //         // Doctor or Admin - show alert
+    //         alert("Schedule appointments is only available for patients.");
+    //         return;
+    //     }
 
-        // Check role - only Patient can access schedule
-        if (isUser) {
-            navigate('/schedule');
-        } else {
-            // Doctor or Admin - redirect to home
-            navigate('/');
-        }
-    };
+    //     // Use handleAuthenticatedAction để hiển thị confirm dialog
+    //     handleAuthenticatedAction(isAuthenticated, navigate, '/schedule');
+    // };
 
     return (
         <>
@@ -91,7 +87,7 @@ function Navbar() {
                                     </a>
                                 </p>
                             </div>
-                            <button onClick={handleAppointmentClick} className="btn-appointment" style={{ border: "none" }}>
+                            <button className="btn-appointment" style={{ border: "none" }}>
                                 MAKE AN APPOINTMENT
                             </button>
                         </div>
@@ -107,7 +103,7 @@ function Navbar() {
                             <li><NavLink to="/" className="nav-link" end>Home</NavLink></li>
                             <li><NavLink to="/about_us" className="nav-link" end>About Us</NavLink></li>
                             <li><NavLink to="/doctors" className="nav-link">Doctors</NavLink></li>
-                            <li><a href="#" onClick={handleAppointmentClick} className="nav-link">Schedule</a></li>
+                            <li><NavLink to="/schedule" className="nav-link">Schedule</NavLink></li>
                             <li><NavLink to="/contact_us" className="nav-link" end>Contact Us</NavLink></li>
                             {isAdmin && (
                                 <li><NavLink to="/admin" className="nav-link">Admin Panel</NavLink></li>
@@ -118,9 +114,38 @@ function Navbar() {
                         <div className="nav-right d-flex align-items-center gap-3">
                             {isAuthenticated ? (
                                 <>
-                                    <span className="user-role text-white fw-medium">
-                                        {isAdmin ? 'Admin' : isDoctor ? 'Doctor' : 'Patient'}
-                                    </span>
+                                    {/* Patient Dropdown */}
+                                    {isUser && (
+                                        <div
+                                            className="position-relative"
+                                            onMouseEnter={() => setPatientDropdownOpen(true)}
+                                            onMouseLeave={() => setPatientDropdownOpen(false)}
+                                        >
+                                            <span className="user-role text-white fw-medium" style={{ cursor: 'pointer' }}>
+                                                Patient <i className="fas fa-caret-down ms-1"></i>
+                                            </span>
+                                            {patientDropdownOpen && (
+                                                <div className="dropdown-menu show position-absolute" style={{ top: '100%', right: 0, minWidth: '200px' }}>
+                                                    <NavLink to="/my-appointments" className="dropdown-item">
+                                                        <i className="fas fa-calendar-check me-2"></i>
+                                                        My Appointments
+                                                    </NavLink>
+                                                    <NavLink to="/health-records" className="dropdown-item">
+                                                        <i className="fas fa-calendar-check me-2"></i>
+                                                        Health Records
+                                                    </NavLink>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Admin/Doctor - No Dropdown */}
+                                    {(isAdmin || isDoctor) && (
+                                        <span className="user-role text-white fw-medium">
+                                            {isAdmin ? 'Admin' : 'Doctor'}
+                                        </span>
+                                    )}
+
                                     <button onClick={logout} className="btn-logout">
                                         <i className="fas fa-sign-out-alt me-1"></i> Logout
                                     </button>
@@ -169,9 +194,9 @@ function Navbar() {
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <a href="#" onClick={(e) => { handleAppointmentClick(e); setMobileMenuOpen(false); }} className="mobile-nav-link">
+                                    <NavLink to="/schedule" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
                                         <i className="fas fa-calendar-alt me-2"></i> Schedule
-                                    </a>
+                                    </NavLink>
                                 </li>
                                 <li>
                                     <NavLink to="/contact_us" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">

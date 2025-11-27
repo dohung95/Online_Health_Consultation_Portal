@@ -24,7 +24,7 @@ namespace OHCP_BK.Services
             _logger = logger;
         }
 
-        public async Task<UserCreationResult> CreatePatientAsync(PatientCreateDTO dto, bool isAdminCreated = false)
+        public async Task<UserCreationResult> CreatePatientAsync(PatientDTO dto, bool isAdminCreated = false)
         {
             try
             {

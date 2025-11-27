@@ -12,7 +12,7 @@ using OHCP_BK.Data;
 namespace OHCP_BK.Migrations
 {
     [DbContext(typeof(OHCPContext))]
-    [Migration("20251121061906_v1")]
+    [Migration("20251127042300_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -392,6 +392,15 @@ namespace OHCP_BK.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DocumentID"));
 
+                    b.Property<string>("Category")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DocumentDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("DocumentName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -406,6 +415,18 @@ namespace OHCP_BK.Migrations
 
                     b.Property<int>("HealthRecordID")
                         .HasColumnType("int");
+
+                    b.Property<string>("PerformedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReferenceRange")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TestResults")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TestStatus")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
@@ -738,7 +759,7 @@ namespace OHCP_BK.Migrations
             modelBuilder.Entity("OHCP_BK.Models.MedicalDocument", b =>
                 {
                     b.HasOne("OHCP_BK.Models.HealthRecord", "HealthRecord")
-                        .WithMany("Documents")
+                        .WithMany("MedicalDocuments")
                         .HasForeignKey("HealthRecordID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -865,7 +886,7 @@ namespace OHCP_BK.Migrations
 
             modelBuilder.Entity("OHCP_BK.Models.HealthRecord", b =>
                 {
-                    b.Navigation("Documents");
+                    b.Navigation("MedicalDocuments");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.Patient", b =>

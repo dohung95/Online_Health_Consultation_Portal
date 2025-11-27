@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Data;
+using OHCP_BK.Dtos;
 using OHCP_BK.Models;
+using System.Security.Claims;
 
 namespace OHCP_BK.Controllers
 {
@@ -13,11 +15,13 @@ namespace OHCP_BK.Controllers
     {
         private readonly OHCPContext _context;
         private readonly ILogger<HealthRecordController> _logger;
+        private IWebHostEnvironment _environment;
 
-        public HealthRecordController(OHCPContext context, ILogger<HealthRecordController> logger)
+        public HealthRecordController(OHCPContext context, ILogger<HealthRecordController> logger, IWebHostEnvironment environment)
         {
             _context = context;
             _logger = logger;
+            _environment = environment;
         }
 
         // GET: api/HealthRecord
@@ -28,7 +32,7 @@ namespace OHCP_BK.Controllers
             {
                 var healthRecords = await _context.HealthRecords
                     .Include(h => h.Patient)
-                    .Include(h => h.Documents)
+                    .Include(h => h.MedicalDocuments)
                     .ToListAsync();
                 return Ok(healthRecords);
             }
@@ -47,7 +51,7 @@ namespace OHCP_BK.Controllers
             {
                 var healthRecord = await _context.HealthRecords
                     .Include(h => h.Patient)
-                    .Include(h => h.Documents)
+                    .Include(h => h.MedicalDocuments)
                     .FirstOrDefaultAsync(h => h.HealthRecordID == id);
 
                 if (healthRecord == null)
@@ -64,26 +68,128 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        // POST: api/HealthRecord
+        [HttpGet("my-records")]
+        public async Task<ActionResult<List<HealthRecordDTO>>> GetMyRecords()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var healthRecords = await _context.HealthRecords
+                .Include(hr => hr.MedicalDocuments)
+                .Where(hr => hr.PatientID == userId)
+                .Select(hr => new HealthRecordDTO
+                {
+                    HealthRecordID = hr.HealthRecordID,
+                    LastUpdated = hr.LastUpdated,
+                    Documents = hr.MedicalDocuments.Select(doc => new MedicalDocumentDTO
+                    {
+                        DocumentID = doc.DocumentID,
+                        DocumentName = doc.DocumentName,
+                        DocumentType = doc.DocumentType,
+                        FileUrl = doc.FileLocation,
+                        UploadedAt = doc.UploadedAt,
+                        Category = doc.Category,
+                        Description = doc.Description,
+                        DocumentDate = doc.DocumentDate,
+                        TestResults = doc.TestResults,
+                        ReferenceRange = doc.ReferenceRange,
+                        TestStatus = doc.TestStatus,
+                        PerformedBy = doc.PerformedBy
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(healthRecords);
+        }
+
+        // POST: api/MedicalDocument
         [HttpPost]
-        public async Task<ActionResult<HealthRecord>> CreateHealthRecord([FromBody] HealthRecord healthRecord)
+        public async Task<ActionResult<MedicalDocument>> CreateMedicalDocument(
+            [FromForm] List<IFormFile> Documents,
+            [FromForm] string? Category,
+            [FromForm] string? Description,
+            [FromForm] string? DocumentDate,
+            [FromForm] string? TestResults,
+            [FromForm] string? ReferenceRange,
+            [FromForm] string? TestStatus,
+            [FromForm] string? PerformedBy)
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (Documents == null || Documents.Count == 0)
                 {
-                    return BadRequest(ModelState);
+                    return BadRequest("No files uploaded");
                 }
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                _context.HealthRecords.Add(healthRecord);
+                // T�m ho?c t?o HealthRecord cho patient
+                var healthRecord = await _context.HealthRecords
+                    .FirstOrDefaultAsync(hr => hr.PatientID == userId);
+
+                if (healthRecord == null)
+                {
+                    // T?o m?i health record n?u ch?a c�
+                    healthRecord = new HealthRecord
+                    {
+                        PatientID = userId,
+                        LastUpdated = DateTime.Now
+                    };
+                    _context.HealthRecords.Add(healthRecord);
+                    await _context.SaveChangesAsync();
+                }
+                var createdDocuments = new List<MedicalDocument>();
+                foreach (var file in Documents)
+                {
+                    if (file.Length > 0)
+                    {
+                        // Save file (your implementation - local storage or cloud)
+                        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                        var filePath = Path.Combine("wwwroot", "uploads", "medical-documents", fileName);
+
+                        // Create directory if not exists
+                        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+                        // Create document record
+                        var document = new MedicalDocument
+                        {
+                            HealthRecordID = healthRecord.HealthRecordID,
+                            DocumentName = file.FileName,
+                            DocumentType = file.ContentType,
+                            FileLocation = $"/uploads/medical-documents/{fileName}",
+                            Category = Category,
+                            Description = Description,
+                            TestResults = TestResults,
+                            ReferenceRange = ReferenceRange,
+                            TestStatus = TestStatus,
+                            PerformedBy = PerformedBy,
+                            DocumentDate = !string.IsNullOrEmpty(DocumentDate)
+                                ? DateTime.Parse(DocumentDate)
+                                : (DateTime?)null,
+                            UploadedAt = DateTime.Now
+                        };
+                        _context.MedicalDocuments.Add(document);
+                        createdDocuments.Add(document);
+                    }
+                }
+                // Update HealthRecord LastUpdated
+                healthRecord.LastUpdated = DateTime.Now;
+
                 await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(GetHealthRecord), new { id = healthRecord.HealthRecordID }, healthRecord);
+                return Ok(new
+                {
+                    message = "Documents uploaded successfully",
+                    count = createdDocuments.Count,
+                    healthRecordId = healthRecord.HealthRecordID
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error creating health record: {ex.Message}");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError($"Error creating medical document: {ex.Message}");
+                _logger.LogError($"Inner Exception: {ex.InnerException?.Message}");
+                return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
 
