@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Data;
+using OHCP_BK.Dtos;
 using OHCP_BK.Models;
+using System.Security.Claims;
 
 namespace OHCP_BK.Controllers
 {
@@ -131,6 +133,39 @@ namespace OHCP_BK.Controllers
                 _logger.LogError($"Error deleting patient {id}: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
+        }
+
+        // GET: Get my profile (include history)
+        [HttpGet("profile")]
+        public async Task<ActionResult<PatientProfileDTO>> GetMyProfile()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null) return Unauthorized();
+
+            var patient = await _context.Patients.FindAsync(userId);
+            if (patient == null) return NotFound();
+
+            return Ok(new PatientProfileDTO
+            {
+                PatientID = patient.PatientID,
+                FullName = patient.FullName,
+                MedicalHistorySummary = patient.MedicalHistorySummary
+            });
+        }
+
+        // PUT: Update medical history
+        [HttpPut("medical-history")]
+        public async Task<IActionResult> UpdateMedicalHistory([FromBody] UpdateMedicalHistoryDTO dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var patient = await _context.Patients.FindAsync(userId);
+
+            if (patient == null) return NotFound();
+
+            patient.MedicalHistorySummary = dto.MedicalHistorySummary;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Medical history updated successfully!" });
         }
     }
 }

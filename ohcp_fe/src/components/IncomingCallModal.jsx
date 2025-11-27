@@ -26,22 +26,22 @@ export default function IncomingCallModal() {
     // 3. Nếu CÓ cuộc gọi, hiển thị Modal
     return (
         <div style={modalStyles}>
-            <h4>Cuộc gọi đến!</h4>
+            <h4>Incoming Call!</h4>
             {/* Hiển thị tên người gọi (Bác sĩ) */}
-            <p>Từ: {incomingCall.callerName}</p>
+            <p>From: {incomingCall.callerName}</p>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
                 <button
                     onClick={acceptCall} // <-- Gọi hàm "Bắt máy" từ Context
                     style={{ backgroundColor: 'green', color: 'white', border: 'none', padding: '10px' }}
                 >
-                    Bắt máy
+                    Accept
                 </button>
                 <button
                     onClick={declineCall} // <-- Gọi hàm "Từ chối" từ Context
                     style={{ backgroundColor: 'red', color: 'white', border: 'none', padding: '10px' }}
                 >
-                    Từ chối
+                    Decline
                 </button>
             </div>
         </div>

@@ -11,10 +11,20 @@ import Prescription from './components/Prescription';
 import Chat from './components/Chat';
 import Payment from './components/Payment';
 import Reminders from './components/Reminders';
-import Admin from './components/Admin';
+
+import Admin from './components/Admin/Admin';
+import Patients from './components/Admin/Patients';
+import Appointments from './components/Admin/Appointments';
+import MedicalRecords from './components/Admin/MedicalRecords';
+import DoctorsAdmin from './components/Admin/DoctorsAdmin';
+import Settings from './components/Admin/Settings';
+import Invoices from './components/Admin/Invoices';
+
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
+
 import Footer from './components/Footer';
+
 import ContactUs from './components/ContactUs';
 import AboutUs from './components/AboutUs';
 import './App.css';
@@ -25,8 +35,13 @@ import VideocallPage from './pages/video-calling';
 import IncomingCallModal from './components/IncomingCallModal';
 import Navbar from './components/Navbar';
 import DoctorProfile from './components/DoctorProfile';
+
 import DoctorPage from './components/DoctorPage';
 import ProtectedRoute from './components/ProtectedRoute';
+
+import AdminRoute from './components/Admin/AdminRoute';
+import HealthRecords from './components/HealthRecords';
+
 
 function App() {
   return (
@@ -42,6 +57,7 @@ function App() {
 function AppContent() {
   const location = useLocation();
   const isVideoCallPage = location.pathname === '/video-calling';
+
   const isDoctorPage = location.pathname === '/doctor-page';
   const isAdminPage = location.pathname === '/admin';
   const isLoginPage = location.pathname === '/login';
@@ -49,13 +65,17 @@ function AppContent() {
   // Don't show navbar/footer on video call, doctor page, admin page, or login page
   const hideLayout = isVideoCallPage || isDoctorPage || isAdminPage || isLoginPage;
 
+  const isAdminPage = location.pathname.startsWith('/admin');
+
   return (
     <>
-      {!isVideoCallPage && <IncomingCallModal />}
+      {!isVideoCallPage && !isAdminPage && <IncomingCallModal />}
       <div className="App">
-        {!isVideoCallPage && <Chat />}
+        {!isVideoCallPage && !isAdminPage && <Chat />}
         <ScrollToTop />
         {!hideLayout && <Navbar />}
+        {!isVideoCallPage && !isAdminPage && <Navbar />}
+
         <div>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -133,6 +153,21 @@ function AppContent() {
           </Routes>
         </div>
         {!hideLayout && <Footer />}
+
+            <Route path="/health-records" element={<HealthRecords />} />
+
+            <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>} />
+            <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>}/>
+            <Route path="/admin/appointments" element={<AdminRoute> <Appointments /> </AdminRoute>}/>
+            <Route path="/admin/medical-records" element={<AdminRoute> <MedicalRecords /> </AdminRoute>}/>
+            <Route path="/admin/doctors" element={<AdminRoute> <DoctorsAdmin /> </AdminRoute>}/>
+            <Route path="/admin/invoices" element={<AdminRoute> <Invoices /> </AdminRoute>}/>
+            <Route  path="/admin/settings" element={<AdminRoute> <Settings /> </AdminRoute>}/>
+                                          
+          </Routes>
+        </div>
+        {!isVideoCallPage && !isAdminPage && <Footer />}
+
       </div>
     </>
   );

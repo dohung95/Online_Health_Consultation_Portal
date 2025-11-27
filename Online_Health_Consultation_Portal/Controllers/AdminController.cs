@@ -31,7 +31,7 @@ namespace OHCP_BK.Controllers
         /// <param name="dto">Patient registration data</param>
         /// <returns>Patient ID and user details</returns>
         [HttpPost("create/patient")]
-        public async Task<IActionResult> CreatePatient([FromBody] PatientCreateDTO dto)
+        public async Task<IActionResult> CreatePatient([FromBody] PatientDTO dto)
         {
             if (!ModelState.IsValid)
             {

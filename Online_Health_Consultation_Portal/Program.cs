@@ -9,6 +9,7 @@ using OHCP_BK.Data;
 using OHCP_BK.Middleware;
 using OHCP_BK.Models;
 using OHCP_BK.Services;
+using OHCP_BK.Hubs;
 using System;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -114,6 +115,21 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey))
     };
+
+    // Cấu hình JWT cho SignalR
+    o.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization(o =>
@@ -147,6 +163,9 @@ builder.Services.AddCors(c =>
 
 // Thêm logging
 builder.Services.AddLogging(logging => logging.AddConsole().SetMinimumLevel(LogLevel.Debug));
+
+// Thêm SignalR
+builder.Services.AddSignalR();
 
 // Thêm dịch vụ Controllers
 builder.Services.AddControllers()
@@ -192,17 +211,33 @@ app.UseExceptionHandler(errorApp =>
 // Add global exception middleware
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors("AllowReactApp");
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 // Đăng ký đường dẫn cho Hub
 app.MapHub<OHCP_BK.Hubs.NotificationCalling>("/notificationcalling");
 
+// Map SignalR Hub
+app.MapHub<NotificationHub>("/hubs/notifications");
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
+
+    // Seed default admin, doctor, patient users
     await SeedData.CreateRoles(services, userManager);
+
+    // Seed 50 doctors, 100 patients, and related data
+    Console.WriteLine("Starting medical data seeding process...");
+    await OHCP_BK.Data.SeedMedicalData.SeedAsync(services);
+    Console.WriteLine("Medical data seeding completed!");
+
+    // Seed 50 invoices
+    Console.WriteLine("Starting invoice data seeding process...");
+    await OHCP_BK.Data.SeedInvoiceData.SeedAsync(services);
+    Console.WriteLine("Invoice data seeding completed!");
 }
 
 app.Run();

@@ -16,59 +16,59 @@ namespace OHCP_BK.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Dịch vụ nhắc nhở tự động đã được khởi động");
+            _logger.LogInformation("Reminder background service started");
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    _logger.LogInformation("Bắt đầu kiểm tra nhắc nhở lúc {Time}", DateTime.UtcNow);
+                    _logger.LogInformation("Starting reminder check at {Time}", DateTime.UtcNow);
 
                     using (var scope = _serviceProvider.CreateScope())
                     {
-                        // Lấy service từ DI container
+                        // Get services from DI container
                         var medicationReminderService = scope.ServiceProvider
                             .GetRequiredService<IMedicationReminderService>();
                         var followUpReminderService = scope.ServiceProvider
                             .GetRequiredService<IFollowUpReminderService>();
 
-                        // Kiểm tra và tạo nhắc nhở nạp thuốc
+                        // Check and create medication refill reminders
                         var medicationReminders = await medicationReminderService
                             .CheckAndCreateRefillRemindersAsync();
                         _logger.LogInformation(
-                            "Đã tạo {Count} thông báo nhắc nhở nạp thuốc", 
+                            "Created {Count} medication refill reminder notifications", 
                             medicationReminders);
 
-                        // Kiểm tra và tạo nhắc nhở tái khám
+                        // Check and create follow-up reminders
                         var followUpReminders = await followUpReminderService
                             .CheckAndCreateFollowUpRemindersAsync();
                         _logger.LogInformation(
-                            "Đã tạo {Count} thông báo nhắc nhở tái khám", 
+                            "Created {Count} follow-up reminder notifications", 
                             followUpReminders);
                     }
 
                     _logger.LogInformation(
-                        "Hoàn thành kiểm tra nhắc nhở. Chờ {Hours} giờ đến lần kiểm tra tiếp theo",
+                        "Completed reminder check. Waiting {Hours} hours until next check",
                         CHECK_INTERVAL_HOURS);
 
-                    // Chờ 24 giờ trước khi kiểm tra lại
+                    // Wait 24 hours before next check
                     await Task.Delay(TimeSpan.FromHours(CHECK_INTERVAL_HOURS), stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogInformation("Dịch vụ nhắc nhở đang dừng lại");
+                    _logger.LogInformation("Reminder service is stopping");
                     break;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Lỗi khi thực hiện kiểm tra nhắc nhở");
+                    _logger.LogError(ex, "Error executing reminder check");
                     
-                    // Chờ 1 giờ trước khi thử lại nếu có lỗi
+                    // Wait 1 hour before retry on error
                     await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
                 }
             }
 
-            _logger.LogInformation("Dịch vụ nhắc nhở tự động đã dừng");
+            _logger.LogInformation("Reminder background service stopped");
         }
     }
 }

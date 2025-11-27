@@ -9,19 +9,19 @@ const getAuthHeader = () => {
 };
 
 export const doctorService = {
-    // 1. Tìm kiếm (Có phân trang - Dùng cho trang DoctorList)
+    // 1. Search (pagination for Doctors)
     searchDoctors: async (params) => {
         const response = await axios.get(`${API_URL}/Doctor/search`, { params });
         return response.data; 
     },
 
-    // 2. Lấy TẤT CẢ (Không phân trang - Dùng cho Dropdown trang Schedule)
+    // 2. Search (no pagination for Dropdown Schedule)
     getAllDoctors: async () => {
         const response = await axios.get(`${API_URL}/Doctor/all`);
-        return response.data; // Trả về mảng []
+        return response.data; // return array []
     },
 
-    // 3. Lấy chi tiết
+    // 3. Get by ID
     getDoctorById: async (id) => {
         const response = await axios.get(`${API_URL}/Doctor/${id}`);
         return response.data;

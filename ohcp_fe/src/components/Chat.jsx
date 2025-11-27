@@ -41,6 +41,10 @@ export default function Chat() {
     const scrollTo = useRef(null);
     const [messages, setMessages] = useState([]);
 
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
     const [userList, setUserList] = useState([]);
     const [doctorList, setDoctorList] = useState([]);
 
@@ -225,6 +229,121 @@ export default function Chat() {
         }
     }
 
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            if (file.size > 300 * 1024) { // Giới hạn 300KB (base64 sẽ to hơn ~33%)
+                alert('Image too large! Maximum 300KB');
+                return;
+            }
+            setSelectedFile(file);
+        } else {
+            alert('Only image files are accepted!');
+        }
+    };
+
+    const sendImage = async () => {
+        if (!selectedFile || !firebaseUser || !chatPartner) return;
+        if (chatPartner.uid === BOT_USER.uid) {
+            alert('Cannot send image to Bot!');
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const { uid, photoURL } = firebaseUser;
+            const myUid = uid.replace(/-/g, '');
+            const targetUid = chatPartner.uid.replace(/-/g, '');
+            const displayName = csharpUser.preferred_username || "User";
+
+            // Chuyển file thành Base64
+            const reader = new FileReader();
+
+            reader.onload = async (e) => {
+                try {
+                    const base64Image = e.target.result; // Data URL format: "data:image/png;base64,..."
+
+                    // Kiểm tra kích thước sau khi convert
+                    if (base64Image.length > 900 * 1024) { // ~900KB (để an toàn < 1MB của Firestore)
+                        alert('Image too large after conversion! Please choose smaller image.');
+                        setUploading(false);
+                        return;
+                    }
+
+                    // Lưu tin nhắn vào Firestore
+                    const chatRoomId = myUid < targetUid ? `${myUid}_${targetUid}` : `${targetUid}_${myUid}`;
+                    const messagesRef = collection(db, "chats", chatRoomId, "messages");
+                    const chatRoomRef = doc(db, "chats", chatRoomId);
+
+                    await addDoc(messagesRef, {
+                        text: '',
+                        imageUrl: base64Image, // Lưu base64 trực tiếp
+                        createdAt: serverTimestamp(),
+                        uid: uid,
+                        photoURL: photoURL
+                    });
+
+                    await setDoc(chatRoomRef, {
+                        participants: [myUid, targetUid],
+                        [targetUid]: {
+                            displayName: chatPartner.displayName,
+                            photoURL: chatPartner.photoURL
+                        },
+                        [myUid]: {
+                            displayName: displayName,
+                            photoURL: photoURL
+                        },
+                        lastMessage: '📷 [Image]',
+                        lastMessageAt: serverTimestamp()
+                    }, { merge: true });
+
+                    // Reset
+                    setSelectedFile(null);
+                    setUploading(false);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                } catch (error) {
+                    console.error('Error sending image:', error);
+                    alert('Error sending image!');
+                    setUploading(false);
+                }
+            };
+
+            reader.onerror = () => {
+                alert('Error reading file!');
+                setUploading(false);
+            };
+
+            reader.readAsDataURL(selectedFile); // Chuyển file thành base64
+        } catch (error) {
+            console.error('Error sending image:', error);
+            alert('Error sending image!');
+            setUploading(false);
+        }
+    };
+
+    const handlePaste = (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+
+            if (item.type.startsWith('image/')) {
+                e.preventDefault();
+
+                const file = item.getAsFile();
+                if (file) {
+                    if (file.size > 300 * 1024) { // Giới hạn 300KB
+                        alert('Image too large! Maximum 300KB');
+                        return;
+                    }
+                    setSelectedFile(file);
+                }
+                break;
+            }
+        }
+    };
+
     // scroll message
     useEffect(() => {
         if (scrollTo.current) {
@@ -335,33 +454,102 @@ export default function Chat() {
                     </div>
 
                     {((isPatient && chatPartner) || (isDoctor && chatPartner)) && (
-                        <form className="d-flex p-2 border-top" onSubmit={sendMessage}>
-                            {isPatient && (
+                        <div className="p-2 border-top">
+                            {/* Hiển thị preview hình đã chọn */}
+                            {selectedFile && (
+                                <div className="mb-2 p-2 bg-light rounded d-flex align-items-center justify-content-between">
+                                    <div className="d-flex align-items-center">
+                                        {/* Preview thumbnail */}
+                                        {selectedFile.type.startsWith('image/') && (
+                                            <img
+                                                src={URL.createObjectURL(selectedFile)}
+                                                alt="preview"
+                                                style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px', marginRight: '10px' }}
+                                            />
+                                        )}
+                                        <small className="text-truncate">{selectedFile.name}</small>
+                                    </div>
+                                    <button
+                                        className="btn btn-sm btn-danger"
+                                        onClick={() => {
+                                            setSelectedFile(null);
+                                            if (fileInputRef.current) fileInputRef.current.value = '';
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            )}
+
+                            <form className="d-flex" onSubmit={sendMessage}>
+                                {isPatient && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline-secondary me-2"
+                                        onClick={() => setShowDoctorListModal(true)}
+                                        title="Choice Doctors"
+                                    >
+                                        <i className="bi bi-person-lines-fill"></i>
+                                    </button>
+                                )}
+
+                                {/* Input file ẩn */}
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    accept="image/*"
+                                    onChange={handleFileSelect}
+                                    style={{ display: 'none' }}
+                                />
+
+                                {/* Nút chọn hình */}
                                 <button
                                     type="button"
-                                    className="btn btn-outline-secondary me-2"
-                                    onClick={() => setShowDoctorListModal(true)}
-                                    title="Choice Doctors"
+                                    className="btn btn-outline-primary me-2"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    title="Send image"
+                                    disabled={uploading}
                                 >
-                                    <i className="bi bi-person-lines-fill"></i>
+                                    <i className="bi bi-image"></i>
                                 </button>
-                            )}
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={formValue}
-                                onChange={(e) => setFormValue(e.target.value)}
-                                placeholder="Input text..."
-                                onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); sendMessage(e); } }}
-                            />
-                            <button
-                                className="btn btn-primary ms-2"
-                                type="submit"
-                                disabled={!formValue}
-                            >
-                                Submit
-                            </button>
-                        </form>
+
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={formValue}
+                                    onChange={(e) => setFormValue(e.target.value)}
+                                    onPaste={handlePaste}
+                                    placeholder="Input text..."
+                                    disabled={uploading}
+                                />
+
+                                {selectedFile ? (
+                                    <button
+                                        className="btn btn-success ms-2"
+                                        type="button"
+                                        onClick={sendImage}
+                                        disabled={uploading}
+                                    >
+                                        {uploading ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm me-1"></span>
+                                                Sending...
+                                            </>
+                                        ) : (
+                                            'Submit'
+                                        )}
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="btn btn-primary ms-2"
+                                        type="submit"
+                                        disabled={!formValue || uploading}
+                                    >
+                                        Submit
+                                    </button>
+                                )}
+                            </form>
+                        </div>
                     )}
 
                     {isPatient && showDoctorListModal && (
@@ -415,29 +603,53 @@ export default function Chat() {
 function ChatMessage(props) {
     if (!auth.currentUser) return null;
 
-    const { text, uid, photoURL, createdAt } = props.message;
+    const { text, imageUrl, uid, photoURL, createdAt } = props.message;
 
     const isOwnMessage = uid === auth.currentUser.uid;
-    const messageClass = isOwnMessage ? 'sent' : 'received';
 
     const formattedTime = createdAt?.seconds
-        ? new Date(createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+        ? new Date(createdAt.seconds * 1000).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        })
         : '...';
 
     return (
-        <div className={`message d-flex mb-2 ${isOwnMessage ? 'justify-content-end' : 'justify-content-start'}`}>
+        <div className={`message d-flex mb-3 ${isOwnMessage ? 'justify-content-end' : 'justify-content-start'}`}>
             <div style={{ maxWidth: '70%' }}>
                 <div
-                    className={`p-2 px-3 rounded-pill ${isOwnMessage ? 'bg-primary text-white' : 'bg-light text-dark border'}`}
+                    className={`p-2 rounded ${isOwnMessage ? 'bg-primary text-white' : 'bg-light text-dark border'}`}
+                    style={{
+                        borderRadius: imageUrl ? '12px' : '20px',
+                        padding: imageUrl ? '4px' : '8px 16px'
+                    }}
                 >
-                    {text}
+                    {/* Hiển thị hình ảnh nếu có */}
+                    {imageUrl && (
+                        <img
+                            src={imageUrl}
+                            alt="sent"
+                            style={{
+                                maxWidth: '100%',
+                                maxHeight: '300px',
+                                borderRadius: '8px',
+                                display: 'block',
+                                cursor: 'pointer'
+                            }}
+                            onClick={() => window.open(imageUrl, '_blank')}
+                        />
+                    )}
+                    {/* Hiển thị text nếu có */}
+                    {text && <div style={{ marginTop: imageUrl ? '8px' : '0' }}>{text}</div>}
                 </div>
                 <div
                     className={`small text-muted mt-1 ${isOwnMessage ? 'text-end' : 'text-start'}`}
                 >
                     {formattedTime}
                 </div>
-
             </div>
         </div>
     );

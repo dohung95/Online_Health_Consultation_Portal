@@ -41,9 +41,7 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        // =============================================================
         // 2. PUBLIC API: GET DETAIL
-        // =============================================================
         [HttpGet("{id}")]
         public async Task<ActionResult<DoctorDetailDTO>> GetDoctor(string id)
         {
@@ -222,6 +220,7 @@ namespace OHCP_BK.Controllers
                     AverageRating = d.Reviews.Any() ? d.Reviews.Average(r => r.Rating) : 0,
                     TotalReviews = d.Reviews.Count,
                     Reviews = null // Danh s�ch t?ng qu�t kh�ng c?n load t?ng review
+
                 }).ToListAsync();
 
             return new PagedResult<DoctorDetailDTO>
@@ -238,6 +237,7 @@ namespace OHCP_BK.Controllers
         // 5. PUBLIC API: GET ALL (D�nh cho Dropdown ??t l?ch)
         // Kh�ng ph�n trang, ch? l?y ID, Name, Specialty ?? nh? d? li?u
         // =============================================================
+
         [HttpGet("all")]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<DoctorDetailDTO>>> GetAllDoctorsForDropdown()
@@ -245,17 +245,25 @@ namespace OHCP_BK.Controllers
             try
             {
                 var doctors = await _context.Doctors
+
                     .Select(d => new DoctorDetailDTO // Ch? l?y th�ng tin c?n thi?t
+
                     {
                         DoctorID = d.DoctorID,
                         FullName = d.FullName,
                         Specialty = d.Specialty,
+
                         // C�c tr??ng kh�c c� th? ?? null ho?c default cho nh?
+
                         // Location = d.Location 
                     })
                     .ToListAsync();
 
+
                 return Ok(doctors); // Tr? v? M?ng [] tr?c ti?p, kh�ng b?c PagedResult
+
+                return Ok(doctors);
+
             }
             catch (Exception ex)
             {

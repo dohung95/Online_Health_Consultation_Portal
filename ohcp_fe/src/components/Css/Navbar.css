@@ -565,3 +565,30 @@
   transform: translateY(-5px) scale(1.1);
   box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
 }
+
+/* Patient Dropdown Styles */
+.dropdown-menu {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    padding: 0.5rem 0;
+    z-index: 1000;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
+}
+
+.dropdown-item i {
+    color: #007bff;
+}

@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { doctorService } from '../api/doctorApi'; // Import từ file API mới
+import { doctorService } from '../api/doctorApi';
 import { useNavigate } from 'react-router-dom';
 import './Css/Doctors.css';
+import { useAuth } from '../context/AuthContext';
+import { handleAuthenticatedAction } from '../utils/authUtils';
 
 const Doctors = () => {
-  // 1. State lưu danh sách bác sĩ
   const [doctors, setDoctors] = useState([]);
-
-  // 2. State quản lý phân trang
+  // 2. State pagination
   const [pagination, setPagination] = useState({
     page: 1,
-    pageSize: 5, // Số lượng bác sĩ trên 1 trang
+    pageSize: 5, 
     totalPages: 1,
     totalItems: 0
   });
 
-  // 3. State quản lý bộ lọc
+  // 3. State filters
   const [filters, setFilters] = useState({
     name: '',
     specialty: '',
@@ -23,43 +23,42 @@ const Doctors = () => {
     language: ''
   });
 
+  const { isAuthenticated } = useAuth();
+
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Load dữ liệu mỗi khi 'page' thay đổi
+  // Load when page changes
   useEffect(() => {
     loadDoctors();
   }, [pagination.page]);
 
-  // 2. EFFECT MỚI: Load khi bộ lọc thay đổi (DEBOUNCE)
+  // Load when filters change (DEBOUNCE)
   useEffect(() => {
-    // Đặt một bộ hẹn giờ (Timer)
+    // Timer
     const timer = setTimeout(() => {
       // Logic:
-      // Nếu đang ở trang 1 -> Gọi API luôn (vì đổi filter nhưng page không đổi thì effect trên không chạy)
-      // Nếu đang ở trang > 1 -> Reset về trang 1 (việc này sẽ kích hoạt effect ở trên chạy)
+      // if page = 1 -> loadDoctors()
+      // else -> Reset page to 1
       if (pagination.page === 1) {
         loadDoctors();
       } else {
         setPagination(prev => ({ ...prev, page: 1 }));
       }
-    }, 800); // Chờ 800ms sau khi ngừng gõ mới chạy
+    }, 800); // wait 800ms
 
-    // Cleanup function: Xóa timer cũ nếu người dùng gõ tiếp khi timer chưa chạy xong
+    // Cleanup function: clear timer
     return () => clearTimeout(timer);
-  }, [filters]); // Chạy lại mỗi khi biến 'filters' thay đổi
+  }, [filters]); // Run again when 'filters' changes
 
   const loadDoctors = async () => {
     setLoading(true);
     try {
-      // Log params to check if page is sending correctly
       const params = { ...filters, page: pagination.page, pageSize: pagination.pageSize };
-      console.log("Sending params:", params);
 
       const data = await doctorService.searchDoctors(params);
-      console.log("API Response:", data); // Check the exact structure here!
 
-      // TRƯỜNG HỢP 1: Backend trả về PagedResult chuẩn
+      // Option 1: Backend returns PagedResult standard
       if (data && data.items) {
         setDoctors(data.items);
         setPagination(prev => ({
@@ -68,10 +67,10 @@ const Doctors = () => {
           totalItems: data.totalItems
         }));
       }
-      // TRƯỜNG HỢP 2: Fallback (nếu backend chưa update xong)
+      // Option 2: Fallback (if backend has not updated yet)
       else if (Array.isArray(data)) {
         setDoctors(data);
-        // Nếu trả về list thường thì không có pagination
+        // If returns a regular list, no pagination
         setPagination(prev => ({ ...prev, totalPages: 1, totalItems: data.length }));
       }
       else {
@@ -85,27 +84,27 @@ const Doctors = () => {
     setLoading(false);
   };
 
-  // Xử lý khi nhập bộ lọc
+  // Handle filter change
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  // Khi bấm nút "Apply Filters" -> Reset về trang 1 và gọi API
+  // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
     setPagination(prev => ({ ...prev, page: 1 }));
     loadDoctors();
   };
 
-  // Chuyển trang
+  // Handle page change
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setPagination(prev => ({ ...prev, page: newPage }));
-      window.scrollTo(0, 0); // Cuộn lên đầu trang cho đẹp
+      window.scrollTo(0, 0); // Scroll to top for better UX
     }
   };
 
-  // Helper vẽ sao
+  // Helper function to render stars
   const renderStars = (rating) => {
     const r = Math.round(rating);
     return <span className="text-warning">{"★".repeat(r)}{"☆".repeat(5 - r)}</span>;
@@ -114,14 +113,12 @@ const Doctors = () => {
   return (
     <div className='Background_Doctors'>
       <div className="container">
-        <div className="row" style={{backgroundColor:"#ffffffa4", padding:"3%"}}>
-          {/* --- SIDEBAR BỘ LỌC (FILTER) --- */}
-          {/* --- SIDEBAR BỘ LỌC (FILTER) --- */}
+        <div className="row" style={{ backgroundColor: "#ffffffa4", padding: "3%" }}>
+          {/* --- SIDEBAR FILTER --- */}
           <div className="col-md-3 mb-4">
             <div className="card p-3 shadow-sm bg-light">
               <h5 className="mb-3"><i className="bi bi-funnel-fill"></i> Filter Doctors</h5>
 
-              {/* Bỏ thẻ <form>, chỉ dùng thẻ <div> bao ngoài */}
               <div>
                 <div className="mb-3">
                   <label className="form-label fw-bold">Specialty</label>
@@ -161,7 +158,6 @@ const Doctors = () => {
                   />
                 </div>
 
-                {/* Nút này giờ chỉ mang tính chất reset hoặc bỏ đi cũng được */}
                 <button
                   className="btn btn-outline-secondary w-100"
                   onClick={() => setFilters({ name: '', specialty: '', location: '', language: '' })}
@@ -172,7 +168,7 @@ const Doctors = () => {
             </div>
           </div>
 
-          {/* --- DANH SÁCH BÁC SĨ --- */}
+          {/* --- Doctor List --- */}
           <div className="col-md-9">
             <h3 className="mb-4">
               Available Doctors <span className="text-muted fs-6">({pagination.totalItems} results)</span>
@@ -213,7 +209,10 @@ const Doctors = () => {
                             <button className="btn btn-outline-info w-100 mb-2" onClick={() => navigate(`/doctor/${doc.doctorID}`)}>
                               View Profile
                             </button>
-                            <button className="btn btn-success w-100" onClick={() => navigate(`/book/${doc.doctorID}`)}>
+                            <button
+                              className="btn btn-success w-100"
+                              onClick={() => handleAuthenticatedAction(isAuthenticated, navigate, `/book/${doc.doctorID}`)}
+                            >
                               Book Now
                             </button>
                           </div>
@@ -223,7 +222,7 @@ const Doctors = () => {
                   ))
                 )}
 
-                {/* --- THANH PHÂN TRANG (PAGINATION) --- */}
+                {/* --- PAGINATION --- */}
                 {pagination.totalPages > 1 && (
                   <nav className="d-flex justify-content-center mt-4">
                     <ul className="pagination">
@@ -233,7 +232,7 @@ const Doctors = () => {
                         </button>
                       </li>
 
-                      {/* Tạo mảng số trang [1, 2, 3...] */}
+                      {/* Array Page [1, 2, 3...] */}
                       {[...Array(pagination.totalPages)].map((_, i) => (
                         <li key={i + 1} className={`page-item ${pagination.page === i + 1 ? 'active' : ''}`}>
                           <button className="page-link" onClick={() => handlePageChange(i + 1)}>
