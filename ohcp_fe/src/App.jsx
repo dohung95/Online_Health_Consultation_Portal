@@ -57,15 +57,11 @@ function App() {
 function AppContent() {
   const location = useLocation();
   const isVideoCallPage = location.pathname === '/video-calling';
-
   const isDoctorPage = location.pathname === '/doctor-page';
-  const isAdminPage = location.pathname === '/admin';
   const isLoginPage = location.pathname === '/login';
-  
-  // Don't show navbar/footer on video call, doctor page, admin page, or login page
-  const hideLayout = isVideoCallPage || isDoctorPage || isAdminPage || isLoginPage;
-
   const isAdminPage = location.pathname.startsWith('/admin');
+  // Don't show navbar/footer on video call, doctor page, admin page, or login page
+  const hideLayout = isVideoCallPage || isDoctorPage || isAdminPage ;
 
   return (
     <>
@@ -74,7 +70,6 @@ function AppContent() {
         {!isVideoCallPage && !isAdminPage && <Chat />}
         <ScrollToTop />
         {!hideLayout && <Navbar />}
-        {!isVideoCallPage && !isAdminPage && <Navbar />}
 
         <div>
           <Routes>
@@ -84,14 +79,8 @@ function AppContent() {
             <Route path="/login" element={<Sign_in />} />
             <Route path="/register" element={<Sign_up />} />
             <Route path="/video-calling" element={<VideocallPage />} />
-            
-            {/* Admin only */}
-            <Route path="/admin" element={
-              <ProtectedRoute allowedRoles={['Admin']}>
-                <Admin />
-              </ProtectedRoute>
-            } />
-            
+            <Route path="/health-records" element={<HealthRecords />} />
+
             {/* Doctor only */}
             <Route path="/doctor-page" element={
               <ProtectedRoute allowedRoles={['Doctor']}>
@@ -150,12 +139,7 @@ function AppContent() {
                 <Reminders />
               </ProtectedRoute>
             } />
-          </Routes>
-        </div>
-        {!hideLayout && <Footer />}
-
-            <Route path="/health-records" element={<HealthRecords />} />
-
+            
             <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>} />
             <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>}/>
             <Route path="/admin/appointments" element={<AdminRoute> <Appointments /> </AdminRoute>}/>
@@ -166,8 +150,7 @@ function AppContent() {
                                           
           </Routes>
         </div>
-        {!isVideoCallPage && !isAdminPage && <Footer />}
-
+        {!hideLayout && <Footer />}
       </div>
     </>
   );
