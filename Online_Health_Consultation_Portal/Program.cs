@@ -225,7 +225,19 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
+
+    // Seed default admin, doctor, patient users
     await SeedData.CreateRoles(services, userManager);
+
+    // Seed 50 doctors, 100 patients, and related data
+    Console.WriteLine("Starting medical data seeding process...");
+    await OHCP_BK.Data.SeedMedicalData.SeedAsync(services);
+    Console.WriteLine("Medical data seeding completed!");
+
+    // Seed 50 invoices
+    Console.WriteLine("Starting invoice data seeding process...");
+    await OHCP_BK.Data.SeedInvoiceData.SeedAsync(services);
+    Console.WriteLine("Invoice data seeding completed!");
 }
 
 app.Run();
