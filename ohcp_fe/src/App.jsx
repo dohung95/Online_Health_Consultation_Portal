@@ -11,6 +11,7 @@ import Prescription from './components/Prescription';
 import Chat from './components/Chat';
 import Payment from './components/Payment';
 import Reminders from './components/Reminders';
+import ProfilePatient from './pages/profilePatient';
 
 import Admin from './components/Admin/Admin';
 import Patients from './components/Admin/Patients';
@@ -80,7 +81,7 @@ function AppContent() {
             <Route path="/register" element={<Sign_up />} />
             <Route path="/video-calling" element={<VideocallPage />} />
             <Route path="/health-records" element={<HealthRecords />} />
-
+            <Route path="/profile-patient" element={<ProfilePatient />} />
             {/* Doctor only */}
             <Route path="/doctor-page" element={
               <ProtectedRoute allowedRoles={['Doctor']}>

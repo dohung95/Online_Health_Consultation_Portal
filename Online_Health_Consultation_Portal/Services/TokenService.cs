@@ -282,6 +282,45 @@ namespace OHCP_BK.Services
             }
         }
 
+        public async Task RemoveAllRefreshTokensAsync(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(userId))
+                    throw new ValidationException("User ID cannot be empty");
+
+                var tokens = await dbContext.RefreshTokens
+                    .Where(rt => rt.UserId == userId && !rt.IsRevoked)
+                    .ToListAsync();
+
+                if (tokens.Any())
+                {
+                    foreach (var token in tokens)
+                    {
+                        token.IsRevoked = true;
+                    }
+                    
+                    dbContext.RefreshTokens.UpdateRange(tokens);
+                    await dbContext.SaveChangesAsync();
+                    logger.LogInformation($"Revoked {tokens.Count} refresh token(s) for user '{userId}'");
+                }
+            }
+            catch (ValidationException)
+            {
+                throw;
+            }
+            catch (DbUpdateException ex)
+            {
+                logger.LogError($"Database error while removing all refresh tokens: {ex.Message}");
+                throw new InternalServerException("Failed to remove all refresh tokens");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Error removing all refresh tokens: {ex.Message}");
+                throw new InternalServerException("Failed to remove all refresh tokens");
+            }
+        }
+
         // Keep old method for backward compatibility
         [Obsolete("Use GenerateTokenAsync instead")]
         public async Task<string> GenerateToken(AppUser user)
