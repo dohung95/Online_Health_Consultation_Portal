@@ -41,6 +41,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 import AdminRoute from './components/Admin/AdminRoute';
 import HealthRecords from './components/HealthRecords';
+import ShareHealthRecords from './components/ShareHealthRecords';
 
 
 function App() {
@@ -80,6 +81,7 @@ function AppContent() {
             <Route path="/register" element={<Sign_up />} />
             <Route path="/video-calling" element={<VideocallPage />} />
             <Route path="/health-records" element={<HealthRecords />} />
+            <Route path="/share-records" element={<ShareHealthRecords />} />
 
             {/* Doctor only */}
             <Route path="/doctor-page" element={

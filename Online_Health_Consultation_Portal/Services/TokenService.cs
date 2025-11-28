@@ -73,7 +73,7 @@ namespace OHCP_BK.Services
                     new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
                     new Claim(JwtRegisteredClaimNames.PreferredUsername, user.UserName ?? "User"),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(ClaimTypes.Role, "User")  // default role
+                    //new Claim(ClaimTypes.Role, "User")  // default role
                 };
 
                 // Add user roles

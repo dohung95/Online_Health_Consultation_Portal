@@ -131,6 +131,10 @@ function Navbar() {
                                                         <i className="fas fa-calendar-check me-2"></i>
                                                         Health Records
                                                     </NavLink>
+                                                    <NavLink to="/share-records" className="dropdown-item">
+                                                        <i className="fas fa-calendar-check me-2"></i>
+                                                        Share Health Records
+                                                    </NavLink>
                                                 </div>
                                             )}
                                         </div>
