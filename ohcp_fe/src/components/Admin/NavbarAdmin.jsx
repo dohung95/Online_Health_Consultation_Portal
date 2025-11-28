@@ -24,10 +24,6 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
     }
   };
 
-  const handleGoHome = () => {
-    navigate("/");
-  };
-
   const menuItems = [
     { icon: "bi-speedometer2", label: "Dashboard", path: "/admin" },
     { icon: "bi-people", label: "Patients", path: "/admin/patients" },
@@ -56,19 +52,7 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
         {/* Navigation */}
         <nav className="flex-grow-1 mt-3 px-2">
           <ul className="nav flex-column">
-            {/* Home Link */}
-            <li className="nav-item mb-1">
-              <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); handleGoHome(); }}
-                className="nav-link d-flex align-items-center py-3 px-3 rounded-3 text-white admin-nav-hover"
-              >
-                <i className={`bi bi-house fs-5 ${sidebarCollapsed ? "" : "me-3"}`}></i>
-                <span className="admin-menu-label">Home page</span>
-              </a>
-            </li>
-
-            {/* Other Menu Items */}
+            {/* Menu Items */}
             {menuItems.map((item) => (
               <li key={item.label} className="nav-item mb-1">
                 <a

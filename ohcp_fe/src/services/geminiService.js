@@ -37,7 +37,7 @@ export async function getGeminiResponse(userMessage, conversationHistory = []) {
 
     try {
         // Add context to help guide the AI
-        const prompt = `You are a helpful medical assistant. Keep your answer under 3 sentences. Question: ${userMessage}`;
+        const prompt = `You are an AI assistant for an online health consultation platform. You can provide general health information, help users book appointments, and answer questions about symptoms. Keep responses concise (under 3 sentences). Question: ${userMessage}`;
 
         const result = await model.generateContent(prompt);
         const response = result.response.text();

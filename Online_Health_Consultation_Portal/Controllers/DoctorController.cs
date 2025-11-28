@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Data;
 using OHCP_BK.Dtos;
 using OHCP_BK.Models;
+using System.Security.Claims;
 
 namespace OHCP_BK.Controllers
 {
@@ -20,13 +21,16 @@ namespace OHCP_BK.Controllers
             _logger = logger;
         }
 
-        // 1. PUBLIC API: SEARCH (pagination)
+        // =============================================================
+        // 1. PUBLIC API: SEARCH (?� s?a ?? d�ng logic Ph�n trang)
+        // =============================================================
         [HttpGet("search")]
         [AllowAnonymous]
         public async Task<ActionResult<PagedResult<DoctorDetailDTO>>> SearchDoctors([FromQuery] DoctorFilterInputDTO search)
         {
             try
             {
+                // G?i h�m ri�ng (private method) ? d??i ?? x? l�
                 var result = await GetPagedDoctorsAsync(search);
                 return Ok(result);
             }
@@ -69,7 +73,60 @@ namespace OHCP_BK.Controllers
             });
         }
 
-        // GET: api/Doctor
+        // =============================================================
+        // 2.1. AUTHENTICATED API: GET CURRENT DOCTOR
+        // =============================================================
+        [HttpGet("current")]
+        [Authorize(Roles = "doctor")]
+        public async Task<ActionResult<DoctorProfileDTO>> GetCurrentDoctor()
+        {
+            try
+            {
+                // Get user ID from claims
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized("User ID not found in token");
+                }
+
+                // Find doctor by user ID
+                var doctor = await _context.Doctors
+                    .Include(d => d.User)
+                    .Include(d => d.Reviews)
+                    .FirstOrDefaultAsync(d => d.DoctorID == userId);
+
+                if (doctor == null)
+                {
+                    return NotFound("Doctor profile not found");
+                }
+
+                return Ok(new DoctorProfileDTO
+                {
+                    DoctorID = doctor.DoctorID,
+                    FullName = doctor.FullName,
+                    Email = doctor.User?.Email ?? "",
+                    PhoneNumber = doctor.User?.PhoneNumber ?? "",
+                    Specialty = doctor.Specialty,
+                    Qualifications = doctor.Qualifications,
+                    YearsOfExperience = doctor.YearsOfExperience,
+                    LanguageSpoken = doctor.LanguageSpoken,
+                    Location = doctor.Location,
+                    AverageRating = doctor.Reviews.Any() ? doctor.Reviews.Average(r => r.Rating) : 0,
+                    TotalReviews = doctor.Reviews.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting current doctor: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // =============================================================
+        // 3. ADMIN API: CRUD (Gi? nguy�n cho Admin qu?n l�)
+        // =============================================================
+
+        // GET: api/Doctor (Danh s�ch th� cho Admin)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
         {
@@ -133,7 +190,9 @@ namespace OHCP_BK.Controllers
             }
         }
 
-        // 4. PRIVATE HELPER METHODS (Logic private)
+        // =============================================================
+        // 4. PRIVATE HELPER METHODS (Logic x? l� t�ch bi?t)
+        // =============================================================
         private async Task<PagedResult<DoctorDetailDTO>> GetPagedDoctorsAsync(DoctorFilterInputDTO search)
         {
             var query = _context.Doctors.Include(d => d.Reviews).AsQueryable();
@@ -160,7 +219,8 @@ namespace OHCP_BK.Controllers
                     Location = d.Location,
                     AverageRating = d.Reviews.Any() ? d.Reviews.Average(r => r.Rating) : 0,
                     TotalReviews = d.Reviews.Count,
-                    Reviews = null // List reviews not need load
+                    Reviews = null // Danh s�ch t?ng qu�t kh�ng c?n load t?ng review
+
                 }).ToListAsync();
 
             return new PagedResult<DoctorDetailDTO>
@@ -173,7 +233,11 @@ namespace OHCP_BK.Controllers
             };
         }
 
-        // 5. PUBLIC API: GET ALL (no pagination)
+        // =============================================================
+        // 5. PUBLIC API: GET ALL (D�nh cho Dropdown ??t l?ch)
+        // Kh�ng ph�n trang, ch? l?y ID, Name, Specialty ?? nh? d? li?u
+        // =============================================================
+
         [HttpGet("all")]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<DoctorDetailDTO>>> GetAllDoctorsForDropdown()
@@ -181,16 +245,25 @@ namespace OHCP_BK.Controllers
             try
             {
                 var doctors = await _context.Doctors
-                    .Select(d => new DoctorDetailDTO
+
+                    .Select(d => new DoctorDetailDTO // Ch? l?y th�ng tin c?n thi?t
+
                     {
                         DoctorID = d.DoctorID,
                         FullName = d.FullName,
                         Specialty = d.Specialty,
+
+                        // C�c tr??ng kh�c c� th? ?? null ho?c default cho nh?
+
                         // Location = d.Location 
                     })
                     .ToListAsync();
 
+
+                return Ok(doctors); // Tr? v? M?ng [] tr?c ti?p, kh�ng b?c PagedResult
+
                 return Ok(doctors);
+
             }
             catch (Exception ex)
             {

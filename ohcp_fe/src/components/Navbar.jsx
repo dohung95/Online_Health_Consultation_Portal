@@ -11,9 +11,9 @@ function Navbar() {
     const { isAuthenticated, roles, logout } = useAuth();
     const navigate = useNavigate();
     const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
-    const isAdmin = roles.includes('admin');
-    const isDoctor = roles.includes('doctor');
-    const isUser = roles.includes('patient');
+    const isAdmin = roles.some(role => role.toLowerCase() === 'admin');
+    const isDoctor = roles.some(role => role.toLowerCase() === 'doctor');
+    const isUser = roles.some(role => role.toLowerCase() === 'patient');
 
     // Handle scroll to show/hide navbar
     useEffect(() => {
@@ -105,9 +105,6 @@ function Navbar() {
                             <li><NavLink to="/doctors" className="nav-link">Doctors</NavLink></li>
                             <li><NavLink to="/schedule" className="nav-link">Schedule</NavLink></li>
                             <li><NavLink to="/contact_us" className="nav-link" end>Contact Us</NavLink></li>
-                            {isAdmin && (
-                                <li><NavLink to="/admin" className="nav-link">Admin Panel</NavLink></li>
-                            )}
                         </ul>
 
                         {/* Right Side: Auth Buttons */}
@@ -207,13 +204,6 @@ function Navbar() {
                                         <i className="fas fa-envelope me-2"></i> Contact Us
                                     </NavLink>
                                 </li>
-                                {isAdmin && (
-                                    <li>
-                                        <NavLink to="/admin" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link admin-link">
-                                            <i className="fas fa-cog me-2"></i> Admin Panel
-                                        </NavLink>
-                                    </li>
-                                )}
 
                                 <hr className="mobile-divider" />
 

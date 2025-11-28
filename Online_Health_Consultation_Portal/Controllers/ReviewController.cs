@@ -149,5 +149,40 @@ namespace OHCP_BK.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        // GET: api/Review/doctor/{doctorId}
+        [HttpGet("doctor/{doctorId}")]
+        [Authorize(Roles = "doctor")]
+        public async Task<ActionResult<IEnumerable<object>>> GetReviewsByDoctor(string doctorId)
+        {
+            try
+            {
+                var reviews = await _context.Reviews
+                    .Where(r => r.DoctorID == doctorId)
+                    .Include(r => r.Patient)
+                    .OrderByDescending(r => r.ReviewDate)
+                    .Select(r => new
+                    {
+                        reviewID = r.ReviewID,
+                        doctorID = r.DoctorID,
+                        patient = new
+                        {
+                            patientID = r.Patient.PatientID,
+                            fullName = r.Patient.FullName
+                        },
+                        rating = r.Rating,
+                        comment = r.Comment,
+                        reviewDate = r.ReviewDate
+                    })
+                    .ToListAsync();
+
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting reviews for doctor {doctorId}: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }
