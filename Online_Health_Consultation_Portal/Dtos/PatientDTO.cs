@@ -19,6 +19,10 @@ namespace OHCP_BK.Dtos
         [MaxLength(100, ErrorMessage = "Full name must not exceed 100 characters")]
         public string FullName { get; set; } = null!;
 
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [MaxLength(15, ErrorMessage = "Phone number must not exceed 15 characters")]
+        public string? PhoneNumber { get; set; }
+
         public DateTime? DateOfBirth { get; set; }
 
         [MaxLength(1000, ErrorMessage = "Medical history summary must not exceed 1000 characters")]

@@ -123,6 +123,10 @@ function Navbar() {
                                             </span>
                                             {patientDropdownOpen && (
                                                 <div className="dropdown-menu show position-absolute" style={{ top: '100%', right: 0, minWidth: '200px' }}>
+                                                    <NavLink to="/profile-patient" className="dropdown-item">
+                                                        <i className="fas fa-user me-2"></i>
+                                                        My Profile
+                                                    </NavLink>
                                                     <NavLink to="/my-appointments" className="dropdown-item">
                                                         <i className="fas fa-calendar-check me-2"></i>
                                                         My Appointments
