@@ -91,9 +91,17 @@ export default function Chat() {
 
     const isPatient = roles?.includes('patient');
     const isDoctor = roles?.includes('doctor');
+    // Người chưa đăng nhập vẫn thấy icon chat (chỉ chat với Bot)
+    const isGuest = !csharpUser || !firebaseUser;
 
     // LOGIC load list
     useEffect(() => {
+        // Nếu là Guest (chưa đăng nhập), set partner là Bot
+        if (isGuest) {
+            setChatPartner(BOT_USER);
+            return; // Dừng lại, không load danh sách
+        }
+
         if (firebaseUser) {
             if (isPatient) {
                 // Only set default bot if no partner is selected yet
@@ -117,11 +125,24 @@ export default function Chat() {
                 return unsubPatients;
             }
         }
-    }, [firebaseUser, isDoctor, isPatient, roles]);
+    }, [firebaseUser, isDoctor, isPatient, roles, isGuest]);
 
     // Listen
     useEffect(() => {
-        if (firebaseUser && chatPartner) {
+        if (chatPartner) {
+
+            // Nếu là Guest và đang chat với Bot, không cần load từ DB
+            if (isGuest && chatPartner.uid === BOT_USER.uid) {
+                setMessages([]); // Khởi tạo mảng rỗng
+                setLoading(false);
+                return;
+            }
+
+            // Nếu là Guest nhưng chatPartner không phải Bot, chặn lại
+            if (isGuest) {
+                return;
+            }
+
             setLoading(true);
 
             const myUid = firebaseUser.uid.replace(/-/g, '');
@@ -138,21 +159,21 @@ export default function Chat() {
 
             return unsubscribe;
         }
-    }, [firebaseUser, chatPartner]);
+    }, [firebaseUser, chatPartner, isGuest]);
 
     /// connect with bot chat AI
     // === HÀM GỬI TIN NHẮN (ĐÃ SỬA LOGIC) ===
     const sendMessage = async (e) => {
         e.preventDefault();
 
-        if (!firebaseUser || !formValue || !chatPartner) return;
+        if (!formValue || !chatPartner) return;
 
         // 1. Lấy thông tin người gửi (LẤY CẢ 'displayName')
-        const { uid, photoURL } = firebaseUser;
+        const uid = isGuest ? 'guest_temp_id' : firebaseUser.uid;
+        const photoURL = isGuest ? 'https://api.dicebear.com/8.x/avataaars/svg?seed=guest' : firebaseUser.photoURL;
         const myUid = uid.replace(/-/g, '');
         const targetUid = chatPartner.uid.replace(/-/g, '');
-
-        const displayName = csharpUser.preferred_username || "User";
+        const displayName = isGuest ? "Guest" : (csharpUser.preferred_username || "User");
 
         // 2. TẠO TIN NHẮN CỦA USER
         // (Chúng ta tạo object này trước để cập nhật UI ngay lập tức)
@@ -172,6 +193,12 @@ export default function Chat() {
         // (Chúng ta cuộn xuống sau khi Bot trả lời, hoặc sau khi gửi)
 
         // 4. LOGIC RẼ NHÁNH
+
+        if (isGuest && targetUid !== BOT_USER.uid) {
+            alert('Please login to chat with doctors!');
+            return;
+        }
+
         if (targetUid === BOT_USER.uid) {
             // === LOGIC CHO BOT (KHÔNG LƯU DB) ===
 
@@ -329,6 +356,11 @@ export default function Chat() {
             const item = items[i];
 
             if (item.type.startsWith('image/')) {
+                // Kiểm tra nếu đang chat với Bot
+                if (chatPartner.uid === BOT_USER.uid) {
+                    alert('Can not send image to Bot!');
+                    return;
+                }
                 e.preventDefault();
 
                 const file = item.getAsFile();
@@ -360,9 +392,9 @@ export default function Chat() {
     /// template
 
     // no login, no see anything
-    if (!csharpUser || !firebaseUser) {
-        return null;
-    }
+    // if (!csharpUser || !firebaseUser) {
+    //     return null;
+    // }
 
     const selectDoctor = (doctor) => {
         setChatPartner(doctor);
@@ -398,9 +430,10 @@ export default function Chat() {
                         )}
 
                         <h5 className="mb-0 fs-6">
-                            {isDoctor && !chatPartner && "Patient List"}
-                            {isDoctor && chatPartner && `Chat with ${chatPartner.displayName}`}
-                            {isPatient && `Chat with ${chatPartner.displayName}`}
+                            {isGuest && `Chat with ${chatPartner.displayName}`}
+                            {!isGuest && isDoctor && !chatPartner && "Patient List"}
+                            {!isGuest && isDoctor && chatPartner && `Chat with ${chatPartner.displayName}`}
+                            {!isGuest && isPatient && `Chat with ${chatPartner.displayName}`}
                         </h5>
 
                         <button
@@ -411,7 +444,15 @@ export default function Chat() {
                     </div>
 
                     <div className="flex-grow-1 p-3 overflow-y-auto" style={{ backgroundColor: '#f8f9fa' }}>
-                        {isDoctor && (
+                        {/* Guest chỉ thấy chat với Bot */}
+                        {isGuest && chatPartner && (
+                            <>
+                                {messages.length === 0 && <p className="text-center text-muted">Say Hello to Bot!</p>}
+                                {messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
+                                <div ref={scrollTo}></div>
+                            </>
+                        )}
+                        {!isGuest && isDoctor && (
                             <>
                                 {!chatPartner ? (
                                     <ul className="list-group list-group-flush">
@@ -443,7 +484,7 @@ export default function Chat() {
                             </>
                         )}
 
-                        {isPatient && chatPartner && (
+                        {!isGuest && isPatient && chatPartner && (
                             <>
                                 {loading && <p className="text-center text-muted">Loading message...</p>}
                                 {messages.length === 0 && !loading && <p className="text-center text-muted">Say Hello!</p>}
@@ -453,7 +494,7 @@ export default function Chat() {
                         )}
                     </div>
 
-                    {((isPatient && chatPartner) || (isDoctor && chatPartner)) && (
+                    {((isGuest && chatPartner) || (isPatient && chatPartner) || (isDoctor && chatPartner)) && (
                         <div className="p-2 border-top">
                             {/* Hiển thị preview hình đã chọn */}
                             {selectedFile && (
@@ -482,7 +523,7 @@ export default function Chat() {
                             )}
 
                             <form className="d-flex" onSubmit={sendMessage}>
-                                {isPatient && (
+                                {!isGuest && isPatient && (
                                     <button
                                         type="button"
                                         className="btn btn-outline-secondary me-2"
@@ -493,25 +534,29 @@ export default function Chat() {
                                     </button>
                                 )}
 
-                                {/* Input file ẩn */}
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                    style={{ display: 'none' }}
-                                />
+                                {!isGuest && chatPartner.uid !== BOT_USER.uid && (
+                                    <>
+                                        {/* Input file ẩn */}
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            accept="image/*"
+                                            onChange={handleFileSelect}
+                                            style={{ display: 'none' }}
+                                        />
 
-                                {/* Nút chọn hình */}
-                                <button
-                                    type="button"
-                                    className="btn btn-outline-primary me-2"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    title="Send image"
-                                    disabled={uploading}
-                                >
-                                    <i className="bi bi-image"></i>
-                                </button>
+                                        {/* Nút chọn hình */}
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-primary me-2"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            title="Send image"
+                                            disabled={uploading}
+                                        >
+                                            <i className="bi bi-image"></i>
+                                        </button>
+                                    </>
+                                )}
 
                                 <input
                                     type="text"
@@ -601,11 +646,15 @@ export default function Chat() {
 }
 
 function ChatMessage(props) {
-    if (!auth.currentUser) return null;
+    const currentUser = auth.currentUser;
+    // Cho phép hiển thị message cho cả Guest
 
     const { text, imageUrl, uid, photoURL, createdAt } = props.message;
 
-    const isOwnMessage = uid === auth.currentUser.uid;
+    // Guest check bằng uid tạm
+    const isOwnMessage = currentUser
+        ? uid === currentUser.uid
+        : uid === 'guest_temp_id';
 
     const formattedTime = createdAt?.seconds
         ? new Date(createdAt.seconds * 1000).toLocaleTimeString([], {

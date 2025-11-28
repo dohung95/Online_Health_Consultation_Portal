@@ -12,7 +12,7 @@ using OHCP_BK.Data;
 namespace OHCP_BK.Migrations
 {
     [DbContext(typeof(OHCPContext))]
-    [Migration("20251127042300_v1")]
+    [Migration("20251128065443_v1")]
     partial class v1
     {
         /// <inheritdoc />
