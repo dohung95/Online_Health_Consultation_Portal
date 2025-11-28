@@ -345,6 +345,58 @@ namespace OHCP_BK.Migrations
                     b.ToTable("HealthRecords");
                 });
 
+            modelBuilder.Entity("OHCP_BK.Models.HealthRecordShare", b =>
+                {
+                    b.Property<int>("ShareID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ShareID"));
+
+                    b.Property<DateTime>("ConsentGivenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("HealthRecordID")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PermissionLevel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RevokeReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SharedByPatientID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SharedDocumentIDs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SharedWithDoctorID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ShareID");
+
+                    b.HasIndex("HealthRecordID");
+
+                    b.HasIndex("SharedByPatientID");
+
+                    b.HasIndex("SharedWithDoctorID");
+
+                    b.ToTable("HealthRecordShares");
+                });
+
             modelBuilder.Entity("OHCP_BK.Models.Invoice", b =>
                 {
                     b.Property<int>("InvoiceID")
@@ -732,6 +784,33 @@ namespace OHCP_BK.Migrations
                         .IsRequired();
 
                     b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("OHCP_BK.Models.HealthRecordShare", b =>
+                {
+                    b.HasOne("OHCP_BK.Models.HealthRecord", "HealthRecord")
+                        .WithMany()
+                        .HasForeignKey("HealthRecordID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OHCP_BK.Models.Patient", "SharedByPatient")
+                        .WithMany()
+                        .HasForeignKey("SharedByPatientID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OHCP_BK.Models.Doctor", "SharedWithDoctor")
+                        .WithMany()
+                        .HasForeignKey("SharedWithDoctorID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("HealthRecord");
+
+                    b.Navigation("SharedByPatient");
+
+                    b.Navigation("SharedWithDoctor");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.Invoice", b =>

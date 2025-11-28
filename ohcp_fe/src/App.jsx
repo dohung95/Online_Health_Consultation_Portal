@@ -37,6 +37,7 @@ import Navbar from './components/Navbar';
 import DoctorProfile from './components/DoctorProfile';
 import AdminRoute from './components/Admin/AdminRoute';
 import HealthRecords from './components/HealthRecords';
+import ShareHealthRecords from './components/ShareHealthRecords';
 
 function App() {
   return (
@@ -80,6 +81,7 @@ function AppContent() {
             <Route path="/register" element={<Sign_up />} />
             <Route path="/video-calling" element={<VideocallPage />} />
             <Route path="/health-records" element={<HealthRecords />} />
+            <Route path="/share-records" element={<ShareHealthRecords />} />
 
             <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>} />
             <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>}/>

@@ -398,6 +398,46 @@ namespace OHCP_BK.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "HealthRecordShares",
+                columns: table => new
+                {
+                    ShareID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    HealthRecordID = table.Column<int>(type: "int", nullable: false),
+                    SharedDocumentIDs = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SharedWithDoctorID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SharedByPatientID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PermissionLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ConsentGivenAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsRevoked = table.Column<bool>(type: "bit", nullable: false),
+                    RevokedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RevokeReason = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HealthRecordShares", x => x.ShareID);
+                    table.ForeignKey(
+                        name: "FK_HealthRecordShares_Doctors_SharedWithDoctorID",
+                        column: x => x.SharedWithDoctorID,
+                        principalTable: "Doctors",
+                        principalColumn: "DoctorID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_HealthRecordShares_HealthRecords_HealthRecordID",
+                        column: x => x.HealthRecordID,
+                        principalTable: "HealthRecords",
+                        principalColumn: "HealthRecordID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_HealthRecordShares_Patients_SharedByPatientID",
+                        column: x => x.SharedByPatientID,
+                        principalTable: "Patients",
+                        principalColumn: "PatientID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "MedicalDocuments",
                 columns: table => new
                 {
@@ -478,6 +518,21 @@ namespace OHCP_BK.Migrations
                 name: "IX_HealthRecords_PatientID",
                 table: "HealthRecords",
                 column: "PatientID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HealthRecordShares_HealthRecordID",
+                table: "HealthRecordShares",
+                column: "HealthRecordID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HealthRecordShares_SharedByPatientID",
+                table: "HealthRecordShares",
+                column: "SharedByPatientID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HealthRecordShares_SharedWithDoctorID",
+                table: "HealthRecordShares",
+                column: "SharedWithDoctorID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Invoices_AppointmentID",
@@ -578,6 +633,9 @@ namespace OHCP_BK.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "HealthRecordShares");
+
             migrationBuilder.DropTable(
                 name: "Invoices");
 
