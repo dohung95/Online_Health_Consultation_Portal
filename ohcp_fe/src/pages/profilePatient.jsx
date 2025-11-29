@@ -112,7 +112,7 @@ function GeneralInfoForm({ profile, token, onUpdate }) {
         setSaving(true);
         try {
             await updateProfile(token, formData);
-            alert("Updated successfully!");
+            // alert("Updated successfully!");
             setIsEditing(false); // Tắt chế độ edit sau khi save thành công
             if (onUpdate) onUpdate(); // Tải lại dữ liệu mới
         } catch (error) {
@@ -128,18 +128,15 @@ function GeneralInfoForm({ profile, token, onUpdate }) {
         return (
             formData.fullName !== profile.fullName ||
             formData.phoneNumber !== profile.phoneNumber ||
-            formData.dateOfBirth !== profile.dateOfBirth ||
-            formData.medicalHistorySummary !== profile.medicalHistorySummary ||
-            formData.insuranceProvider !== profile.insuranceProvider ||
-            formData.insurancePolicyNumber !== profile.insurancePolicyNumber
+            formData.dateOfBirth !== profile.dateOfBirth
         );
     };
 
     return (
         <form onSubmit={handleSubmit}>
             <div className="row g-4 mb-4">
-                {/* === Cột Trái: Basic Information === */}
-                <div className="col-md-6">
+                {/* === Basic Information === */}
+                <div className="col-12">
                     <div className="card h-100 border-primary">
                         <div className="card-header bg-primary text-white">
                             <h5 className="mb-0">
@@ -192,56 +189,6 @@ function GeneralInfoForm({ profile, token, onUpdate }) {
                                         disabled
                                     />
                                     <small className="text-muted">Go to Security tab to change email</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* === Cột Phải: Medical & Insurance === */}
-                <div className="col-md-6">
-                    <div className="card h-100 border-success">
-                        <div className="card-header bg-success text-white">
-                            <h5 className="mb-0">
-                                <i className="bi bi-clipboard2-pulse me-2"></i>
-                                Medical Records & Insurance
-                            </h5>
-                        </div>
-                        <div className="card-body">
-                            <div className="mb-3">
-                                <label className="form-label">Medical History (Summary)</label>
-                                <textarea
-                                    className="form-control"
-                                    name="medicalHistorySummary"
-                                    rows="3"
-                                    value={formData.medicalHistorySummary}
-                                    onChange={handleChange}
-                                    placeholder="E.g.: Allergic to antibiotics, diabetes..."
-                                    disabled={!isEditing}
-                                ></textarea>
-                            </div>
-                            <div className="row g-3">
-                                <div className="col-6">
-                                    <label className="form-label">Insurance Provider</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="insuranceProvider"
-                                        value={formData.insuranceProvider}
-                                        onChange={handleChange}
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                                <div className="col-6">
-                                    <label className="form-label">Insurance Policy Number</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="insurancePolicyNumber"
-                                        value={formData.insurancePolicyNumber}
-                                        onChange={handleChange}
-                                        disabled={!isEditing}
-                                    />
                                 </div>
                             </div>
                         </div>
