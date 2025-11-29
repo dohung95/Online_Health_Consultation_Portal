@@ -77,18 +77,18 @@ export default function Admin() {
       onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
     >
       <main className="admin-content p-4">
-          <h2 className="mb-4">System Overview</h2>
+          <h2 className="admin-page-title mb-4">System Overview</h2>
 
           {error && (
-            <div className="alert alert-danger" role="alert">
+            <div className="alert alert-danger admin-alert" role="alert">
               <i className="bi bi-exclamation-triangle me-2"></i>
               {error}
             </div>
           )}
 
           {loading ? (
-            <div className="text-center p-5">
-              <div className="spinner-border text-primary" role="status">
+            <div className="admin-loading">
+              <div className="spinner-border" style={{color: 'var(--admin-primary)'}} role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
               <p className="mt-2">Loading dashboard...</p>
@@ -104,14 +104,14 @@ export default function Admin() {
                   { title: "Medical Records", value: stats.totalRecords, color: "info", icon: "bi-file-medical" },
                 ].map((stat) => (
                   <div key={stat.title} className="col-lg-3 col-md-6">
-                    <div className="card border-0 shadow-sm h-100">
-                      <div className="card-body d-flex align-items-center">
-                        <div className={`admin-stat-icon bg-${stat.color} text-white rounded-3 p-3 me-4`}>
-                          <i className={`bi ${stat.icon} fs-3`}></i>
+                    <div className="admin-stat-card h-100">
+                      <div className="d-flex align-items-center">
+                        <div className={`admin-stat-icon ${stat.color} me-3`}>
+                          <i className={`bi ${stat.icon}`}></i>
                         </div>
                         <div>
-                          <p className="text-muted mb-1 small">{stat.title}</p>
-                          <h3 className="mb-0">{stat.value}</h3>
+                          <p className="text-muted mb-1" style={{fontSize: '13px'}}>{stat.title}</p>
+                          <h3 className="mb-0" style={{fontSize: '28px', fontWeight: 700}}>{stat.value}</h3>
                         </div>
                       </div>
                     </div>
@@ -123,11 +123,11 @@ export default function Admin() {
 
           {/* Recent Appointments Table */}
           {!loading && (
-            <div className="card border-0 shadow-sm">
-              <div className="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 className="mb-0">Recent Appointments</h5>
+            <div className="admin-card">
+              <div className="card-header bg-white d-flex justify-content-between align-items-center py-3 px-4">
+                <h5 className="admin-section-title mb-0" style={{border: 'none', padding: 0}}>Recent Appointments</h5>
                 <button
-                  className="btn btn-primary btn-sm"
+                  className="btn btn-outline-slate btn-sm"
                   onClick={() => navigate('/admin/appointments')}
                 >
                   View All
@@ -135,13 +135,13 @@ export default function Admin() {
               </div>
               <div className="card-body p-0">
                 {recentAppointments.length === 0 ? (
-                  <div className="text-center p-5">
-                    <i className="bi bi-inbox fs-1 text-muted"></i>
-                    <p className="mt-2 text-muted">No recent appointments</p>
+                  <div className="admin-empty-state">
+                    <i className="bi bi-inbox"></i>
+                    <p className="mt-2">No recent appointments</p>
                   </div>
                 ) : (
                   <div className="table-responsive">
-                    <table className="table table-hover mb-0 align-middle">
+                    <table className="admin-table table mb-0 align-middle">
                       <thead className="table-light">
                         <tr>
                           <th>ID</th>

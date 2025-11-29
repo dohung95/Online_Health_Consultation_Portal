@@ -334,11 +334,11 @@ export default function MedicalRecords() {
     >
       <main className="admin-content p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>Medical Records</h2>
+            <h2 className="admin-page-title">Medical Records</h2>
           </div>
 
           {error && (
-            <div className="alert alert-danger" role="alert">
+            <div className="alert alert-danger admin-alert" role="alert">
               <i className="bi bi-exclamation-triangle me-2"></i>
               {error}
             </div>
@@ -353,14 +353,14 @@ export default function MedicalRecords() {
               { title: "Archived", value: stats.archived, icon: "bi-archive", color: "secondary" },
             ].map((stat) => (
               <div key={stat.title} className="col-lg-3 col-md-6">
-                <div className="card border-0 shadow-sm h-100">
-                  <div className="card-body d-flex align-items-center">
-                    <div className={`admin-stat-icon bg-${stat.color} text-white rounded-3 p-3 me-3`}>
-                      <i className={`bi ${stat.icon} fs-3`}></i>
+                <div className="admin-stat-card h-100">
+                  <div className="d-flex align-items-center">
+                    <div className={`admin-stat-icon ${stat.color} me-3`}>
+                      <i className={`bi ${stat.icon}`}></i>
                     </div>
                     <div>
-                      <p className="text-muted mb-1 small">{stat.title}</p>
-                      <h3 className="mb-0">{stat.value}</h3>
+                      <p className="text-muted mb-1" style={{fontSize: '13px'}}>{stat.title}</p>
+                      <h3 className="mb-0" style={{fontSize: '28px', fontWeight: 700}}>{stat.value}</h3>
                     </div>
                   </div>
                 </div>
@@ -369,22 +369,36 @@ export default function MedicalRecords() {
           </div>
 
           {/* Filter and Search */}
-          <div className="card border-0 shadow-sm mb-4">
+          <div className="admin-card mb-4">
             <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex align-items-center" style={{padding:"5px 10px"}}>
+                  <i className="bi bi-funnel me-2" style={{color: 'var(--admin-text-light)'}}></i>
+                  <h6 className="mb-0" style={{color: 'var(--admin-text-light)', fontSize: '13px', fontWeight: 600}}>SEARCH & FILTERS</h6>
+                </div>
+                <div style={{padding:"15px 5px 0 5px"}}>
+                  <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => {
+                    setFilters({ searchTerm: '', fromDate: '', toDate: '', category: '' });
+                    setPagination({ ...pagination, pageNumber: 1 });
+                  }}
+                  style={{fontSize: '12px'}}
+                >
+                  <i className="bi bi-x-circle me-1"></i>
+                  Clear Filters
+                </button>
+                </div>
+              </div>
               <div className="row g-3">
-                <div className="col-md-5">
-                  <div className="input-group">
-                    <span className="input-group-text bg-white">
-                      <i className="bi bi-search"></i>
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Search by patient name, record ID..."
-                      value={filters.searchTerm}
-                      onChange={handleSearch}
-                    />
-                  </div>
+                <div className="col-md-5" style={{padding:"0 0 10px 20px"}}>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search by patient name, record ID..."
+                    value={filters.searchTerm}
+                    onChange={handleSearch}
+                  />
                 </div>
                 <div className="col-md-2">
                   <input
@@ -404,11 +418,12 @@ export default function MedicalRecords() {
                     onChange={handleToDateFilter}
                   />
                 </div>
-                <div className="col-md-3">
+                <div className="col-md-3" style={{padding:"0 20px 0 0"}}>
                   <select
                     className="form-select"
                     value={filters.category}
                     onChange={handleCategoryFilter}
+                    style={{paddingTop:"10px"}}
                   >
                     <option value="">All Categories</option>
                     <option value="Diagnosis">Diagnosis</option>
@@ -423,23 +438,23 @@ export default function MedicalRecords() {
           </div>
 
           {/* Medical Records Table */}
-          <div className="card border-0 shadow-sm">
+          <div className="admin-card">
             <div className="card-body p-0">
               {loading ? (
-                <div className="text-center p-5">
-                  <div className="spinner-border text-primary" role="status">
+                <div className="admin-loading">
+                  <div className="spinner-border" style={{color: 'var(--admin-primary)'}} role="status">
                     <span className="visually-hidden">Loading...</span>
                   </div>
                   <p className="mt-2">Loading medical records...</p>
                 </div>
               ) : records.length === 0 ? (
-                <div className="text-center p-5">
-                  <i className="bi bi-inbox fs-1 text-muted"></i>
-                  <p className="mt-2 text-muted">No medical records found</p>
+                <div className="admin-empty-state">
+                  <i className="bi bi-inbox"></i>
+                  <p className="mt-2">No medical records found</p>
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table table-hover mb-0 align-middle">
+                  <table className="admin-table table mb-0 align-middle">
                     <thead className="table-light">
                       <tr>
                         <th>Record ID</th>
@@ -476,30 +491,30 @@ export default function MedicalRecords() {
                             </span>
                           </td>
                           <td className="text-center">
-                            <div className="btn-group btn-group-sm" role="group">
+                            <div className="admin-btn-group">
                               <button
-                                className="btn btn-outline-primary"
+                                className="btn btn-outline-slate btn-sm"
                                 title="View Record"
                                 onClick={() => handleViewRecord(record)}
                               >
                                 <i className="bi bi-eye"></i>
                               </button>
                               <button
-                                className="btn btn-outline-success"
+                                className="btn btn-outline-info btn-sm"
                                 title="Edit"
                                 onClick={() => handleEditRecord(record)}
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
                               <button
-                                className="btn btn-outline-info"
+                                className="btn btn-outline-secondary btn-sm"
                                 title="Download"
                                 onClick={() => handleDownloadRecord(record)}
                               >
                                 <i className="bi bi-download"></i>
                               </button>
                               <button
-                                className="btn btn-outline-danger"
+                                className="btn btn-outline-danger btn-sm"
                                 title="Delete"
                                 onClick={() => handleDelete(record.healthRecordID)}
                               >
@@ -517,8 +532,8 @@ export default function MedicalRecords() {
             {!loading && records.length > 0 && (
               <div className="card-footer bg-white">
                 <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-muted">
-                    Showing {((pagination.pageNumber - 1) * pagination.pageSize) + 1} to {Math.min(pagination.pageNumber * pagination.pageSize, pagination.totalCount)} of {pagination.totalCount} records
+                  <span className="text-muted" style={{fontSize: '13px'}}>
+                    Page <strong style={{color: 'var(--admin-text)'}}>{pagination.pageNumber}</strong> of <strong style={{color: 'var(--admin-text)'}}>{pagination.totalPages}</strong> • <strong style={{color: 'var(--admin-text)'}}>{pagination.totalCount}</strong> total records
                   </span>
                   <nav>
                     <ul className="pagination mb-0">
@@ -531,19 +546,63 @@ export default function MedicalRecords() {
                           Previous
                         </button>
                       </li>
-                      {[...Array(pagination.totalPages)].map((_, index) => (
-                        <li
-                          key={index + 1}
-                          className={`page-item ${pagination.pageNumber === index + 1 ? 'active' : ''}`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange(index + 1)}
-                          >
-                            {index + 1}
-                          </button>
-                        </li>
-                      ))}
+                      {(() => {
+                        const pageNumbers = [];
+                        const totalPages = pagination.totalPages;
+                        const currentPage = pagination.pageNumber;
+
+                        if (totalPages <= 7) {
+                          for (let i = 1; i <= totalPages; i++) {
+                            pageNumbers.push(i);
+                          }
+                        } else {
+                          pageNumbers.push(1);
+
+                          if (currentPage > 3) {
+                            pageNumbers.push('...');
+                          }
+
+                          const start = Math.max(2, currentPage - 1);
+                          const end = Math.min(totalPages - 1, currentPage + 1);
+
+                          for (let i = start; i <= end; i++) {
+                            if (!pageNumbers.includes(i)) {
+                              pageNumbers.push(i);
+                            }
+                          }
+
+                          if (currentPage < totalPages - 2) {
+                            pageNumbers.push('...');
+                          }
+
+                          if (!pageNumbers.includes(totalPages)) {
+                            pageNumbers.push(totalPages);
+                          }
+                        }
+
+                        return pageNumbers.map((page, index) => {
+                          if (page === '...') {
+                            return (
+                              <li key={`ellipsis-${index}`} className="page-item disabled">
+                                <span className="page-link">...</span>
+                              </li>
+                            );
+                          }
+                          return (
+                            <li
+                              key={page}
+                              className={`page-item ${pagination.pageNumber === page ? 'active' : ''}`}
+                            >
+                              <button
+                                className="page-link"
+                                onClick={() => handlePageChange(page)}
+                              >
+                                {page}
+                              </button>
+                            </li>
+                          );
+                        });
+                      })()}
                       <li className={`page-item ${pagination.pageNumber === pagination.totalPages ? 'disabled' : ''}`}>
                         <button
                           className="page-link"
@@ -565,7 +624,7 @@ export default function MedicalRecords() {
             <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
               <div className="modal-dialog modal-lg modal-dialog-scrollable">
                 <div className="modal-content">
-                  <div className="modal-header bg-primary text-white">
+                  <div className="admin-modal-header primary">
                     <h5 className="modal-title">
                       <i className="bi bi-file-medical me-2"></i>
                       Medical Record Details
@@ -576,11 +635,11 @@ export default function MedicalRecords() {
                       onClick={() => setShowViewModal(false)}
                     ></button>
                   </div>
-                  <div className="modal-body">
+                  <div className="admin-modal-body">
                     <div className="row">
                       <div className="col-md-6">
-                        <div className="mb-4">
-                          <h6 className="text-primary border-bottom pb-2 mb-3">
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
                             <i className="bi bi-info-circle me-2"></i>
                             Record Information
                           </h6>
@@ -611,8 +670,8 @@ export default function MedicalRecords() {
                         </div>
                       </div>
                       <div className="col-md-6">
-                        <div className="mb-4">
-                          <h6 className="text-success border-bottom pb-2 mb-3">
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title info">
                             <i className="bi bi-people me-2"></i>
                             Patient & Doctor Information
                           </h6>
@@ -652,7 +711,7 @@ export default function MedicalRecords() {
             <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
               <div className="modal-dialog modal-lg">
                 <div className="modal-content">
-                  <div className="modal-header bg-success text-white">
+                  <div className="admin-modal-header info">
                     <h5 className="modal-title">
                       <i className="bi bi-pencil-square me-2"></i>
                       Edit Medical Record
@@ -664,7 +723,7 @@ export default function MedicalRecords() {
                     ></button>
                   </div>
                   <form onSubmit={handleUpdateRecord}>
-                    <div className="modal-body">
+                    <div className="admin-modal-body">
                       <div className="alert alert-info">
                         <i className="bi bi-info-circle me-2"></i>
                         <strong>Note:</strong> You are viewing record for {selectedRecord.patientName}
