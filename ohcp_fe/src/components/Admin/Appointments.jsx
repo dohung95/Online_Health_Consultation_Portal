@@ -29,6 +29,21 @@ export default function Appointments() {
     doctorId: ''
   });
 
+  // Modal states
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    appointmentDate: '',
+    appointmentTime: '',
+    consultationType: '',
+    status: '',
+    reason: '',
+    notes: ''
+  });
+
   // Fetch stats
   const fetchStats = async () => {
     try {
@@ -97,6 +112,52 @@ export default function Appointments() {
     setPagination({ ...pagination, pageNumber: newPage });
   };
 
+  // Handle view appointment details
+  const handleViewAppointment = async (appointment) => {
+    setSelectedAppointment(appointment);
+    setShowViewModal(true);
+  };
+
+  // Handle edit appointment
+  const handleEditAppointment = (appointment) => {
+    setSelectedAppointment(appointment);
+    setEditForm({
+      appointmentDate: appointment.date || '',
+      appointmentTime: appointment.time || '',
+      consultationType: appointment.consultationType || '',
+      status: appointment.status || '',
+      reason: appointment.reason || '',
+      notes: appointment.notes || ''
+    });
+    setShowEditModal(true);
+  };
+
+  // Handle update appointment
+  const handleUpdateAppointment = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Combine date and time into DateTime
+      const appointmentDateTime = new Date(`${editForm.appointmentDate}T${editForm.appointmentTime}:00`);
+
+      // Prepare data according to UpdateAppointmentAdminDto
+      const updateData = {
+        appointmentTime: appointmentDateTime.toISOString(),
+        consultationType: editForm.consultationType,
+        status: editForm.status
+      };
+
+      await appointmentsApi.update(selectedAppointment.appointmentID, updateData);
+      alert('Appointment updated successfully');
+      setShowEditModal(false);
+      fetchAppointments();
+      fetchStats();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to update appointment');
+      console.error('Error updating appointment:', err);
+    }
+  };
+
   const handleDelete = async (appointmentId) => {
     if (!window.confirm('Are you sure you want to delete this appointment?')) {
       return;
@@ -111,6 +172,13 @@ export default function Appointments() {
       alert(err.response?.data?.error || 'Failed to delete appointment');
       console.error('Error deleting appointment:', err);
     }
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const getStatusBadgeClass = (status) => {
@@ -137,10 +205,6 @@ export default function Appointments() {
       <main className="admin-content p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2>Appointments</h2>
-            <button className="btn btn-primary">
-              <i className="bi bi-plus-circle me-2"></i>
-              Schedule New Appointment
-            </button>
           </div>
 
           {error && (
@@ -280,10 +344,18 @@ export default function Appointments() {
                           </td>
                           <td className="text-center">
                             <div className="btn-group btn-group-sm" role="group">
-                              <button className="btn btn-outline-primary" title="View Details">
+                              <button
+                                className="btn btn-outline-primary"
+                                title="View Details"
+                                onClick={() => handleViewAppointment(appointment)}
+                              >
                                 <i className="bi bi-eye"></i>
                               </button>
-                              <button className="btn btn-outline-success" title="Edit">
+                              <button
+                                className="btn btn-outline-success"
+                                title="Edit"
+                                onClick={() => handleEditAppointment(appointment)}
+                              >
                                 <i className="bi bi-pencil"></i>
                               </button>
                               <button
@@ -291,7 +363,7 @@ export default function Appointments() {
                                 title="Delete"
                                 onClick={() => handleDelete(appointment.appointmentID)}
                               >
-                                <i className="bi bi-x-circle"></i>
+                                <i className="bi bi-trash"></i>
                               </button>
                             </div>
                           </td>
@@ -347,6 +419,244 @@ export default function Appointments() {
               </div>
             )}
           </div>
+
+          {/* View Appointment Details Modal */}
+          {showViewModal && selectedAppointment && (
+            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+              <div className="modal-dialog modal-lg modal-dialog-scrollable">
+                <div className="modal-content">
+                  <div className="modal-header bg-primary text-white">
+                    <h5 className="modal-title">
+                      <i className="bi bi-calendar-check me-2"></i>
+                      Appointment Details
+                    </h5>
+                    <button
+                      type="button"
+                      className="btn-close btn-close-white"
+                      onClick={() => setShowViewModal(false)}
+                    ></button>
+                  </div>
+                  <div className="modal-body">
+                    <div className="row">
+                      {/* Left Column */}
+                      <div className="col-md-6">
+                        <div className="mb-4">
+                          <h6 className="text-primary border-bottom pb-2 mb-3">
+                            <i className="bi bi-info-circle me-2"></i>
+                            Appointment Information
+                          </h6>
+                          <div className="mb-3">
+                            <strong>Appointment ID:</strong>
+                            <p className="mb-0">{selectedAppointment.appointmentID}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Date:</strong>
+                            <p className="mb-0">{selectedAppointment.date}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Time:</strong>
+                            <p className="mb-0">{selectedAppointment.time}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Consultation Type:</strong>
+                            <p className="mb-0">{selectedAppointment.consultationType || 'N/A'}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Status:</strong>
+                            <p className="mb-0">
+                              <span className={`badge bg-${getStatusBadgeClass(selectedAppointment.status)}`}>
+                                {selectedAppointment.status}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="col-md-6">
+                        <div className="mb-4">
+                          <h6 className="text-success border-bottom pb-2 mb-3">
+                            <i className="bi bi-people me-2"></i>
+                            Patient & Doctor Information
+                          </h6>
+                          <div className="mb-3">
+                            <strong>Patient Name:</strong>
+                            <p className="mb-0">{selectedAppointment.patientName}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Doctor Name:</strong>
+                            <p className="mb-0">{selectedAppointment.doctorName}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Department:</strong>
+                            <p className="mb-0">{selectedAppointment.department}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Reason:</strong>
+                            <p className="mb-0">{selectedAppointment.reason || 'No reason provided'}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Notes:</strong>
+                            <p className="mb-0">{selectedAppointment.notes || 'No notes'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modal-footer bg-light">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setShowViewModal(false)}
+                    >
+                      <i className="bi bi-x-circle me-2"></i>
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Appointment Modal */}
+          {showEditModal && selectedAppointment && (
+            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+              <div className="modal-dialog modal-xl" style={{maxWidth: '90%'}}>
+                <div className="modal-content">
+                  <div className="modal-header bg-success text-white">
+                    <h5 className="modal-title">
+                      <i className="bi bi-pencil-square me-2"></i>
+                      Edit Appointment
+                    </h5>
+                    <button
+                      type="button"
+                      className="btn-close btn-close-white"
+                      onClick={() => setShowEditModal(false)}
+                    ></button>
+                  </div>
+                  <form onSubmit={handleUpdateAppointment}>
+                    <div className="modal-body" style={{maxHeight: '75vh', overflowY: 'auto'}}>
+                      <div className="row">
+                        {/* Left Column - Basic Information */}
+                        <div className="col-lg-6">
+                          <div className="mb-4">
+                            <h6 className="text-primary border-bottom pb-2 mb-3">
+                              <i className="bi bi-calendar-event me-2"></i>
+                              Appointment Details
+                            </h6>
+                            <div className="mb-3">
+                              <strong className="d-block mb-2">Patient:</strong>
+                              <p className="text-muted">{selectedAppointment.patientName}</p>
+                            </div>
+                            <div className="mb-3">
+                              <strong className="d-block mb-2">Doctor:</strong>
+                              <p className="text-muted">{selectedAppointment.doctorName}</p>
+                            </div>
+                            <div className="mb-3">
+                              <strong className="d-block mb-2">Department:</strong>
+                              <p className="text-muted">{selectedAppointment.department}</p>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Appointment Date <span className="text-danger">*</span></label>
+                              <input
+                                type="date"
+                                className="form-control"
+                                value={editForm.appointmentDate}
+                                onChange={(e) => setEditForm({ ...editForm, appointmentDate: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Appointment Time <span className="text-danger">*</span></label>
+                              <input
+                                type="time"
+                                className="form-control"
+                                value={editForm.appointmentTime}
+                                onChange={(e) => setEditForm({ ...editForm, appointmentTime: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Consultation Type <span className="text-danger">*</span></label>
+                              <select
+                                className="form-select"
+                                value={editForm.consultationType}
+                                onChange={(e) => setEditForm({ ...editForm, consultationType: e.target.value })}
+                                required
+                              >
+                                <option value="">Select Type</option>
+                                <option value="Video">Video Call</option>
+                                <option value="Chat">Chat</option>
+                              </select>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Status <span className="text-danger">*</span></label>
+                              <select
+                                className="form-select"
+                                value={editForm.status}
+                                onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                                required
+                              >
+                                <option value="Pending">Pending</option>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right Column - Additional Information */}
+                        <div className="col-lg-6">
+                          <div className="mb-4">
+                            <h6 className="text-success border-bottom pb-2 mb-3">
+                              <i className="bi bi-file-text me-2"></i>
+                              Additional Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Reason for Visit</label>
+                              <textarea
+                                className="form-control"
+                                rows="5"
+                                value={editForm.reason}
+                                onChange={(e) => setEditForm({ ...editForm, reason: e.target.value })}
+                                placeholder="Enter reason for appointment..."
+                              ></textarea>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Notes</label>
+                              <textarea
+                                className="form-control"
+                                rows="8"
+                                value={editForm.notes}
+                                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                                placeholder="Enter any additional notes..."
+                              ></textarea>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="modal-footer bg-light">
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setShowEditModal(false)}
+                      >
+                        <i className="bi bi-x-circle me-2"></i>
+                        Cancel
+                      </button>
+                      <button type="submit" className="btn btn-success">
+                        <i className="bi bi-check-circle me-2"></i>
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
     </NavbarAdmin>
   );

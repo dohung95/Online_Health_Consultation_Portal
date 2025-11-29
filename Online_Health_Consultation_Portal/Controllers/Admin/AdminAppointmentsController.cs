@@ -296,6 +296,9 @@ namespace OHCP_BK.Controllers.Admin
                     appointment.Status = dto.Status;
                 }
 
+                // Mark entity as modified to ensure EF Core tracks changes
+                _context.Entry(appointment).State = EntityState.Modified;
+
                 await _context.SaveChangesAsync();
 
                 return Ok(new { message = "Appointment updated successfully" });
