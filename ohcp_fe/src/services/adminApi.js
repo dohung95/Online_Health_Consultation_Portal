@@ -69,43 +69,6 @@ export const patientsApi = {
   }
 };
 
-// ==================== DOCTORS API ====================
-
-export const doctorsApi = {
-  getStats: async () => {
-    const response = await adminApi.get('/admindoctors/stats');
-    return response.data;
-  },
-
-  getAll: async (params = {}) => {
-    const { pageNumber = 1, pageSize = 10, searchTerm = '', specialty = '', status = '', sortBy = 'name' } = params;
-    const response = await adminApi.get('/admindoctors', {
-      params: { pageNumber, pageSize, searchTerm, specialty, status, sortBy }
-    });
-    return response.data;
-  },
-
-  getById: async (id) => {
-    const response = await adminApi.get(`/admindoctors/${id}`);
-    return response.data;
-  },
-
-  create: async (data) => {
-    const response = await adminApi.post('/admindoctors', data);
-    return response.data;
-  },
-
-  update: async (id, data) => {
-    const response = await adminApi.put(`/admindoctors/${id}`, data);
-    return response.data;
-  },
-
-  delete: async (id) => {
-    const response = await adminApi.delete(`/admindoctors/${id}`);
-    return response.data;
-  }
-};
-
 // ==================== APPOINTMENTS API ====================
 
 export const appointmentsApi = {

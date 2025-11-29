@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import NavbarAdmin from "./NavbarAdmin";
-import { patientsApi, doctorsApi, appointmentsApi, medicalRecordsApi } from "../../services/adminApi";
+import { patientsApi, appointmentsApi, medicalRecordsApi } from "../../services/adminApi";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./Admin.css";
@@ -14,7 +14,6 @@ export default function Admin() {
 
   const [stats, setStats] = useState({
     totalPatients: 0,
-    totalDoctors: 0,
     todayAppointments: 0,
     pendingApproval: 0,
     totalRecords: 0
@@ -29,9 +28,8 @@ export default function Admin() {
       setError(null);
 
       // Fetch stats from all APIs in parallel
-      const [patientsData, doctorsData, appointmentsData, recordsData, recentApptData] = await Promise.all([
+      const [patientsData, appointmentsData, recordsData, recentApptData] = await Promise.all([
         patientsApi.getAll({ pageNumber: 1, pageSize: 1 }).catch(() => ({ totalCount: 0 })),
-        doctorsApi.getStats().catch(() => ({ totalDoctors: 0 })),
         appointmentsApi.getStats().catch(() => ({ todayAppointments: 0, pendingApproval: 0 })),
         medicalRecordsApi.getStats().catch(() => ({ totalRecords: 0 })),
         appointmentsApi.getAll({ pageNumber: 1, pageSize: 5 }).catch(() => ({ appointments: [] }))
@@ -39,7 +37,6 @@ export default function Admin() {
 
       setStats({
         totalPatients: patientsData.totalCount || 0,
-        totalDoctors: doctorsData.totalDoctors || 0,
         todayAppointments: appointmentsData.todayAppointments || 0,
         pendingApproval: appointmentsData.pendingApproval || 0,
         totalRecords: recordsData.totalRecords || 0
@@ -102,9 +99,9 @@ export default function Admin() {
               <div className="row g-4 mb-5">
                 {[
                   { title: "Total Patients", value: stats.totalPatients, color: "primary", icon: "bi-people" },
-                  { title: "Total Doctors", value: stats.totalDoctors, color: "info", icon: "bi-person-badge" },
                   { title: "Today's Appointments", value: stats.todayAppointments, color: "success", icon: "bi-calendar-check" },
                   { title: "Pending Approval", value: stats.pendingApproval, color: "warning", icon: "bi-hourglass-split" },
+                  { title: "Medical Records", value: stats.totalRecords, color: "info", icon: "bi-file-medical" },
                 ].map((stat) => (
                   <div key={stat.title} className="col-lg-3 col-md-6">
                     <div className="card border-0 shadow-sm h-100">

@@ -128,21 +128,160 @@ export default function Invoices() {
     }
   };
 
-  // Handle delete invoice
-  const handleDelete = async (invoiceId) => {
-    if (!window.confirm('Are you sure you want to delete this invoice?')) {
-      return;
-    }
+  // Handle print invoice
+  const handlePrintInvoice = () => {
+    const printWindow = window.open('', '_blank');
+    const invoice = selectedInvoice;
 
-    try {
-      await invoicesApi.delete(invoiceId);
-      alert('Invoice deleted successfully');
-      fetchInvoices();
-      fetchStats();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete invoice');
-      console.error('Error deleting invoice:', err);
-    }
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice #${invoice.invoiceID}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            color: #333;
+          }
+          .invoice-header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #0d6efd;
+            padding-bottom: 20px;
+          }
+          .invoice-header h1 {
+            color: #0d6efd;
+            margin: 0;
+          }
+          .invoice-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+          }
+          .info-section {
+            flex: 1;
+          }
+          .info-section h3 {
+            color: #0d6efd;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+          }
+          .info-row {
+            margin-bottom: 10px;
+          }
+          .info-row strong {
+            display: inline-block;
+            width: 150px;
+          }
+          .amount-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: center;
+          }
+          .amount-section h2 {
+            color: #198754;
+            margin: 0;
+            font-size: 36px;
+          }
+          .amount-label {
+            color: #6c757d;
+            margin-bottom: 10px;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          .status-paid { background: #198754; color: white; }
+          .status-pending { background: #ffc107; color: #000; }
+          .status-generated { background: #0dcaf0; color: #000; }
+          .status-cancelled { background: #dc3545; color: white; }
+          .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+          }
+          @media print {
+            body { padding: 20px; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="invoice-header">
+          <h1>ONLINE HEALTH CONSULTATION PORTAL</h1>
+          <p>Medical Invoice</p>
+        </div>
+
+        <div class="invoice-info">
+          <div class="info-section">
+            <h3>Invoice Information</h3>
+            <div class="info-row">
+              <strong>Invoice ID:</strong> #${invoice.invoiceID}
+            </div>
+            <div class="info-row">
+              <strong>Issue Date:</strong> ${formatDate(invoice.issueDate)}
+            </div>
+            <div class="info-row">
+              <strong>Status:</strong>
+              <span class="status-badge status-${invoice.status.toLowerCase()}">${invoice.status}</span>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h3>Patient Information</h3>
+            <div class="info-row">
+              <strong>Patient Name:</strong> ${invoice.patientName || 'N/A'}
+            </div>
+            <div class="info-row">
+              <strong>Patient ID:</strong> ${invoice.patientID}
+            </div>
+            <div class="info-row">
+              <strong>Appointment ID:</strong> #${invoice.appointmentID}
+            </div>
+          </div>
+        </div>
+
+        ${invoice.consultationType ? `
+        <div class="info-section">
+          <h3>Appointment Details</h3>
+          <div class="info-row">
+            <strong>Consultation Type:</strong> ${invoice.consultationType}
+          </div>
+          <div class="info-row">
+            <strong>Appointment Status:</strong> ${invoice.appointmentStatus}
+          </div>
+        </div>
+        ` : ''}
+
+        <div class="amount-section">
+          <div class="amount-label">TOTAL AMOUNT</div>
+          <h2>${formatCurrency(invoice.amount)}</h2>
+        </div>
+
+        <div class="footer">
+          <p>Thank you for choosing Online Health Consultation Portal</p>
+          <p>This is a computer-generated invoice and does not require a signature.</p>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+          }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
   };
 
   // Format date
@@ -187,10 +326,6 @@ export default function Invoices() {
       <main className="admin-content p-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h2>Invoices Management</h2>
-          <button className="btn btn-primary">
-            <i className="bi bi-plus-circle me-2"></i>
-            Generate Invoice
-          </button>
         </div>
 
         {error && (
@@ -336,13 +471,6 @@ export default function Invoices() {
                             >
                               <i className="bi bi-pencil"></i>
                             </button>
-                            <button
-                              className="btn btn-outline-danger"
-                              title="Delete"
-                              onClick={() => handleDelete(invoice.invoiceID)}
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -475,7 +603,11 @@ export default function Invoices() {
                   >
                     Close
                   </button>
-                  <button type="button" className="btn btn-primary">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handlePrintInvoice}
+                  >
                     <i className="bi bi-printer me-2"></i>
                     Print Invoice
                   </button>

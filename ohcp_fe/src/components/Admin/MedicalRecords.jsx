@@ -142,10 +142,168 @@ export default function MedicalRecords() {
     }
   };
 
-  // Handle download record (placeholder)
+  // Handle download record - Generate compact PDF report
   const handleDownloadRecord = (record) => {
-    alert(`Downloading record ${record.healthRecordID}...\nThis feature will download the medical documents associated with this record.`);
-    // TODO: Implement actual download functionality
+    const printWindow = window.open('', '_blank');
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Medical Record #${record.healthRecordID}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            color: #333;
+            font-size: 11pt;
+            line-height: 1.3;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 8px;
+          }
+          .header h1 {
+            color: #0d6efd;
+            font-size: 18pt;
+            margin-bottom: 3px;
+          }
+          .header p {
+            color: #6c757d;
+            font-size: 10pt;
+          }
+          .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+          }
+          .info-section h3 {
+            color: #0d6efd;
+            font-size: 12pt;
+            margin-bottom: 8px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #dee2e6;
+          }
+          .info-row {
+            margin-bottom: 5px;
+            font-size: 10pt;
+          }
+          .info-row strong {
+            color: #495057;
+            display: inline-block;
+            width: 110px;
+          }
+          .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 9pt;
+          }
+          .badge-success { background: #198754; color: white; }
+          .badge-warning { background: #ffc107; color: #000; }
+          .diagnosis-box {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            padding: 10px;
+            margin: 15px 0;
+            grid-column: 1 / -1;
+          }
+          .diagnosis-box h4 {
+            color: #856404;
+            font-size: 11pt;
+            margin-bottom: 5px;
+          }
+          .diagnosis-box p {
+            font-size: 10pt;
+            color: #333;
+          }
+          .footer {
+            margin-top: 15px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+            padding-top: 8px;
+            font-size: 8pt;
+          }
+          @media print {
+            body { padding: 15px; }
+            @page { margin: 1cm; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>ONLINE HEALTH CONSULTATION PORTAL</h1>
+          <p>Medical Record Report</p>
+        </div>
+
+        <div class="content">
+          <div class="info-section">
+            <h3>Record Information</h3>
+            <div class="info-row">
+              <strong>Record ID:</strong> #${record.healthRecordID}
+            </div>
+            <div class="info-row">
+              <strong>Date:</strong> ${new Date(record.date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </div>
+            <div class="info-row">
+              <strong>Last Updated:</strong> ${new Date(record.lastUpdated).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </div>
+            <div class="info-row">
+              <strong>Category:</strong> ${record.category || 'General'}
+            </div>
+            <div class="info-row">
+              <strong>Status:</strong> <span class="badge badge-${record.status === 'Active' ? 'success' : 'warning'}">${record.status}</span>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h3>Patient & Doctor</h3>
+            <div class="info-row">
+              <strong>Patient Name:</strong> ${record.patientName || 'N/A'}
+            </div>
+            <div class="info-row">
+              <strong>Patient ID:</strong> ${record.patientID}
+            </div>
+            <div class="info-row">
+              <strong>Doctor:</strong> ${record.doctorName || 'N/A'}
+            </div>
+          </div>
+
+          <div class="diagnosis-box">
+            <h4>Diagnosis</h4>
+            <p>${record.diagnosis || 'No diagnosis recorded'}</p>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>Generated: ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })} | Confidential Medical Information</p>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+          }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
   };
 
   const handleDelete = async (recordId) => {
