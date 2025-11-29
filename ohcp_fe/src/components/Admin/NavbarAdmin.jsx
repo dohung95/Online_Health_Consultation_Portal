@@ -31,7 +31,6 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
     { icon: "bi-file-medical", label: "Medical Records", path: "/admin/medical-records" },
     { icon: "bi-person-badge", label: "Doctors", path: "/admin/doctors" },
     { icon: "bi-receipt", label: "Invoices", path: "/admin/invoices" },
-    { icon: "bi-gear", label: "Settings", path: "/admin/settings" },
   ];
 
   return (

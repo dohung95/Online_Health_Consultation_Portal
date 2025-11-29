@@ -29,6 +29,22 @@ export default function DoctorsAdmin() {
     sortBy: 'name'
   });
 
+  // Modal states
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    fullName: '',
+    phoneNumber: '',
+    specialty: '',
+    yearsOfExperience: 0,
+    qualifications: '',
+    licenseNumber: '',
+    status: ''
+  });
+
   // Fetch stats
   const fetchStats = async () => {
     try {
@@ -94,6 +110,53 @@ export default function DoctorsAdmin() {
 
   const handlePageChange = (newPage) => {
     setPagination({ ...pagination, pageNumber: newPage });
+  };
+
+  // Handle view doctor
+  const handleViewDoctor = async (doctor) => {
+    setSelectedDoctor(doctor);
+    setShowViewModal(true);
+  };
+
+  // Handle edit doctor
+  const handleEditDoctor = (doctor) => {
+    setSelectedDoctor(doctor);
+    setEditForm({
+      fullName: doctor.fullName,
+      phoneNumber: doctor.phone || '',
+      specialty: doctor.specialty,
+      yearsOfExperience: doctor.yearsOfExperience,
+      qualifications: doctor.qualifications || '',
+      licenseNumber: doctor.licenseNumber || '',
+      status: doctor.status
+    });
+    setShowEditModal(true);
+  };
+
+  // Handle update doctor
+  const handleUpdateDoctor = async (e) => {
+    e.preventDefault();
+
+    try {
+      const updateData = {
+        fullName: editForm.fullName,
+        phoneNumber: editForm.phoneNumber,
+        specialty: editForm.specialty,
+        yearsOfExperience: parseInt(editForm.yearsOfExperience),
+        qualifications: editForm.qualifications,
+        licenseNumber: editForm.licenseNumber,
+        status: editForm.status
+      };
+
+      await doctorsApi.update(selectedDoctor.doctorID, updateData);
+      alert('Doctor updated successfully');
+      setShowEditModal(false);
+      fetchDoctors();
+      fetchStats();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to update doctor');
+      console.error('Error updating doctor:', err);
+    }
   };
 
   const handleDelete = async (doctorId) => {
@@ -274,11 +337,17 @@ export default function DoctorsAdmin() {
                         </div>
                       </div>
                       <div className="d-flex gap-2">
-                        <button className="btn btn-sm btn-outline-primary flex-grow-1">
+                        <button
+                          className="btn btn-sm btn-outline-primary flex-grow-1"
+                          onClick={() => handleViewDoctor(doctor)}
+                        >
                           <i className="bi bi-eye me-1"></i>
                           View Profile
                         </button>
-                        <button className="btn btn-sm btn-outline-success">
+                        <button
+                          className="btn btn-sm btn-outline-success"
+                          onClick={() => handleEditDoctor(doctor)}
+                        >
                           <i className="bi bi-pencil"></i>
                         </button>
                         <button
@@ -336,6 +405,253 @@ export default function DoctorsAdmin() {
                   </li>
                 </ul>
               </nav>
+            </div>
+          )}
+
+          {/* View Doctor Modal */}
+          {showViewModal && selectedDoctor && (
+            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+              <div className="modal-dialog modal-lg modal-dialog-scrollable">
+                <div className="modal-content">
+                  <div className="modal-header bg-primary text-white">
+                    <h5 className="modal-title">
+                      <i className="bi bi-person-badge me-2"></i>
+                      Doctor Profile Details
+                    </h5>
+                    <button
+                      type="button"
+                      className="btn-close btn-close-white"
+                      onClick={() => setShowViewModal(false)}
+                    ></button>
+                  </div>
+                  <div className="modal-body">
+                    <div className="text-center mb-4">
+                      <div className="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style={{width: "100px", height: "100px", fontSize: "40px"}}>
+                        {selectedDoctor.fullName.charAt(0)}
+                      </div>
+                      <h4 className="mb-1">{selectedDoctor.fullName}</h4>
+                      <p className="text-muted mb-2">{selectedDoctor.specialty}</p>
+                      <span className={`badge bg-${selectedDoctor.status.toLowerCase() === 'active' ? 'success' : 'warning'}`}>
+                        {selectedDoctor.status}
+                      </span>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="mb-4">
+                          <h6 className="text-primary border-bottom pb-2 mb-3">
+                            <i className="bi bi-info-circle me-2"></i>
+                            Basic Information
+                          </h6>
+                          <div className="mb-3">
+                            <strong>Doctor ID:</strong>
+                            <p className="mb-0 text-muted">{selectedDoctor.doctorID}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Email:</strong>
+                            <p className="mb-0 text-muted">{selectedDoctor.email}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Phone:</strong>
+                            <p className="mb-0 text-muted">{selectedDoctor.phone || 'N/A'}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>License Number:</strong>
+                            <p className="mb-0 text-muted">{selectedDoctor.licenseNumber || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-4">
+                          <h6 className="text-success border-bottom pb-2 mb-3">
+                            <i className="bi bi-briefcase me-2"></i>
+                            Professional Details
+                          </h6>
+                          <div className="mb-3">
+                            <strong>Years of Experience:</strong>
+                            <p className="mb-0 text-muted">{selectedDoctor.yearsOfExperience} years</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Total Patients:</strong>
+                            <p className="mb-0 text-muted">{selectedDoctor.totalPatients}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Average Rating:</strong>
+                            <p className="mb-0 text-warning">
+                              <i className="bi bi-star-fill me-1"></i>
+                              {selectedDoctor.averageRating ? selectedDoctor.averageRating.toFixed(1) : 'N/A'}
+                            </p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Total Reviews:</strong>
+                            <p className="mb-0 text-muted">{selectedDoctor.totalReviews || 0}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-12">
+                        <div className="mb-3">
+                          <h6 className="text-info border-bottom pb-2 mb-3">
+                            <i className="bi bi-award me-2"></i>
+                            Qualifications
+                          </h6>
+                          <p className="text-muted">{selectedDoctor.qualifications || 'No qualifications listed'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modal-footer bg-light">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setShowViewModal(false)}
+                    >
+                      <i className="bi bi-x-circle me-2"></i>
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Doctor Modal */}
+          {showEditModal && selectedDoctor && (
+            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+              <div className="modal-dialog modal-xl" style={{maxWidth: '90%'}}>
+                <div className="modal-content">
+                  <div className="modal-header bg-success text-white">
+                    <h5 className="modal-title">
+                      <i className="bi bi-pencil-square me-2"></i>
+                      Edit Doctor Information
+                    </h5>
+                    <button
+                      type="button"
+                      className="btn-close btn-close-white"
+                      onClick={() => setShowEditModal(false)}
+                    ></button>
+                  </div>
+                  <form onSubmit={handleUpdateDoctor}>
+                    <div className="modal-body" style={{maxHeight: '75vh', overflowY: 'auto'}}>
+                      <div className="row">
+                        {/* Left Column - Basic Information */}
+                        <div className="col-lg-6">
+                          <div className="mb-4">
+                            <h6 className="text-primary border-bottom pb-2 mb-3">
+                              <i className="bi bi-person-circle me-2"></i>
+                              Basic Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Full Name <span className="text-danger">*</span></label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={editForm.fullName}
+                                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Phone Number</label>
+                              <input
+                                type="tel"
+                                className="form-control"
+                                value={editForm.phoneNumber}
+                                onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">License Number</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={editForm.licenseNumber}
+                                onChange={(e) => setEditForm({ ...editForm, licenseNumber: e.target.value })}
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Status <span className="text-danger">*</span></label>
+                              <select
+                                className="form-select"
+                                value={editForm.status}
+                                onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                                required
+                              >
+                                <option value="Active">Active</option>
+                                <option value="On Leave">On Leave</option>
+                                <option value="Inactive">Inactive</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right Column - Professional Information */}
+                        <div className="col-lg-6">
+                          <div className="mb-4">
+                            <h6 className="text-success border-bottom pb-2 mb-3">
+                              <i className="bi bi-briefcase me-2"></i>
+                              Professional Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Specialty <span className="text-danger">*</span></label>
+                              <select
+                                className="form-select"
+                                value={editForm.specialty}
+                                onChange={(e) => setEditForm({ ...editForm, specialty: e.target.value })}
+                                required
+                              >
+                                <option value="">Select Specialty</option>
+                                <option value="Cardiology">Cardiology</option>
+                                <option value="Neurology">Neurology</option>
+                                <option value="Orthopedics">Orthopedics</option>
+                                <option value="Pediatrics">Pediatrics</option>
+                                <option value="Dermatology">Dermatology</option>
+                                <option value="General Practice">General Practice</option>
+                                <option value="Psychiatry">Psychiatry</option>
+                                <option value="Ophthalmology">Ophthalmology</option>
+                              </select>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Years of Experience <span className="text-danger">*</span></label>
+                              <input
+                                type="number"
+                                className="form-control"
+                                value={editForm.yearsOfExperience}
+                                onChange={(e) => setEditForm({ ...editForm, yearsOfExperience: e.target.value })}
+                                min="0"
+                                required
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Qualifications</label>
+                              <textarea
+                                className="form-control"
+                                rows="5"
+                                value={editForm.qualifications}
+                                onChange={(e) => setEditForm({ ...editForm, qualifications: e.target.value })}
+                                placeholder="Enter degrees, certifications, and qualifications..."
+                              ></textarea>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="modal-footer bg-light">
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setShowEditModal(false)}
+                      >
+                        <i className="bi bi-x-circle me-2"></i>
+                        Cancel
+                      </button>
+                      <button type="submit" className="btn btn-success">
+                        <i className="bi bi-check-circle me-2"></i>
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           )}
         </main>

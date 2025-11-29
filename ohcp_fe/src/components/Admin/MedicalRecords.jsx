@@ -29,6 +29,18 @@ export default function MedicalRecords() {
     category: ''
   });
 
+  // Modal states
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    category: '',
+    diagnosis: '',
+    status: ''
+  });
+
   // Fetch stats
   const fetchStats = async () => {
     try {
@@ -97,6 +109,45 @@ export default function MedicalRecords() {
     setPagination({ ...pagination, pageNumber: newPage });
   };
 
+  // Handle view record
+  const handleViewRecord = async (record) => {
+    setSelectedRecord(record);
+    setShowViewModal(true);
+  };
+
+  // Handle edit record
+  const handleEditRecord = (record) => {
+    setSelectedRecord(record);
+    setEditForm({
+      category: record.category || '',
+      diagnosis: record.diagnosis || '',
+      status: record.status || ''
+    });
+    setShowEditModal(true);
+  };
+
+  // Handle update record
+  const handleUpdateRecord = async (e) => {
+    e.preventDefault();
+
+    try {
+      await medicalRecordsApi.update(selectedRecord.healthRecordID);
+      alert('Medical record updated successfully');
+      setShowEditModal(false);
+      fetchRecords();
+      fetchStats();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to update medical record');
+      console.error('Error updating medical record:', err);
+    }
+  };
+
+  // Handle download record (placeholder)
+  const handleDownloadRecord = (record) => {
+    alert(`Downloading record ${record.healthRecordID}...\nThis feature will download the medical documents associated with this record.`);
+    // TODO: Implement actual download functionality
+  };
+
   const handleDelete = async (recordId) => {
     if (!window.confirm('Are you sure you want to delete this medical record?')) {
       return;
@@ -126,10 +177,6 @@ export default function MedicalRecords() {
       <main className="admin-content p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2>Medical Records</h2>
-            <button className="btn btn-primary">
-              <i className="bi bi-plus-circle me-2"></i>
-              Add New Record
-            </button>
           </div>
 
           {error && (
@@ -272,13 +319,25 @@ export default function MedicalRecords() {
                           </td>
                           <td className="text-center">
                             <div className="btn-group btn-group-sm" role="group">
-                              <button className="btn btn-outline-primary" title="View Record">
+                              <button
+                                className="btn btn-outline-primary"
+                                title="View Record"
+                                onClick={() => handleViewRecord(record)}
+                              >
                                 <i className="bi bi-eye"></i>
                               </button>
-                              <button className="btn btn-outline-success" title="Edit">
+                              <button
+                                className="btn btn-outline-success"
+                                title="Edit"
+                                onClick={() => handleEditRecord(record)}
+                              >
                                 <i className="bi bi-pencil"></i>
                               </button>
-                              <button className="btn btn-outline-info" title="Download">
+                              <button
+                                className="btn btn-outline-info"
+                                title="Download"
+                                onClick={() => handleDownloadRecord(record)}
+                              >
                                 <i className="bi bi-download"></i>
                               </button>
                               <button
@@ -342,6 +401,182 @@ export default function MedicalRecords() {
               </div>
             )}
           </div>
+
+          {/* View Medical Record Modal */}
+          {showViewModal && selectedRecord && (
+            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+              <div className="modal-dialog modal-lg modal-dialog-scrollable">
+                <div className="modal-content">
+                  <div className="modal-header bg-primary text-white">
+                    <h5 className="modal-title">
+                      <i className="bi bi-file-medical me-2"></i>
+                      Medical Record Details
+                    </h5>
+                    <button
+                      type="button"
+                      className="btn-close btn-close-white"
+                      onClick={() => setShowViewModal(false)}
+                    ></button>
+                  </div>
+                  <div className="modal-body">
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="mb-4">
+                          <h6 className="text-primary border-bottom pb-2 mb-3">
+                            <i className="bi bi-info-circle me-2"></i>
+                            Record Information
+                          </h6>
+                          <div className="mb-3">
+                            <strong>Record ID:</strong>
+                            <p className="mb-0">{selectedRecord.healthRecordID}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Date:</strong>
+                            <p className="mb-0">{formatDate(selectedRecord.date)}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Category:</strong>
+                            <p className="mb-0">
+                              <span className="badge bg-light text-dark border">
+                                {selectedRecord.category}
+                              </span>
+                            </p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Status:</strong>
+                            <p className="mb-0">
+                              <span className={`badge bg-${selectedRecord.status.toLowerCase() === 'active' ? 'success' : 'secondary'}`}>
+                                {selectedRecord.status}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-4">
+                          <h6 className="text-success border-bottom pb-2 mb-3">
+                            <i className="bi bi-people me-2"></i>
+                            Patient & Doctor Information
+                          </h6>
+                          <div className="mb-3">
+                            <strong>Patient Name:</strong>
+                            <p className="mb-0">{selectedRecord.patientName}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Doctor Name:</strong>
+                            <p className="mb-0">{selectedRecord.doctorName || 'N/A'}</p>
+                          </div>
+                          <div className="mb-3">
+                            <strong>Diagnosis:</strong>
+                            <p className="mb-0">{selectedRecord.diagnosis}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modal-footer bg-light">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setShowViewModal(false)}
+                    >
+                      <i className="bi bi-x-circle me-2"></i>
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Medical Record Modal */}
+          {showEditModal && selectedRecord && (
+            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+              <div className="modal-dialog modal-lg">
+                <div className="modal-content">
+                  <div className="modal-header bg-success text-white">
+                    <h5 className="modal-title">
+                      <i className="bi bi-pencil-square me-2"></i>
+                      Edit Medical Record
+                    </h5>
+                    <button
+                      type="button"
+                      className="btn-close btn-close-white"
+                      onClick={() => setShowEditModal(false)}
+                    ></button>
+                  </div>
+                  <form onSubmit={handleUpdateRecord}>
+                    <div className="modal-body">
+                      <div className="alert alert-info">
+                        <i className="bi bi-info-circle me-2"></i>
+                        <strong>Note:</strong> You are viewing record for {selectedRecord.patientName}
+                      </div>
+                      <div className="row">
+                        <div className="col-md-6 mb-3">
+                          <label className="form-label fw-semibold">Category</label>
+                          <select
+                            className="form-select"
+                            value={editForm.category}
+                            onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                            disabled
+                          >
+                            <option value="Diagnosis">Diagnosis</option>
+                            <option value="Lab Results">Lab Results</option>
+                            <option value="Prescription">Prescription</option>
+                            <option value="X-Ray/Imaging">X-Ray/Imaging</option>
+                            <option value="Surgery Report">Surgery Report</option>
+                          </select>
+                          <small className="text-muted">Category cannot be changed</small>
+                        </div>
+                        <div className="col-md-6 mb-3">
+                          <label className="form-label fw-semibold">Status <span className="text-danger">*</span></label>
+                          <select
+                            className="form-select"
+                            value={editForm.status}
+                            onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                            disabled
+                          >
+                            <option value="Active">Active</option>
+                            <option value="Archived">Archived</option>
+                          </select>
+                          <small className="text-muted">Status cannot be changed via this form</small>
+                        </div>
+                        <div className="col-12 mb-3">
+                          <label className="form-label fw-semibold">Diagnosis</label>
+                          <textarea
+                            className="form-control"
+                            rows="4"
+                            value={editForm.diagnosis}
+                            onChange={(e) => setEditForm({ ...editForm, diagnosis: e.target.value })}
+                            disabled
+                          ></textarea>
+                          <small className="text-muted">Diagnosis is read-only</small>
+                        </div>
+                      </div>
+                      <div className="alert alert-warning">
+                        <i className="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Current Limitation:</strong> The backend API only supports approving/updating status of records, not full editing of content.
+                      </div>
+                    </div>
+                    <div className="modal-footer bg-light">
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setShowEditModal(false)}
+                      >
+                        <i className="bi bi-x-circle me-2"></i>
+                        Cancel
+                      </button>
+                      <button type="submit" className="btn btn-success">
+                        <i className="bi bi-check-circle me-2"></i>
+                        Approve Record
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
     </NavbarAdmin>
   );
