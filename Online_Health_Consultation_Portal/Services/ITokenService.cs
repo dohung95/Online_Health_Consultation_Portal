@@ -8,5 +8,6 @@ namespace OHCP_BK.Services
         Task<string> GenerateRefreshTokenAsync(AppUser user);
         Task<TokenResponse> RefreshTokenAsync(string refreshToken);
         Task RevokeRefreshTokenAsync(string refreshToken);
+        Task RemoveAllRefreshTokensAsync(string userId);
     }
 }

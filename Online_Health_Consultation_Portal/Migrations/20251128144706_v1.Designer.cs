@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OHCP_BK.Data;
 
@@ -11,9 +12,11 @@ using OHCP_BK.Data;
 namespace OHCP_BK.Migrations
 {
     [DbContext(typeof(OHCPContext))]
-    partial class OHCPContextModelSnapshot : ModelSnapshot
+    [Migration("20251128144706_v1")]
+    partial class v1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -574,67 +577,46 @@ namespace OHCP_BK.Migrations
                     b.ToTable("Patients");
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.PrescriptionHeader", b =>
+            modelBuilder.Entity("OHCP_BK.Models.Prescription", b =>
                 {
-                    b.Property<int>("PrescriptionHeaderID")
+                    b.Property<int>("PrescriptionID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionHeaderID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionID"));
 
-                    b.Property<int>("AppointmentID")
+                    b.Property<int>("ConsultationID")
                         .HasColumnType("int");
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Instructions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("IssueDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("MedicationName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PatientID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("PrescriptionHeaderID");
-
-                    b.HasIndex("AppointmentID");
-
-                    b.HasIndex("PatientID");
-
-                    b.ToTable("PrescriptionHeaders");
-                });
-
-            modelBuilder.Entity("OHCP_BK.Models.PrescriptionItem", b =>
-                {
-                    b.Property<int>("PrescriptionItemID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionItemID"));
-
-                    b.Property<string>("Dosage")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Instructions")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("MedicationName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("PrescriptionHeaderID")
-                        .HasColumnType("int");
-
                     b.Property<int>("TotalSupplyDays")
                         .HasColumnType("int");
 
-                    b.HasKey("PrescriptionItemID");
+                    b.HasKey("PrescriptionID");
 
-                    b.HasIndex("PrescriptionHeaderID");
+                    b.HasIndex("ConsultationID");
 
-                    b.ToTable("PrescriptionItems");
+                    b.HasIndex("PatientID");
+
+                    b.ToTable("Prescriptions");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.RefreshToken", b =>
@@ -905,11 +887,11 @@ namespace OHCP_BK.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.PrescriptionHeader", b =>
+            modelBuilder.Entity("OHCP_BK.Models.Prescription", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.Appointment", "Appointment")
+                    b.HasOne("OHCP_BK.Models.Consultation", "Consultation")
                         .WithMany()
-                        .HasForeignKey("AppointmentID")
+                        .HasForeignKey("ConsultationID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -919,20 +901,9 @@ namespace OHCP_BK.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Appointment");
+                    b.Navigation("Consultation");
 
                     b.Navigation("Patient");
-                });
-
-            modelBuilder.Entity("OHCP_BK.Models.PrescriptionItem", b =>
-                {
-                    b.HasOne("OHCP_BK.Models.PrescriptionHeader", "PrescriptionHeader")
-                        .WithMany("PrescriptionItems")
-                        .HasForeignKey("PrescriptionHeaderID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PrescriptionHeader");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.RefreshToken", b =>
@@ -1004,11 +975,6 @@ namespace OHCP_BK.Migrations
                     b.Navigation("HealthRecords");
 
                     b.Navigation("Reviews");
-                });
-
-            modelBuilder.Entity("OHCP_BK.Models.PrescriptionHeader", b =>
-                {
-                    b.Navigation("PrescriptionItems");
                 });
 #pragma warning restore 612, 618
         }

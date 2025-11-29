@@ -73,7 +73,7 @@ namespace OHCP_BK.Services
                     new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
                     new Claim(JwtRegisteredClaimNames.PreferredUsername, user.UserName ?? "User"),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(ClaimTypes.Role, "User")  // default role
+                    //new Claim(ClaimTypes.Role, "User")  // default role
                 };
 
                 // Add user roles
@@ -279,6 +279,45 @@ namespace OHCP_BK.Services
             {
                 logger.LogError($"Error revoking token: {ex.Message}");
                 throw new InternalServerException("Token revocation failed");
+            }
+        }
+
+        public async Task RemoveAllRefreshTokensAsync(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(userId))
+                    throw new ValidationException("User ID cannot be empty");
+
+                var tokens = await dbContext.RefreshTokens
+                    .Where(rt => rt.UserId == userId && !rt.IsRevoked)
+                    .ToListAsync();
+
+                if (tokens.Any())
+                {
+                    foreach (var token in tokens)
+                    {
+                        token.IsRevoked = true;
+                    }
+                    
+                    dbContext.RefreshTokens.UpdateRange(tokens);
+                    await dbContext.SaveChangesAsync();
+                    logger.LogInformation($"Revoked {tokens.Count} refresh token(s) for user '{userId}'");
+                }
+            }
+            catch (ValidationException)
+            {
+                throw;
+            }
+            catch (DbUpdateException ex)
+            {
+                logger.LogError($"Database error while removing all refresh tokens: {ex.Message}");
+                throw new InternalServerException("Failed to remove all refresh tokens");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Error removing all refresh tokens: {ex.Message}");
+                throw new InternalServerException("Failed to remove all refresh tokens");
             }
         }
 

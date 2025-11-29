@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Models;
+using System.Reflection.Emit;
 
 namespace OHCP_BK.Data
 {
@@ -26,7 +27,7 @@ namespace OHCP_BK.Data
         public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
-
+        public DbSet<HealthRecordShare> HealthRecordShares { get; set; }
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
@@ -102,6 +103,25 @@ namespace OHCP_BK.Data
                     et.SetTableName(tblName.Substring(6));
                 }
             }
+
+            // FIX CASCADE DELETE CONFLICTS FOR HealthRecordShare
+            builder.Entity<HealthRecordShare>()
+                .HasOne(s => s.HealthRecord)
+                .WithMany()
+                .HasForeignKey(s => s.HealthRecordID)
+                .OnDelete(DeleteBehavior.Restrict); // NO CASCADE
+
+            builder.Entity<HealthRecordShare>()
+                .HasOne(s => s.SharedByPatient)
+                .WithMany()
+                .HasForeignKey(s => s.SharedByPatientID)
+                .OnDelete(DeleteBehavior.Restrict); // NO CASCADE
+
+            builder.Entity<HealthRecordShare>()
+                .HasOne(s => s.SharedWithDoctor)
+                .WithMany()
+                .HasForeignKey(s => s.SharedWithDoctorID)
+                .OnDelete(DeleteBehavior.Restrict); // NO CASCADE
         }
     }
 }

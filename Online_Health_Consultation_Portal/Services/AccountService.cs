@@ -48,7 +48,8 @@ namespace OHCP_BK.Services
                     UserName = dto.FullName,
                     Email = dto.Email,
                     EmailConfirmed = isAdminCreated, // Admin-created accounts are auto-confirmed
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = DateTime.UtcNow,
+                    PhoneNumber = dto.PhoneNumber
                 };
 
                 var createResult = await _userManager.CreateAsync(user, dto.Password);
