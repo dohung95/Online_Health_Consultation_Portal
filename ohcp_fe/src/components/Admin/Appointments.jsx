@@ -223,14 +223,14 @@ export default function Appointments() {
               { title: "Cancelled", value: stats.cancelled, icon: "bi-x-circle", color: "danger" },
             ].map((stat) => (
               <div key={stat.title} className="col-lg-3 col-md-6">
-                <div className="card border-0 shadow-sm h-100">
-                  <div className="card-body d-flex align-items-center">
-                    <div className={`admin-stat-icon bg-${stat.color} text-white rounded-3 p-3 me-3`}>
-                      <i className={`bi ${stat.icon} fs-3`}></i>
+                <div className="admin-stat-card h-100">
+                  <div className="d-flex align-items-center">
+                    <div className={`admin-stat-icon ${stat.color} me-3`}>
+                      <i className={`bi ${stat.icon}`}></i>
                     </div>
                     <div>
-                      <p className="text-muted mb-1 small">{stat.title}</p>
-                      <h3 className="mb-0">{stat.value}</h3>
+                      <p className="text-muted mb-1" style={{fontSize: '13px'}}>{stat.title}</p>
+                      <h3 className="mb-0" style={{fontSize: '28px', fontWeight: 700}}>{stat.value}</h3>
                     </div>
                   </div>
                 </div>
@@ -239,22 +239,36 @@ export default function Appointments() {
           </div>
 
           {/* Filter and Search */}
-          <div className="card border-0 shadow-sm mb-4">
+          <div className="admin-card mb-4">
             <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex align-items-center" style={{padding:"5px 10px"}}> 
+                  <i className="bi bi-funnel me-2" style={{color: 'var(--admin-text-light)'}}></i>
+                  <h6 className="mb-0" style={{color: 'var(--admin-text-light)', fontSize: '13px', fontWeight: 600}}>SEARCH & FILTERS</h6>
+                </div>
+                <div style={{padding:"15px 5px 0 5px"}}>
+                  <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => {
+                    setFilters({ searchTerm: '', date: '', status: '', doctorId: '' });
+                    setPagination({ ...pagination, pageNumber: 1 });
+                  }}
+                  style={{fontSize: '12px'}}
+                >
+                  <i className="bi bi-x-circle me-1"></i>
+                  Clear Filters
+                </button>
+                </div>
+              </div>
               <div className="row g-3">
-                <div className="col-md-4">
-                  <div className="input-group">
-                    <span className="input-group-text bg-white">
-                      <i className="bi bi-search"></i>
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Search patient or doctor..."
-                      value={filters.searchTerm}
-                      onChange={handleSearch}
-                    />
-                  </div>
+                <div className="col-md-4" style={{padding:"0 0 10px 20px"}}>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search by patient, doctor, ID..."
+                    value={filters.searchTerm}
+                    onChange={handleSearch}
+                  />
                 </div>
                 <div className="col-md-2">
                   <input
@@ -278,7 +292,7 @@ export default function Appointments() {
                     <option value="Cancelled">Cancelled</option>
                   </select>
                 </div>
-                <div className="col-md-3">
+                <div className="col-md-3"style={{padding:"0 20px 0 0"}}>
                   <select
                     className="form-select"
                     value={filters.doctorId}
@@ -302,13 +316,13 @@ export default function Appointments() {
                   <p className="mt-2">Loading appointments...</p>
                 </div>
               ) : appointments.length === 0 ? (
-                <div className="text-center p-5">
-                  <i className="bi bi-inbox fs-1 text-muted"></i>
-                  <p className="mt-2 text-muted">No appointments found</p>
+                <div className="admin-empty-state">
+                  <i className="bi bi-inbox"></i>
+                  <p className="mt-2">No appointments found</p>
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table table-hover mb-0 align-middle">
+                  <table className="admin-table table mb-0 align-middle">
                     <thead className="table-light">
                       <tr>
                         <th>ID</th>
@@ -343,23 +357,23 @@ export default function Appointments() {
                             </span>
                           </td>
                           <td className="text-center">
-                            <div className="btn-group btn-group-sm" role="group">
+                            <div className="admin-btn-group">
                               <button
-                                className="btn btn-outline-primary"
+                                className="btn btn-outline-slate btn-sm"
                                 title="View Details"
                                 onClick={() => handleViewAppointment(appointment)}
                               >
                                 <i className="bi bi-eye"></i>
                               </button>
                               <button
-                                className="btn btn-outline-success"
+                                className="btn btn-outline-info btn-sm"
                                 title="Edit"
                                 onClick={() => handleEditAppointment(appointment)}
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
                               <button
-                                className="btn btn-outline-danger"
+                                className="btn btn-outline-danger btn-sm"
                                 title="Delete"
                                 onClick={() => handleDelete(appointment.appointmentID)}
                               >
@@ -377,8 +391,8 @@ export default function Appointments() {
             {!loading && appointments.length > 0 && (
               <div className="card-footer bg-white">
                 <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-muted">
-                    Showing {((pagination.pageNumber - 1) * pagination.pageSize) + 1} to {Math.min(pagination.pageNumber * pagination.pageSize, pagination.totalCount)} of {pagination.totalCount} appointments
+                  <span className="text-muted" style={{fontSize: '13px'}}>
+                    Page <strong style={{color: 'var(--admin-text)'}}>{pagination.pageNumber}</strong> of <strong style={{color: 'var(--admin-text)'}}>{pagination.totalPages}</strong> • <strong style={{color: 'var(--admin-text)'}}>{pagination.totalCount}</strong> total appointments
                   </span>
                   <nav>
                     <ul className="pagination mb-0">
@@ -391,19 +405,67 @@ export default function Appointments() {
                           Previous
                         </button>
                       </li>
-                      {[...Array(pagination.totalPages)].map((_, index) => (
-                        <li
-                          key={index + 1}
-                          className={`page-item ${pagination.pageNumber === index + 1 ? 'active' : ''}`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange(index + 1)}
-                          >
-                            {index + 1}
-                          </button>
-                        </li>
-                      ))}
+                      {(() => {
+                        const pageNumbers = [];
+                        const totalPages = pagination.totalPages;
+                        const currentPage = pagination.pageNumber;
+
+                        if (totalPages <= 7) {
+                          // Show all pages if 7 or less
+                          for (let i = 1; i <= totalPages; i++) {
+                            pageNumbers.push(i);
+                          }
+                        } else {
+                          // Always show first page
+                          pageNumbers.push(1);
+
+                          if (currentPage > 3) {
+                            pageNumbers.push('...');
+                          }
+
+                          // Show current page and neighbors
+                          const start = Math.max(2, currentPage - 1);
+                          const end = Math.min(totalPages - 1, currentPage + 1);
+
+                          for (let i = start; i <= end; i++) {
+                            if (!pageNumbers.includes(i)) {
+                              pageNumbers.push(i);
+                            }
+                          }
+
+                          if (currentPage < totalPages - 2) {
+                            pageNumbers.push('...');
+                          }
+
+                          // Always show last page
+                          if (!pageNumbers.includes(totalPages)) {
+                            pageNumbers.push(totalPages);
+                          }
+                        }
+
+                        return pageNumbers.map((page, index) => {
+                          if (page === '...') {
+                            return (
+                              <li key={`ellipsis-${index}`} className="page-item disabled">
+                                <span className="page-link">...</span>
+                              </li>
+                            );
+                          }
+                          return (
+                            <li
+                              key={page}
+                              className={`page-item ${pagination.pageNumber === page ? 'active' : ''}`}
+                            >
+                              <button
+                                className="page-link"
+                                onClick={() => handlePageChange(page)}
+                              >
+                                {page}
+                              </button>
+                            </li>
+                          );
+                        });
+                      })()}
                       <li className={`page-item ${pagination.pageNumber === pagination.totalPages ? 'disabled' : ''}`}>
                         <button
                           className="page-link"

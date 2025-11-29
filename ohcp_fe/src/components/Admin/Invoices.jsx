@@ -128,21 +128,160 @@ export default function Invoices() {
     }
   };
 
-  // Handle delete invoice
-  const handleDelete = async (invoiceId) => {
-    if (!window.confirm('Are you sure you want to delete this invoice?')) {
-      return;
-    }
+  // Handle print invoice
+  const handlePrintInvoice = () => {
+    const printWindow = window.open('', '_blank');
+    const invoice = selectedInvoice;
 
-    try {
-      await invoicesApi.delete(invoiceId);
-      alert('Invoice deleted successfully');
-      fetchInvoices();
-      fetchStats();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete invoice');
-      console.error('Error deleting invoice:', err);
-    }
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice #${invoice.invoiceID}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            color: #333;
+          }
+          .invoice-header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #0d6efd;
+            padding-bottom: 20px;
+          }
+          .invoice-header h1 {
+            color: #0d6efd;
+            margin: 0;
+          }
+          .invoice-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+          }
+          .info-section {
+            flex: 1;
+          }
+          .info-section h3 {
+            color: #0d6efd;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+          }
+          .info-row {
+            margin-bottom: 10px;
+          }
+          .info-row strong {
+            display: inline-block;
+            width: 150px;
+          }
+          .amount-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: center;
+          }
+          .amount-section h2 {
+            color: #198754;
+            margin: 0;
+            font-size: 36px;
+          }
+          .amount-label {
+            color: #6c757d;
+            margin-bottom: 10px;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          .status-paid { background: #198754; color: white; }
+          .status-pending { background: #ffc107; color: #000; }
+          .status-generated { background: #0dcaf0; color: #000; }
+          .status-cancelled { background: #dc3545; color: white; }
+          .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+          }
+          @media print {
+            body { padding: 20px; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="invoice-header">
+          <h1>ONLINE HEALTH CONSULTATION PORTAL</h1>
+          <p>Medical Invoice</p>
+        </div>
+
+        <div class="invoice-info">
+          <div class="info-section">
+            <h3>Invoice Information</h3>
+            <div class="info-row">
+              <strong>Invoice ID:</strong> #${invoice.invoiceID}
+            </div>
+            <div class="info-row">
+              <strong>Issue Date:</strong> ${formatDate(invoice.issueDate)}
+            </div>
+            <div class="info-row">
+              <strong>Status:</strong>
+              <span class="status-badge status-${invoice.status.toLowerCase()}">${invoice.status}</span>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h3>Patient Information</h3>
+            <div class="info-row">
+              <strong>Patient Name:</strong> ${invoice.patientName || 'N/A'}
+            </div>
+            <div class="info-row">
+              <strong>Patient ID:</strong> ${invoice.patientID}
+            </div>
+            <div class="info-row">
+              <strong>Appointment ID:</strong> #${invoice.appointmentID}
+            </div>
+          </div>
+        </div>
+
+        ${invoice.consultationType ? `
+        <div class="info-section">
+          <h3>Appointment Details</h3>
+          <div class="info-row">
+            <strong>Consultation Type:</strong> ${invoice.consultationType}
+          </div>
+          <div class="info-row">
+            <strong>Appointment Status:</strong> ${invoice.appointmentStatus}
+          </div>
+        </div>
+        ` : ''}
+
+        <div class="amount-section">
+          <div class="amount-label">TOTAL AMOUNT</div>
+          <h2>${formatCurrency(invoice.amount)}</h2>
+        </div>
+
+        <div class="footer">
+          <p>Thank you for choosing Online Health Consultation Portal</p>
+          <p>This is a computer-generated invoice and does not require a signature.</p>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+          }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
   };
 
   // Format date
@@ -186,15 +325,11 @@ export default function Invoices() {
     >
       <main className="admin-content p-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2>Invoices Management</h2>
-          <button className="btn btn-primary">
-            <i className="bi bi-plus-circle me-2"></i>
-            Generate Invoice
-          </button>
+          <h2 className="admin-page-title">Invoices Management</h2>
         </div>
 
         {error && (
-          <div className="alert alert-danger" role="alert">
+          <div className="alert alert-danger admin-alert" role="alert">
             <i className="bi bi-exclamation-triangle me-2"></i>
             {error}
           </div>
@@ -209,14 +344,14 @@ export default function Invoices() {
             { title: "Pending", value: stats.pending, icon: "bi-hourglass-split", color: "warning" },
           ].map((stat) => (
             <div key={stat.title} className="col-lg-3 col-md-6">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body d-flex align-items-center">
-                  <div className={`admin-stat-icon bg-${stat.color} text-white rounded-3 p-3 me-3`}>
-                    <i className={`bi ${stat.icon} fs-3`}></i>
+              <div className="admin-stat-card h-100">
+                <div className="d-flex align-items-center">
+                  <div className={`admin-stat-icon ${stat.color} me-3`}>
+                    <i className={`bi ${stat.icon}`}></i>
                   </div>
                   <div>
-                    <p className="text-muted mb-1 small">{stat.title}</p>
-                    <h3 className="mb-0">{stat.value}</h3>
+                    <p className="text-muted mb-1" style={{ fontSize: '13px' }}>{stat.title}</p>
+                    <h3 className="mb-0" style={{ fontSize: '28px', fontWeight: 700 }}>{stat.value}</h3>
                   </div>
                 </div>
               </div>
@@ -225,22 +360,36 @@ export default function Invoices() {
         </div>
 
         {/* Search and Filter */}
-        <div className="card border-0 shadow-sm mb-4">
+        <div className="admin-card mb-4">
           <div className="card-body">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <div className="d-flex align-items-center" style={{ padding: "5px 10px" }}>
+                <i className="bi bi-funnel me-2" style={{ color: 'var(--admin-text-light)' }}></i>
+                <h6 className="mb-0" style={{ color: 'var(--admin-text-light)', fontSize: '13px', fontWeight: 600 }}>SEARCH & FILTERS</h6>
+              </div>
+              <div style={{ padding: "15px 5px 0 5px" }}>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => {
+                    setFilters({ searchTerm: '', status: '', sortBy: 'newest' });
+                    setPagination({ ...pagination, pageNumber: 1 });
+                  }}
+                  style={{ fontSize: '12px' }}
+                >
+                  <i className="bi bi-x-circle me-1"></i>
+                  Clear Filters
+                </button>
+              </div>
+            </div>
             <div className="row g-3">
-              <div className="col-md-5">
-                <div className="input-group">
-                  <span className="input-group-text bg-white">
-                    <i className="bi bi-search"></i>
-                  </span>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Search by invoice ID, patient name, appointment ID..."
-                    value={filters.searchTerm}
-                    onChange={handleSearch}
-                  />
-                </div>
+              <div className="col-md-5" style={{padding:"0 0 10px 20px"}}>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search by invoice ID, patient name..."
+                  value={filters.searchTerm}
+                  onChange={handleSearch}
+                />
               </div>
               <div className="col-md-3">
                 <select
@@ -255,7 +404,7 @@ export default function Invoices() {
                   <option value="Cancelled">Cancelled</option>
                 </select>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-4" style={{padding:"0 20px 0 0"}}>
                 <select
                   className="form-select"
                   value={filters.sortBy}
@@ -272,23 +421,23 @@ export default function Invoices() {
         </div>
 
         {/* Invoices Table */}
-        <div className="card border-0 shadow-sm">
+        <div className="admin-card">
           <div className="card-body p-0">
             {loading ? (
-              <div className="text-center p-5">
-                <div className="spinner-border text-primary" role="status">
+              <div className="admin-loading">
+                <div className="spinner-border" style={{ color: 'var(--admin-primary)' }} role="status">
                   <span className="visually-hidden">Loading...</span>
                 </div>
                 <p className="mt-2">Loading invoices...</p>
               </div>
             ) : invoices.length === 0 ? (
-              <div className="text-center p-5">
-                <i className="bi bi-inbox fs-1 text-muted"></i>
-                <p className="mt-2 text-muted">No invoices found</p>
+              <div className="admin-empty-state">
+                <i className="bi bi-inbox"></i>
+                <p className="mt-2">No invoices found</p>
               </div>
             ) : (
               <div className="table-responsive">
-                <table className="table table-hover mb-0 align-middle">
+                <table className="admin-table table mb-0 align-middle">
                   <thead className="table-light">
                     <tr>
                       <th>Invoice ID</th>
@@ -306,7 +455,7 @@ export default function Invoices() {
                         <td><strong>#{invoice.invoiceID}</strong></td>
                         <td>
                           <div className="d-flex align-items-center">
-                            <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style={{width: "35px", height: "35px"}}>
+                            <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style={{ width: "35px", height: "35px" }}>
                               {invoice.patientName?.charAt(0) || 'P'}
                             </div>
                             {invoice.patientName || 'N/A'}
@@ -321,27 +470,20 @@ export default function Invoices() {
                           </span>
                         </td>
                         <td className="text-center">
-                          <div className="btn-group btn-group-sm" role="group">
+                          <div className="admin-btn-group">
                             <button
-                              className="btn btn-outline-primary"
+                              className="btn btn-outline-slate btn-sm"
                               title="View Details"
                               onClick={() => handleViewInvoice(invoice)}
                             >
                               <i className="bi bi-eye"></i>
                             </button>
                             <button
-                              className="btn btn-outline-success"
+                              className="btn btn-outline-info btn-sm"
                               title="Update Status"
                               onClick={() => handleUpdateStatus(invoice)}
                             >
                               <i className="bi bi-pencil"></i>
-                            </button>
-                            <button
-                              className="btn btn-outline-danger"
-                              title="Delete"
-                              onClick={() => handleDelete(invoice.invoiceID)}
-                            >
-                              <i className="bi bi-trash"></i>
                             </button>
                           </div>
                         </td>
@@ -355,8 +497,8 @@ export default function Invoices() {
           {!loading && invoices.length > 0 && (
             <div className="card-footer bg-white">
               <div className="d-flex justify-content-between align-items-center">
-                <span className="text-muted">
-                  Showing {((pagination.pageNumber - 1) * pagination.pageSize) + 1} to {Math.min(pagination.pageNumber * pagination.pageSize, pagination.totalCount)} of {pagination.totalCount} invoices
+                <span className="text-muted" style={{ fontSize: '13px' }}>
+                  Page <strong style={{ color: 'var(--admin-text)' }}>{pagination.pageNumber}</strong> of <strong style={{ color: 'var(--admin-text)' }}>{pagination.totalPages}</strong> • <strong style={{ color: 'var(--admin-text)' }}>{pagination.totalCount}</strong> total invoices
                 </span>
                 <nav>
                   <ul className="pagination mb-0">
@@ -369,19 +511,63 @@ export default function Invoices() {
                         Previous
                       </button>
                     </li>
-                    {[...Array(pagination.totalPages)].map((_, index) => (
-                      <li
-                        key={index + 1}
-                        className={`page-item ${pagination.pageNumber === index + 1 ? 'active' : ''}`}
-                      >
-                        <button
-                          className="page-link"
-                          onClick={() => handlePageChange(index + 1)}
-                        >
-                          {index + 1}
-                        </button>
-                      </li>
-                    ))}
+                    {(() => {
+                      const pageNumbers = [];
+                      const totalPages = pagination.totalPages;
+                      const currentPage = pagination.pageNumber;
+
+                      if (totalPages <= 7) {
+                        for (let i = 1; i <= totalPages; i++) {
+                          pageNumbers.push(i);
+                        }
+                      } else {
+                        pageNumbers.push(1);
+
+                        if (currentPage > 3) {
+                          pageNumbers.push('...');
+                        }
+
+                        const start = Math.max(2, currentPage - 1);
+                        const end = Math.min(totalPages - 1, currentPage + 1);
+
+                        for (let i = start; i <= end; i++) {
+                          if (!pageNumbers.includes(i)) {
+                            pageNumbers.push(i);
+                          }
+                        }
+
+                        if (currentPage < totalPages - 2) {
+                          pageNumbers.push('...');
+                        }
+
+                        if (!pageNumbers.includes(totalPages)) {
+                          pageNumbers.push(totalPages);
+                        }
+                      }
+
+                      return pageNumbers.map((page, index) => {
+                        if (page === '...') {
+                          return (
+                            <li key={`ellipsis-${index}`} className="page-item disabled">
+                              <span className="page-link">...</span>
+                            </li>
+                          );
+                        }
+                        return (
+                          <li
+                            key={page}
+                            className={`page-item ${pagination.pageNumber === page ? 'active' : ''}`}
+                          >
+                            <button
+                              className="page-link"
+                              onClick={() => handlePageChange(page)}
+                            >
+                              {page}
+                            </button>
+                          </li>
+                        );
+                      });
+                    })()}
                     <li className={`page-item ${pagination.pageNumber === pagination.totalPages ? 'disabled' : ''}`}>
                       <button
                         className="page-link"
@@ -400,21 +586,21 @@ export default function Invoices() {
 
         {/* View Invoice Details Modal */}
         {showViewModal && selectedInvoice && (
-          <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <div className="modal-dialog">
               <div className="modal-content">
-                <div className="modal-header">
+                <div className="admin-modal-header primary">
                   <h5 className="modal-title">
                     <i className="bi bi-receipt me-2"></i>
                     Invoice Details
                   </h5>
                   <button
                     type="button"
-                    className="btn-close"
+                    className="btn-close btn-close-white"
                     onClick={() => setShowViewModal(false)}
                   ></button>
                 </div>
-                <div className="modal-body">
+                <div className="admin-modal-body">
                   <div className="row mb-3">
                     <div className="col-6">
                       <strong>Invoice ID:</strong>
@@ -475,7 +661,11 @@ export default function Invoices() {
                   >
                     Close
                   </button>
-                  <button type="button" className="btn btn-primary">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handlePrintInvoice}
+                  >
                     <i className="bi bi-printer me-2"></i>
                     Print Invoice
                   </button>
@@ -487,22 +677,22 @@ export default function Invoices() {
 
         {/* Update Status Modal */}
         {showStatusModal && selectedInvoice && (
-          <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <div className="modal-dialog">
               <div className="modal-content">
-                <div className="modal-header">
+                <div className="admin-modal-header info">
                   <h5 className="modal-title">
                     <i className="bi bi-pencil-square me-2"></i>
                     Update Invoice Status
                   </h5>
                   <button
                     type="button"
-                    className="btn-close"
+                    className="btn-close btn-close-white"
                     onClick={() => setShowStatusModal(false)}
                   ></button>
                 </div>
                 <form onSubmit={handleSubmitStatusUpdate}>
-                  <div className="modal-body">
+                  <div className="admin-modal-body">
                     <div className="mb-3">
                       <label className="form-label">Invoice ID</label>
                       <input

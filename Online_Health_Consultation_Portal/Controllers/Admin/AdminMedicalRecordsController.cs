@@ -109,7 +109,7 @@ namespace OHCP_BK.Controllers.Admin
                         .FirstOrDefaultAsync();
 
                     var categoryFromDocuments = hr.MedicalDocuments
-                        .OrderByDescending(md => md.UploadDate)
+                        .OrderByDescending(md => md.UploadedAt)
                         .Select(md => md.Category)
                         .FirstOrDefault() ?? "General";
 
@@ -166,7 +166,7 @@ namespace OHCP_BK.Controllers.Admin
                     .FirstOrDefaultAsync();
 
                 var categoryFromDocuments = record.MedicalDocuments
-                    .OrderByDescending(md => md.UploadDate)
+                    .OrderByDescending(md => md.UploadedAt)
                     .Select(md => md.Category)
                     .FirstOrDefault() ?? "General";
 
@@ -219,7 +219,7 @@ namespace OHCP_BK.Controllers.Admin
                     DoctorName = latestAppointment?.Doctor.FullName ?? "N/A",
                     Date = hr.LastUpdated,
                     Category = hr.MedicalDocuments
-                        .OrderByDescending(md => md.UploadDate)
+                        .OrderByDescending(md => md.UploadedAt)
                         .Select(md => md.Category)
                         .FirstOrDefault() ?? "General",
                     Diagnosis = hr.Patient.MedicalHistorySummary ?? "No diagnosis recorded",

@@ -17,7 +17,6 @@ import Admin from './components/Admin/Admin';
 import Patients from './components/Admin/Patients';
 import Appointments from './components/Admin/Appointments';
 import MedicalRecords from './components/Admin/MedicalRecords';
-import DoctorsAdmin from './components/Admin/DoctorsAdmin';
 import Invoices from './components/Admin/Invoices';
 
 import Sign_in from './components/Auth/Sign_in';
@@ -151,7 +150,6 @@ function AppContent() {
             <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>}/>
             <Route path="/admin/appointments" element={<AdminRoute> <Appointments /> </AdminRoute>}/>
             <Route path="/admin/medical-records" element={<AdminRoute> <MedicalRecords /> </AdminRoute>}/>
-            <Route path="/admin/doctors" element={<AdminRoute> <DoctorsAdmin /> </AdminRoute>}/>
             <Route path="/admin/invoices" element={<AdminRoute> <Invoices /> </AdminRoute>}/>
                                           
           </Routes>
