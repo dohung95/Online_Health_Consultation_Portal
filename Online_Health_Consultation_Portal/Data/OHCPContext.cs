@@ -21,7 +21,8 @@ namespace OHCP_BK.Data
         public DbSet<Review> Reviews { get; set; }
         public DbSet<HealthRecord> HealthRecords { get; set; }
         public DbSet<MedicalDocument> MedicalDocuments { get; set; }
-        public DbSet<Prescription> Prescriptions { get; set; }
+        public DbSet<PrescriptionHeader> PrescriptionHeaders { get; set; }
+        public DbSet<PrescriptionItem> PrescriptionItems { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Invoice> Invoices { get; set; }

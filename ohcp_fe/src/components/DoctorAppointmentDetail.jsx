@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../components/Css/DoctorPage.css';
+import CreatePrescriptionModal from './CreatePrescriptionModal';
 
 const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
 
   // Helper function to format date
   const formatDate = (dateString) => {
@@ -134,7 +136,10 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                   <button className="btn btn-primary h-auto py-3 fw-bold flex-fill">
                     Join Appointment
                   </button>
-                  <button className="btn btn-secondary-custom h-auto py-3 fw-bold flex-fill">
+                  <button 
+                    className="btn btn-secondary-custom h-auto py-3 fw-bold flex-fill"
+                    onClick={() => setIsPrescriptionModalOpen(true)}
+                  >
                     Prescribe Medication
                   </button>
                   
@@ -207,6 +212,14 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
           </div>
         </div>
       </main>
+
+      {/* Prescription Modal */}
+      <CreatePrescriptionModal 
+        isOpen={isPrescriptionModalOpen}
+        onClose={() => setIsPrescriptionModalOpen(false)}
+        appointment={appointment}
+        patient={patient}
+      />
     </div>
   );
 };

@@ -30,16 +30,17 @@ namespace OHCP_BK.Services
                 var today = DateTime.UtcNow.Date;
                 var notificationsCreated = 0;
 
-                // Query all prescriptions with TotalSupplyDays > 0
-                var prescriptions = await _context.Prescriptions
-                    .Where(p => p.TotalSupplyDays > 0)
-                    .Include(p => p.Patient)
+                // Query all prescription items with TotalSupplyDays > 0
+                var prescriptionItems = await _context.PrescriptionItems
+                    .Include(pi => pi.PrescriptionHeader)
+                        .ThenInclude(ph => ph.Patient)
+                    .Where(pi => pi.TotalSupplyDays > 0)
                     .ToListAsync();
 
-                foreach (var prescription in prescriptions)
+                foreach (var item in prescriptionItems)
                 {
                     // Calculate medication end date
-                    var medicationEndDate = prescription.IssueDate.AddDays(prescription.TotalSupplyDays);
+                    var medicationEndDate = item.PrescriptionHeader.IssueDate.AddDays(item.TotalSupplyDays);
                     var daysRemaining = (medicationEndDate - today).Days;
 
                     // Check if below reminder threshold
@@ -48,8 +49,8 @@ namespace OHCP_BK.Services
                         // Check if notification already exists (avoid duplicates)
                         var existingNotification = await _context.Notifications
                             .AnyAsync(n => 
-                                n.UserId == prescription.Patient.PatientID &&
-                                n.Message.Contains($"refill {prescription.MedicationName}") &&
+                                n.UserId == item.PrescriptionHeader.PatientID &&
+                                n.Message.Contains($"refill {item.MedicationName}") &&
                                 n.CreatedAt.Date == today);
 
                         if (!existingNotification)
@@ -57,8 +58,8 @@ namespace OHCP_BK.Services
                             // Create new notification
                             var notification = new Notification
                             {
-                                UserId = prescription.Patient.PatientID,
-                                Message = $"Time to refill {prescription.MedicationName}. Medication will run out on {medicationEndDate:MM/dd/yyyy}.",
+                                UserId = item.PrescriptionHeader.PatientID,
+                                Message = $"Time to refill {item.MedicationName}. Medication will run out on {medicationEndDate:MM/dd/yyyy}.",
                                 IsRead = false,
                                 CreatedAt = DateTime.UtcNow
                             };
@@ -70,7 +71,7 @@ namespace OHCP_BK.Services
                             // Send realtime notification via SignalR
                             try
                             {
-                                await _hubContext.Clients.User(prescription.Patient.PatientID)
+                                await _hubContext.Clients.User(item.PrescriptionHeader.PatientID)
                                     .SendAsync("ReceiveNotification", new
                                     {
                                         notificationID = notification.NotificationID,
@@ -82,17 +83,17 @@ namespace OHCP_BK.Services
 
                                 _logger.LogInformation(
                                     "Sent realtime notification to patient {PatientId}",
-                                    prescription.Patient.PatientID);
+                                    item.PrescriptionHeader.PatientID);
                             }
                             catch (Exception ex)
                             {
                                 _logger.LogError(ex, "Error sending realtime notification to patient {PatientId}",
-                                    prescription.Patient.PatientID);
+                                    item.PrescriptionHeader.PatientID);
                             }
 
                             _logger.LogInformation(
                                 "Created medication refill reminder for patient {PatientId}, medication {MedicationName}, {DaysRemaining} days remaining",
-                                prescription.PatientID, prescription.MedicationName, daysRemaining);
+                                item.PrescriptionHeader.PatientID, item.MedicationName, daysRemaining);
                         }
                     }
                 }

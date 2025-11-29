@@ -522,46 +522,67 @@ namespace OHCP_BK.Migrations
                     b.ToTable("Patients");
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.Prescription", b =>
+            modelBuilder.Entity("OHCP_BK.Models.PrescriptionHeader", b =>
                 {
-                    b.Property<int>("PrescriptionID")
+                    b.Property<int>("PrescriptionHeaderID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionHeaderID"));
 
-                    b.Property<int>("ConsultationID")
+                    b.Property<int>("AppointmentID")
                         .HasColumnType("int");
-
-                    b.Property<string>("Dosage")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Instructions")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("IssueDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("MedicationName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PatientID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("TotalSupplyDays")
-                        .HasColumnType("int");
+                    b.HasKey("PrescriptionHeaderID");
 
-                    b.HasKey("PrescriptionID");
-
-                    b.HasIndex("ConsultationID");
+                    b.HasIndex("AppointmentID");
 
                     b.HasIndex("PatientID");
 
-                    b.ToTable("Prescriptions");
+                    b.ToTable("PrescriptionHeaders");
+                });
+
+            modelBuilder.Entity("OHCP_BK.Models.PrescriptionItem", b =>
+                {
+                    b.Property<int>("PrescriptionItemID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionItemID"));
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Instructions")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("MedicationName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("PrescriptionHeaderID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalSupplyDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrescriptionItemID");
+
+                    b.HasIndex("PrescriptionHeaderID");
+
+                    b.ToTable("PrescriptionItems");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.RefreshToken", b =>
@@ -805,11 +826,11 @@ namespace OHCP_BK.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.Prescription", b =>
+            modelBuilder.Entity("OHCP_BK.Models.PrescriptionHeader", b =>
                 {
-                    b.HasOne("OHCP_BK.Models.Consultation", "Consultation")
+                    b.HasOne("OHCP_BK.Models.Appointment", "Appointment")
                         .WithMany()
-                        .HasForeignKey("ConsultationID")
+                        .HasForeignKey("AppointmentID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -819,9 +840,20 @@ namespace OHCP_BK.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Consultation");
+                    b.Navigation("Appointment");
 
                     b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("OHCP_BK.Models.PrescriptionItem", b =>
+                {
+                    b.HasOne("OHCP_BK.Models.PrescriptionHeader", "PrescriptionHeader")
+                        .WithMany("PrescriptionItems")
+                        .HasForeignKey("PrescriptionHeaderID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PrescriptionHeader");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.RefreshToken", b =>
@@ -893,6 +925,11 @@ namespace OHCP_BK.Migrations
                     b.Navigation("HealthRecords");
 
                     b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("OHCP_BK.Models.PrescriptionHeader", b =>
+                {
+                    b.Navigation("PrescriptionItems");
                 });
 #pragma warning restore 612, 618
         }
