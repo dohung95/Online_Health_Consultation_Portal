@@ -34,6 +34,9 @@ export default function Patients() {
     fullName: '',
     phoneNumber: '',
     dateOfBirth: '',
+    gender: '',
+    email: '',
+    address: '',
     medicalHistorySummary: '',
     insuranceProvider: '',
     insurancePolicyNumber: '',
@@ -117,6 +120,9 @@ export default function Patients() {
       fullName: patient.fullName,
       phoneNumber: patient.phone,
       dateOfBirth: patient.dateOfBirth ? patient.dateOfBirth.split('T')[0] : '',
+      gender: patient.gender || '',
+      email: patient.email || '',
+      address: patient.address || '',
       medicalHistorySummary: patient.medicalHistorySummary || '',
       insuranceProvider: patient.insuranceProvider || '',
       insurancePolicyNumber: patient.insurancePolicyNumber || '',
@@ -130,7 +136,18 @@ export default function Patients() {
     e.preventDefault();
 
     try {
-      await patientsApi.update(selectedPatient.patientID, editForm);
+      // Prepare data according to UpdatePatientAdminDto
+      const updateData = {
+        fullName: editForm.fullName,
+        phoneNumber: editForm.phoneNumber,
+        dateOfBirth: editForm.dateOfBirth,
+        medicalHistorySummary: editForm.medicalHistorySummary,
+        insuranceProvider: editForm.insuranceProvider,
+        insurancePolicyNumber: editForm.insurancePolicyNumber,
+        status: editForm.status
+      };
+
+      await patientsApi.update(selectedPatient.patientID, updateData);
       alert('Patient updated successfully');
       setShowEditModal(false);
       fetchPatients();
@@ -140,39 +157,6 @@ export default function Patients() {
     }
   };
 
-  // Handle approve/update health record
-  const handleUpdateHealthRecord = async (recordId) => {
-    if (!window.confirm('Are you sure you want to approve/update this health record?')) {
-      return;
-    }
-
-    try {
-      await medicalRecordsApi.update(recordId);
-      alert('Health record updated successfully');
-      // Refresh health records for this patient
-      const records = await medicalRecordsApi.getByPatientId(selectedPatient.patientID);
-      setPatientHealthRecords(records);
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update health record');
-      console.error('Error updating health record:', err);
-    }
-  };
-
-  // Handle delete patient
-  const handleDelete = async (patientId) => {
-    if (!window.confirm('Are you sure you want to delete this patient?')) {
-      return;
-    }
-
-    try {
-      await patientsApi.delete(patientId);
-      alert('Patient deleted successfully');
-      fetchPatients();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete patient');
-      console.error('Error deleting patient:', err);
-    }
-  };
 
   // Format date
   const formatDate = (dateString) => {
@@ -189,10 +173,6 @@ export default function Patients() {
       <main className="admin-content p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2>Patients List</h2>
-            <button className="btn btn-primary">
-              <i className="bi bi-plus-circle me-2"></i>
-              Add New Patient
-            </button>
           </div>
 
           {/* Error Message */}
@@ -316,13 +296,6 @@ export default function Patients() {
                                 onClick={() => handleEditPatient(patient)}
                               >
                                 <i className="bi bi-pencil"></i>
-                              </button>
-                              <button
-                                className="btn btn-outline-danger"
-                                title="Delete"
-                                onClick={() => handleDelete(patient.patientID)}
-                              >
-                                <i className="bi bi-trash"></i>
                               </button>
                             </div>
                           </td>
@@ -484,7 +457,6 @@ export default function Patients() {
                                   <th>Category</th>
                                   <th>Diagnosis</th>
                                   <th>Status</th>
-                                  <th>Actions</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -502,16 +474,6 @@ export default function Patients() {
                                       <span className={`badge bg-${record.status.toLowerCase() === 'active' ? 'success' : 'secondary'}`}>
                                         {record.status}
                                       </span>
-                                    </td>
-                                    <td>
-                                      <button
-                                        className="btn btn-sm btn-outline-success"
-                                        title="Approve/Update Record"
-                                        onClick={() => handleUpdateHealthRecord(record.healthRecordID)}
-                                      >
-                                        <i className="bi bi-check-circle me-1"></i>
-                                        Approve
-                                      </button>
                                     </td>
                                   </tr>
                                 ))}
@@ -539,101 +501,169 @@ export default function Patients() {
           {/* Edit Patient Modal */}
           {showEditModal && selectedPatient && (
             <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
-              <div className="modal-dialog modal-dialog-scrollable">
+              <div className="modal-dialog modal-xl" style={{maxWidth: '90%'}}>
                 <div className="modal-content">
-                  <div className="modal-header">
+                  <div className="modal-header bg-primary text-white">
                     <h5 className="modal-title">
                       <i className="bi bi-pencil-square me-2"></i>
                       Edit Patient Information
                     </h5>
                     <button
                       type="button"
-                      className="btn-close"
+                      className="btn-close btn-close-white"
                       onClick={() => setShowEditModal(false)}
                     ></button>
                   </div>
                   <form onSubmit={handleUpdatePatient}>
-                    <div className="modal-body">
-                      <div className="mb-3">
-                        <label className="form-label">Full Name</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={editForm.fullName}
-                          onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Phone Number</label>
-                        <input
-                          type="tel"
-                          className="form-control"
-                          value={editForm.phoneNumber}
-                          onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Date of Birth</label>
-                        <input
-                          type="date"
-                          className="form-control"
-                          value={editForm.dateOfBirth}
-                          onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Medical History Summary</label>
-                        <textarea
-                          className="form-control"
-                          rows="3"
-                          value={editForm.medicalHistorySummary}
-                          onChange={(e) => setEditForm({ ...editForm, medicalHistorySummary: e.target.value })}
-                        ></textarea>
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Insurance Provider</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={editForm.insuranceProvider}
-                          onChange={(e) => setEditForm({ ...editForm, insuranceProvider: e.target.value })}
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Insurance Policy Number</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={editForm.insurancePolicyNumber}
-                          onChange={(e) => setEditForm({ ...editForm, insurancePolicyNumber: e.target.value })}
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Status</label>
-                        <select
-                          className="form-select"
-                          value={editForm.status}
-                          onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                          required
-                        >
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                        </select>
+                    <div className="modal-body" style={{maxHeight: '75vh', overflowY: 'auto'}}>
+                      <div className="row">
+                        {/* Left Column - Personal Information */}
+                        <div className="col-lg-6">
+                          <div className="mb-4">
+                            <h6 className="text-primary border-bottom pb-2 mb-3">
+                              <i className="bi bi-person-circle me-2"></i>
+                              Personal Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Full Name <span className="text-danger">*</span></label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={editForm.fullName}
+                                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Email <span className="text-danger">*</span></label>
+                              <input
+                                type="email"
+                                className="form-control"
+                                value={editForm.email}
+                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Phone Number <span className="text-danger">*</span></label>
+                              <input
+                                type="tel"
+                                className="form-control"
+                                value={editForm.phoneNumber}
+                                onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Date of Birth <span className="text-danger">*</span></label>
+                              <input
+                                type="date"
+                                className="form-control"
+                                value={editForm.dateOfBirth}
+                                onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Gender <span className="text-danger">*</span></label>
+                              <select
+                                className="form-select"
+                                value={editForm.gender}
+                                onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                                required
+                              >
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Status <span className="text-danger">*</span></label>
+                              <select
+                                className="form-select"
+                                value={editForm.status}
+                                onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                                required
+                              >
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                              </select>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Address</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={editForm.address}
+                                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                placeholder="Enter full address"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right Column - Medical & Insurance Information */}
+                        <div className="col-lg-6">
+                          {/* Medical Information Section */}
+                          <div className="mb-4">
+                            <h6 className="text-success border-bottom pb-2 mb-3">
+                              <i className="bi bi-heart-pulse me-2"></i>
+                              Medical Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Medical History Summary</label>
+                              <textarea
+                                className="form-control"
+                                rows="8"
+                                value={editForm.medicalHistorySummary}
+                                onChange={(e) => setEditForm({ ...editForm, medicalHistorySummary: e.target.value })}
+                                placeholder="Enter medical history, allergies, chronic conditions..."
+                              ></textarea>
+                            </div>
+                          </div>
+
+                          {/* Insurance Information Section */}
+                          <div className="mb-4">
+                            <h6 className="text-info border-bottom pb-2 mb-3">
+                              <i className="bi bi-shield-check me-2"></i>
+                              Insurance Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Insurance Provider</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={editForm.insuranceProvider}
+                                onChange={(e) => setEditForm({ ...editForm, insuranceProvider: e.target.value })}
+                                placeholder="e.g., Blue Cross, Aetna"
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Insurance Policy Number</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={editForm.insurancePolicyNumber}
+                                onChange={(e) => setEditForm({ ...editForm, insurancePolicyNumber: e.target.value })}
+                                placeholder="Enter policy number"
+                              />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="modal-footer">
+                    <div className="modal-footer bg-light">
                       <button
                         type="button"
                         className="btn btn-secondary"
                         onClick={() => setShowEditModal(false)}
                       >
+                        <i className="bi bi-x-circle me-2"></i>
                         Cancel
                       </button>
                       <button type="submit" className="btn btn-primary">
-                        <i className="bi bi-save me-2"></i>
+                        <i className="bi bi-check-circle me-2"></i>
                         Save Changes
                       </button>
                     </div>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OHCP_BK.Data;
 
@@ -11,9 +12,11 @@ using OHCP_BK.Data;
 namespace OHCP_BK.Migrations
 {
     [DbContext(typeof(OHCPContext))]
-    partial class OHCPContextModelSnapshot : ModelSnapshot
+    [Migration("20251128114247_v1")]
+    partial class v1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -345,58 +348,6 @@ namespace OHCP_BK.Migrations
                     b.ToTable("HealthRecords");
                 });
 
-            modelBuilder.Entity("OHCP_BK.Models.HealthRecordShare", b =>
-                {
-                    b.Property<int>("ShareID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ShareID"));
-
-                    b.Property<DateTime>("ConsentGivenAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ExpiryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("HealthRecordID")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsRevoked")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PermissionLevel")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RevokeReason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RevokedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SharedByPatientID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("SharedDocumentIDs")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SharedWithDoctorID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ShareID");
-
-                    b.HasIndex("HealthRecordID");
-
-                    b.HasIndex("SharedByPatientID");
-
-                    b.HasIndex("SharedWithDoctorID");
-
-                    b.ToTable("HealthRecordShares");
-                });
-
             modelBuilder.Entity("OHCP_BK.Models.Invoice", b =>
                 {
                     b.Property<int>("InvoiceID")
@@ -568,50 +519,6 @@ namespace OHCP_BK.Migrations
 
                     b.Property<string>("MedicalHistorySummary")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Gender")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("Address")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("City")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Country")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("BloodType")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("EmergencyContactName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("EmergencyContactPhone")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("EmergencyContactRelationship")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PreferredLanguage")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PreferredContactMethod")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Occupation")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("PatientID");
 
@@ -849,33 +756,6 @@ namespace OHCP_BK.Migrations
                         .IsRequired();
 
                     b.Navigation("Patient");
-                });
-
-            modelBuilder.Entity("OHCP_BK.Models.HealthRecordShare", b =>
-                {
-                    b.HasOne("OHCP_BK.Models.HealthRecord", "HealthRecord")
-                        .WithMany()
-                        .HasForeignKey("HealthRecordID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OHCP_BK.Models.Patient", "SharedByPatient")
-                        .WithMany()
-                        .HasForeignKey("SharedByPatientID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OHCP_BK.Models.Doctor", "SharedWithDoctor")
-                        .WithMany()
-                        .HasForeignKey("SharedWithDoctorID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("HealthRecord");
-
-                    b.Navigation("SharedByPatient");
-
-                    b.Navigation("SharedWithDoctor");
                 });
 
             modelBuilder.Entity("OHCP_BK.Models.Invoice", b =>

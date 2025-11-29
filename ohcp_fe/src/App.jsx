@@ -18,7 +18,6 @@ import Patients from './components/Admin/Patients';
 import Appointments from './components/Admin/Appointments';
 import MedicalRecords from './components/Admin/MedicalRecords';
 import DoctorsAdmin from './components/Admin/DoctorsAdmin';
-import Settings from './components/Admin/Settings';
 import Invoices from './components/Admin/Invoices';
 
 import Sign_in from './components/Auth/Sign_in';
@@ -32,8 +31,10 @@ import './App.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import ScrollToTop from './components/ScrollToTop';
 import { ChatProvider } from './context/ChatContext';
+import { NotificationProvider } from './context/NotificationContext';
 import VideocallPage from './pages/video-calling';
 import IncomingCallModal from './components/IncomingCallModal';
+import PrescriptionNotificationModal from './components/PrescriptionNotificationModal';
 import Navbar from './components/Navbar';
 import DoctorProfile from './components/DoctorProfile';
 
@@ -48,9 +49,11 @@ import ShareHealthRecords from './components/ShareHealthRecords';
 function App() {
   return (
     <ChatProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <NotificationProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </NotificationProvider>
     </ChatProvider>
   );
 }
@@ -68,6 +71,7 @@ function AppContent() {
   return (
     <>
       {!isVideoCallPage && !isAdminPage && <IncomingCallModal />}
+      {!isVideoCallPage && !isAdminPage && <PrescriptionNotificationModal />}
       <div className="App">
         {!isVideoCallPage && !isAdminPage && <Chat />}
         <ScrollToTop />
@@ -149,7 +153,6 @@ function AppContent() {
             <Route path="/admin/medical-records" element={<AdminRoute> <MedicalRecords /> </AdminRoute>}/>
             <Route path="/admin/doctors" element={<AdminRoute> <DoctorsAdmin /> </AdminRoute>}/>
             <Route path="/admin/invoices" element={<AdminRoute> <Invoices /> </AdminRoute>}/>
-            <Route  path="/admin/settings" element={<AdminRoute> <Settings /> </AdminRoute>}/>
                                           
           </Routes>
         </div>

@@ -257,14 +257,29 @@ namespace OHCP_BK.Controllers.Admin
                 }
 
                 // Update patient info
-                patient.FullName = dto.FullName;
-                patient.DateOfBirth = dto.DateOfBirth;
+                if (!string.IsNullOrWhiteSpace(dto.FullName))
+                {
+                    patient.FullName = dto.FullName;
+                }
+
+                if (dto.DateOfBirth.HasValue)
+                {
+                    patient.DateOfBirth = dto.DateOfBirth;
+                }
+
                 patient.MedicalHistorySummary = dto.MedicalHistorySummary;
                 patient.InsuranceProvider = dto.InsuranceProvider;
                 patient.InsurancePolicyNumber = dto.InsurancePolicyNumber;
 
                 // Update user info
-                patient.User.PhoneNumber = dto.PhoneNumber;
+                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
+                {
+                    patient.User.PhoneNumber = dto.PhoneNumber;
+                }
+
+                // Mark entities as modified to ensure EF Core tracks changes
+                _context.Entry(patient).State = EntityState.Modified;
+                _context.Entry(patient.User).State = EntityState.Modified;
 
                 await _context.SaveChangesAsync();
 
