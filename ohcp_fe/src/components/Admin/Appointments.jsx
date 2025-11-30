@@ -542,13 +542,13 @@ export default function Appointments() {
                       </div>
                     </div>
                   </div>
-                  <div className="modal-footer bg-light">
+                  <div className="admin-modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="admin-btn-modal secondary"
                       onClick={() => setShowViewModal(false)}
                     >
-                      <i className="bi bi-x-circle me-2"></i>
+                      <i className="bi bi-x-circle"></i>
                       Close
                     </button>
                   </div>
@@ -677,17 +677,17 @@ export default function Appointments() {
                         </div>
                       </div>
                     </div>
-                    <div className="modal-footer bg-light">
+                    <div className="admin-modal-footer">
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="admin-btn-modal secondary"
                         onClick={() => setShowEditModal(false)}
                       >
-                        <i className="bi bi-x-circle me-2"></i>
+                        <i className="bi bi-x-circle"></i>
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-success">
-                        <i className="bi bi-check-circle me-2"></i>
+                      <button type="submit" className="admin-btn-modal success">
+                        <i className="bi bi-check-circle"></i>
                         Save Changes
                       </button>
                     </div>

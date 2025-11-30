@@ -693,21 +693,21 @@ export default function Invoices() {
                     </div>
                   )}
                 </div>
-                <div className="modal-footer" style={{backgroundColor: 'var(--admin-card-bg)', borderTop: '1px solid var(--admin-border)'}}>
+                <div className="admin-modal-footer">
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="admin-btn-modal secondary"
                     onClick={() => setShowViewModal(false)}
                   >
-                    <i className="bi bi-x-circle me-2"></i>
+                    <i className="bi bi-x-circle"></i>
                     Close
                   </button>
                   <button
                     type="button"
-                    className="btn btn-primary"
+                    className="admin-btn-modal primary"
                     onClick={handlePrintInvoice}
                   >
-                    <i className="bi bi-printer me-2"></i>
+                    <i className="bi bi-printer"></i>
                     Print Invoice
                   </button>
                 </div>
@@ -786,17 +786,17 @@ export default function Invoices() {
                       </div>
                     </div>
                   </div>
-                  <div className="modal-footer" style={{backgroundColor: 'var(--admin-card-bg)', borderTop: '1px solid var(--admin-border)'}}>
+                  <div className="admin-modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="admin-btn-modal secondary"
                       onClick={() => setShowStatusModal(false)}
                     >
-                      <i className="bi bi-x-circle me-2"></i>
+                      <i className="bi bi-x-circle"></i>
                       Cancel
                     </button>
-                    <button type="submit" className="btn btn-primary">
-                      <i className="bi bi-check-circle me-2"></i>
+                    <button type="submit" className="admin-btn-modal success">
+                      <i className="bi bi-check-circle"></i>
                       Update Status
                     </button>
                   </div>

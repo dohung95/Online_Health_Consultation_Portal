@@ -723,13 +723,13 @@ export default function MedicalRecords() {
                       </div>
                     </div>
                   </div>
-                  <div className="modal-footer" style={{backgroundColor: 'var(--admin-card-bg)', borderTop: '1px solid var(--admin-border)'}}>
+                  <div className="admin-modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="admin-btn-modal secondary"
                       onClick={() => setShowViewModal(false)}
                     >
-                      <i className="bi bi-x-circle me-2"></i>
+                      <i className="bi bi-x-circle"></i>
                       Close
                     </button>
                   </div>
