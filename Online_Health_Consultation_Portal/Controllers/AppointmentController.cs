@@ -22,22 +22,126 @@ namespace OHCP_BK.Controllers
             _logger = logger;
         }
 
+        //// GET: api/Appointment
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+        //{
+        //    try
+        //    {
+        //        var appointments = await _context.Appointments
+        //            .Include(a => a.Patient)
+        //            .Include(a => a.Doctor)
+        //            .ToListAsync();
+        //        return Ok(appointments);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"Error getting appointments: {ex.Message}");
+        //        return StatusCode(500, "Internal server error");
+        //    }
+        //}
+
         // GET: api/Appointment
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+        public async Task<ActionResult<IEnumerable<object>>> GetAppointments()
         {
             try
             {
-                var appointments = await _context.Appointments
-                    .Include(a => a.Patient)
-                    .Include(a => a.Doctor)
-                    .ToListAsync();
-                return Ok(appointments);
+                // 1. Lấy user ID từ JWT token
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogWarning("GetAppointments called without valid user ID in token");
+                    return Unauthorized(new { message = "User not authenticated" });
+                }
+
+                _logger.LogInformation($"GetAppointments called by user: {userId}");
+
+                // 2. Lấy role của user
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value?.ToLower();
+                _logger.LogInformation($"User role: {userRole}");
+
+                IEnumerable<Appointment> appointments;
+
+                // 3. Filter theo role
+                if (userRole == "patient")
+                {
+                    // Nếu là bệnh nhân → Lấy appointments mà họ là patient
+                    appointments = await _context.Appointments
+                        .Include(a => a.Patient)
+                        .Include(a => a.Doctor)
+                        .Where(a => a.PatientID == userId)
+                        .OrderByDescending(a => a.AppointmentTime)
+                        .ToListAsync();
+
+                    _logger.LogInformation($"Found {appointments.Count()} appointments for patient {userId}");
+                }
+                else if (userRole == "doctor")
+                {
+                    // Nếu là bác sĩ → Lấy appointments mà họ là doctor
+                    appointments = await _context.Appointments
+                        .Include(a => a.Patient)
+                        .Include(a => a.Doctor)
+                        .Where(a => a.DoctorID == userId)
+                        .OrderByDescending(a => a.AppointmentTime)
+                        .ToListAsync();
+
+                    _logger.LogInformation($"Found {appointments.Count()} appointments for doctor {userId}");
+                }
+                else if (userRole == "admin")
+                {
+                    // Nếu là admin → Lấy tất cả (optional, có thể bỏ nếu không cần)
+                    appointments = await _context.Appointments
+                        .Include(a => a.Patient)
+                        .Include(a => a.Doctor)
+                        .OrderByDescending(a => a.AppointmentTime)
+                        .ToListAsync();
+
+                    _logger.LogInformation($"Found {appointments.Count()} appointments for admin");
+                }
+                else
+                {
+                    _logger.LogWarning($"Unknown role: {userRole}");
+                    return Forbid();
+                }
+
+                // 4. Map sang anonymous object để tránh circular reference
+                var result = appointments.Select(a => new
+                {
+                    appointmentID = a.AppointmentID,
+                    patientID = a.PatientID,
+                    doctorID = a.DoctorID,
+                    appointmentTime = a.AppointmentTime,
+                    consultationType = a.ConsultationType,
+                    status = a.Status,
+                    doctor = a.Doctor != null ? new
+                    {
+                        doctorID = a.Doctor.DoctorID,
+                        fullName = a.Doctor.FullName,
+                        specialty = a.Doctor.Specialty,
+                        qualifications = a.Doctor.Qualifications,
+                        yearsOfExperience = a.Doctor.YearsOfExperience,
+                        languageSpoken = a.Doctor.LanguageSpoken,
+                        location = a.Doctor.Location
+                    } : null,
+                    patient = a.Patient != null ? new
+                    {
+                        patientID = a.Patient.PatientID,
+                        fullName = a.Patient.FullName,
+                        dateOfBirth = a.Patient.DateOfBirth,
+                        medicalHistorySummary = a.Patient.MedicalHistorySummary,
+                        insuranceProvider = a.Patient.InsuranceProvider,
+                        insurancePolicyNumber = a.Patient.InsurancePolicyNumber
+                    } : null
+                }).ToList();
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error getting appointments: {ex.Message}");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError(ex, $"Error getting appointments: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
             }
         }
 
