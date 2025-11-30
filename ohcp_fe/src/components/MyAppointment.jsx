@@ -222,7 +222,7 @@ const MyAppointments = () => {
 
                                     <td>
                                         <div className="d-flex gap-2 flex-wrap">
-                                            {item.consultationType === 'chat' && item.status === 'Scheduled' && (
+                                            {item.consultationType === 'Chat' && item.status === 'Scheduled' && (
                                                 <button
                                                     className="btn btn-sm btn-primary"
                                                     onClick={() => handleChat(item)}
@@ -233,7 +233,7 @@ const MyAppointments = () => {
                                                 </button>
                                             )}
 
-                                            {item.consultationType === 'video call' && item.status === 'Scheduled' && (
+                                            {item.consultationType === 'Video Call' && item.status === 'Scheduled' && (
                                                 <button
                                                     className="btn btn-sm btn-success"
                                                     onClick={() => handleVideoCall(item)}  // ← Truyền cả object "item"
