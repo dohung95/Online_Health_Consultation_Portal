@@ -40,5 +40,5 @@ export const shareApi = {
             `${API_BASE_URL}/HealthRecordShare/can-access/${healthRecordId}`,
         );
         return response.data;
-    }
+    },
 };

@@ -43,7 +43,6 @@ namespace OHCP_BK.Dtos
         public const string StatusRescheduled = "Rescheduled";
 
         public const string TypeVideo = "Video Call";
-        public const string TypeAudio = "Audio Call";
         public const string TypeChat = "Chat";
     }
 }
