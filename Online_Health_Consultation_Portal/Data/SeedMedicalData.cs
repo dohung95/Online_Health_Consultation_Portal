@@ -315,7 +315,7 @@ namespace OHCP_BK.Data
             var patients = await context.Patients.ToListAsync();
             var random = new Random();
 
-            var consultationTypes = new[] { "Video Call", "In-Person", "Phone Call" };
+            var consultationTypes = new[] { "Video Call", "Chat "};
             var statuses = new[] { "Scheduled", "Completed", "Cancelled", "In Progress" };
 
             var appointmentCount = 0;
