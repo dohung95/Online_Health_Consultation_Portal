@@ -351,7 +351,11 @@ export function AuthProvider({ children }) {
             // =========================================================
 
             // Điều hướng người gọi đến trang video call
-            const callUrl = `/video-calling?roomID=${roomId}&userID=${encodeURIComponent(currentUserId)}&userName=${encodeURIComponent(currentUserName)}`;
+            // Thêm "Dr." nếu user là bác sĩ
+            const isDoctor = roles && roles.some(r => String(r).trim().toLowerCase() === 'doctor');
+            const displayName = isDoctor ? `Dr. ${currentUserName}` : currentUserName;
+
+            const callUrl = `/video-calling?roomID=${roomId}&userID=${encodeURIComponent(currentUserId)}&userName=${encodeURIComponent(displayName)}`;
 
             // Mở trong tab mới hoặc điều hướng trực tiếp
             const windowSpecs = 'width=1000,height=700,noopener,noreferrer';

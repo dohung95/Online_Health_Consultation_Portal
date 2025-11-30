@@ -16,19 +16,26 @@ const modalStyles = {
 
 export default function IncomingCallModal() {
     // 1. Lắng nghe 'incomingCall' từ AuthContext
-    const { incomingCall, acceptCall, declineCall } = useAuth();
+    const { incomingCall, acceptCall, declineCall, roles } = useAuth();
 
     // 2. Nếu không có ai gọi, component này "vô hình" (trả về null)
     if (!incomingCall) {
         return null;
     }
 
+    // === XÁC ĐỊNH XEM NGƯỜI GỌI CÓ PHẢI BÁC SĨ KHÔNG ===
+    // Nếu người nhận là bệnh nhân → người gọi là bác sĩ
+    const isPatient = roles && roles.some(r => String(r).trim().toLowerCase() === 'patient');
+    const callerIsDoctor = incomingCall.callerType === 'doctor' || isPatient;
+
     // 3. Nếu CÓ cuộc gọi, hiển thị Modal
     return (
         <div style={modalStyles}>
             <h4>Incoming Call!</h4>
-            {/* Hiển thị tên người gọi (Bác sĩ) */}
-            <p>From: {incomingCall.callerName}</p>
+            {/* Hiển thị tên người gọi */}
+            <p>
+                From: {callerIsDoctor ? `Dr. ${incomingCall.callerName}` : incomingCall.callerName}
+            </p>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
                 <button
