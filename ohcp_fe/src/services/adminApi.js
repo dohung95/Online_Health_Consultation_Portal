@@ -53,18 +53,8 @@ export const patientsApi = {
     return response.data;
   },
 
-  create: async (data) => {
-    const response = await adminApi.post('/adminpatients', data);
-    return response.data;
-  },
-
   update: async (id, data) => {
     const response = await adminApi.put(`/adminpatients/${id}`, data);
-    return response.data;
-  },
-
-  delete: async (id) => {
-    const response = await adminApi.delete(`/adminpatients/${id}`);
     return response.data;
   }
 };

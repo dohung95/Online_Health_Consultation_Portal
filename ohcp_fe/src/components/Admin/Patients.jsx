@@ -37,10 +37,18 @@ export default function Patients() {
     gender: '',
     email: '',
     address: '',
+    city: '',
+    country: '',
+    bloodType: '',
+    occupation: '',
+    preferredLanguage: '',
+    preferredContactMethod: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactRelationship: '',
     medicalHistorySummary: '',
     insuranceProvider: '',
-    insurancePolicyNumber: '',
-    status: ''
+    insurancePolicyNumber: ''
   });
 
   // Fetch patients from API
@@ -123,10 +131,18 @@ export default function Patients() {
       gender: patient.gender || '',
       email: patient.email || '',
       address: patient.address || '',
+      city: patient.city || '',
+      country: patient.country || '',
+      bloodType: patient.bloodType || '',
+      occupation: patient.occupation || '',
+      preferredLanguage: patient.preferredLanguage || '',
+      preferredContactMethod: patient.preferredContactMethod || '',
+      emergencyContactName: patient.emergencyContactName || '',
+      emergencyContactPhone: patient.emergencyContactPhone || '',
+      emergencyContactRelationship: patient.emergencyContactRelationship || '',
       medicalHistorySummary: patient.medicalHistorySummary || '',
       insuranceProvider: patient.insuranceProvider || '',
-      insurancePolicyNumber: patient.insurancePolicyNumber || '',
-      status: patient.status
+      insurancePolicyNumber: patient.insurancePolicyNumber || ''
     });
     setShowEditModal(true);
   };
@@ -136,24 +152,43 @@ export default function Patients() {
     e.preventDefault();
 
     try {
-      // Prepare data according to UpdatePatientAdminDto
+      // Prepare data according to UpdatePatientAdminDto (using PascalCase to match backend)
       const updateData = {
-        fullName: editForm.fullName,
-        phoneNumber: editForm.phoneNumber,
-        dateOfBirth: editForm.dateOfBirth,
-        medicalHistorySummary: editForm.medicalHistorySummary,
-        insuranceProvider: editForm.insuranceProvider,
-        insurancePolicyNumber: editForm.insurancePolicyNumber,
-        status: editForm.status
+        FullName: editForm.fullName,
+        PhoneNumber: editForm.phoneNumber,
+        DateOfBirth: editForm.dateOfBirth,
+        Gender: editForm.gender,
+        Address: editForm.address,
+        City: editForm.city,
+        Country: editForm.country,
+        BloodType: editForm.bloodType,
+        Occupation: editForm.occupation,
+        PreferredLanguage: editForm.preferredLanguage,
+        PreferredContactMethod: editForm.preferredContactMethod,
+        EmergencyContactName: editForm.emergencyContactName,
+        EmergencyContactPhone: editForm.emergencyContactPhone,
+        EmergencyContactRelationship: editForm.emergencyContactRelationship,
+        MedicalHistorySummary: editForm.medicalHistorySummary,
+        InsuranceProvider: editForm.insuranceProvider,
+        InsurancePolicyNumber: editForm.insurancePolicyNumber
       };
 
-      await patientsApi.update(selectedPatient.patientID, updateData);
+      console.log('Sending update data:', updateData);
+      console.log('Patient ID:', selectedPatient.patientID);
+
+      const response = await patientsApi.update(selectedPatient.patientID, updateData);
+      console.log('Update response:', response);
+
       alert('Patient updated successfully');
       setShowEditModal(false);
       fetchPatients();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update patient');
-      console.error('Error updating patient:', err);
+      console.error('Full error object:', err);
+      console.error('Error response:', err.response);
+      console.error('Error data:', err.response?.data);
+
+      const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update patient';
+      alert(`Update failed: ${errorMessage}`);
     }
   };
 
@@ -269,7 +304,6 @@ export default function Patients() {
                         <th>Phone</th>
                         <th>Email</th>
                         <th>Last Visit</th>
-                        <th>Status</th>
                         <th className="text-center">Actions</th>
                       </tr>
                     </thead>
@@ -290,11 +324,6 @@ export default function Patients() {
                           <td>{patient.phone}</td>
                           <td>{patient.email}</td>
                           <td>{patient.lastVisit || 'N/A'}</td>
-                          <td>
-                            <span className={`badge bg-${patient.status === 'Active' ? 'success' : 'secondary'}`}>
-                              {patient.status}
-                            </span>
-                          </td>
                           <td className="text-center">
                             <div className="admin-btn-group">
                               <button
@@ -430,7 +459,10 @@ export default function Patients() {
                     {/* Patient Information */}
                     <div className="card mb-3">
                       <div className="card-header bg-primary text-white">
-                        <h6 className="mb-0">Patient Information</h6>
+                        <h6 className="mb-0">
+                          <i className="bi bi-person-circle me-2"></i>
+                          Personal Information
+                        </h6>
                       </div>
                       <div className="card-body">
                         <div className="row">
@@ -448,7 +480,7 @@ export default function Patients() {
                           </div>
                           <div className="col-md-6 mb-3">
                             <strong>Gender:</strong>
-                            <p className="mb-0">{selectedPatient.gender}</p>
+                            <p className="mb-0">{selectedPatient.gender || 'N/A'}</p>
                           </div>
                           <div className="col-md-6 mb-3">
                             <strong>Phone:</strong>
@@ -463,13 +495,101 @@ export default function Patients() {
                             <p className="mb-0">{formatDate(selectedPatient.dateOfBirth)}</p>
                           </div>
                           <div className="col-md-6 mb-3">
-                            <strong>Status:</strong>
-                            <p className="mb-0">
-                              <span className={`badge bg-${selectedPatient.status === 'Active' ? 'success' : 'secondary'}`}>
-                                {selectedPatient.status}
-                              </span>
-                            </p>
+                            <strong>Blood Type:</strong>
+                            <p className="mb-0">{selectedPatient.bloodType || 'N/A'}</p>
                           </div>
+                          <div className="col-md-6 mb-3">
+                            <strong>Occupation:</strong>
+                            <p className="mb-0">{selectedPatient.occupation || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Address Information */}
+                    <div className="card mb-3">
+                      <div className="card-header bg-secondary text-white">
+                        <h6 className="mb-0">
+                          <i className="bi bi-geo-alt me-2"></i>
+                          Address Information
+                        </h6>
+                      </div>
+                      <div className="card-body">
+                        <div className="row">
+                          <div className="col-md-12 mb-3">
+                            <strong>Address:</strong>
+                            <p className="mb-0">{selectedPatient.address || 'N/A'}</p>
+                          </div>
+                          <div className="col-md-6 mb-3">
+                            <strong>City:</strong>
+                            <p className="mb-0">{selectedPatient.city || 'N/A'}</p>
+                          </div>
+                          <div className="col-md-6 mb-3">
+                            <strong>Country:</strong>
+                            <p className="mb-0">{selectedPatient.country || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Emergency Contact */}
+                    <div className="card mb-3">
+                      <div className="card-header bg-danger text-white">
+                        <h6 className="mb-0">
+                          <i className="bi bi-telephone-fill me-2"></i>
+                          Emergency Contact
+                        </h6>
+                      </div>
+                      <div className="card-body">
+                        <div className="row">
+                          <div className="col-md-6 mb-3">
+                            <strong>Contact Name:</strong>
+                            <p className="mb-0">{selectedPatient.emergencyContactName || 'N/A'}</p>
+                          </div>
+                          <div className="col-md-6 mb-3">
+                            <strong>Contact Phone:</strong>
+                            <p className="mb-0">{selectedPatient.emergencyContactPhone || 'N/A'}</p>
+                          </div>
+                          <div className="col-md-6 mb-3">
+                            <strong>Relationship:</strong>
+                            <p className="mb-0">{selectedPatient.emergencyContactRelationship || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preferences */}
+                    <div className="card mb-3">
+                      <div className="card-header bg-info text-white">
+                        <h6 className="mb-0">
+                          <i className="bi bi-gear me-2"></i>
+                          Preferences
+                        </h6>
+                      </div>
+                      <div className="card-body">
+                        <div className="row">
+                          <div className="col-md-6 mb-3">
+                            <strong>Preferred Language:</strong>
+                            <p className="mb-0">{selectedPatient.preferredLanguage || 'N/A'}</p>
+                          </div>
+                          <div className="col-md-6 mb-3">
+                            <strong>Preferred Contact Method:</strong>
+                            <p className="mb-0">{selectedPatient.preferredContactMethod || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Medical & Insurance Information */}
+                    <div className="card mb-3">
+                      <div className="card-header bg-success text-white">
+                        <h6 className="mb-0">
+                          <i className="bi bi-heart-pulse me-2"></i>
+                          Medical & Insurance Information
+                        </h6>
+                      </div>
+                      <div className="card-body">
+                        <div className="row">
                           <div className="col-12 mb-3">
                             <strong>Medical History Summary:</strong>
                             <p className="mb-0">{selectedPatient.medicalHistorySummary || 'No medical history recorded'}</p>
@@ -637,18 +757,6 @@ export default function Patients() {
                               </select>
                             </div>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Status <span className="text-danger">*</span></label>
-                              <select
-                                className="form-select"
-                                value={editForm.status}
-                                onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                                required
-                              >
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
-                              </select>
-                            </div>
-                            <div className="mb-3">
                               <label className="form-label fw-semibold">Address</label>
                               <input
                                 type="text"
@@ -657,6 +765,127 @@ export default function Patients() {
                                 onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                                 placeholder="Enter full address"
                               />
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="form-label fw-semibold">City</label>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  value={editForm.city}
+                                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                                  placeholder="Enter city"
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="form-label fw-semibold">Country</label>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  value={editForm.country}
+                                  onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
+                                  placeholder="Enter country"
+                                />
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="form-label fw-semibold">Blood Type</label>
+                                <select
+                                  className="form-select"
+                                  value={editForm.bloodType}
+                                  onChange={(e) => setEditForm({ ...editForm, bloodType: e.target.value })}
+                                >
+                                  <option value="">Select Blood Type</option>
+                                  <option value="A+">A+</option>
+                                  <option value="A-">A-</option>
+                                  <option value="B+">B+</option>
+                                  <option value="B-">B-</option>
+                                  <option value="AB+">AB+</option>
+                                  <option value="AB-">AB-</option>
+                                  <option value="O+">O+</option>
+                                  <option value="O-">O-</option>
+                                </select>
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="form-label fw-semibold">Occupation</label>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  value={editForm.occupation}
+                                  onChange={(e) => setEditForm({ ...editForm, occupation: e.target.value })}
+                                  placeholder="Enter occupation"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Emergency Contact Section */}
+                          <div className="mb-4">
+                            <h6 className="text-danger border-bottom pb-2 mb-3">
+                              <i className="bi bi-telephone-fill me-2"></i>
+                              Emergency Contact
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Contact Name</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={editForm.emergencyContactName}
+                                onChange={(e) => setEditForm({ ...editForm, emergencyContactName: e.target.value })}
+                                placeholder="Enter emergency contact name"
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Contact Phone</label>
+                              <input
+                                type="tel"
+                                className="form-control"
+                                value={editForm.emergencyContactPhone}
+                                onChange={(e) => setEditForm({ ...editForm, emergencyContactPhone: e.target.value })}
+                                placeholder="Enter emergency contact phone"
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Relationship</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={editForm.emergencyContactRelationship}
+                                onChange={(e) => setEditForm({ ...editForm, emergencyContactRelationship: e.target.value })}
+                                placeholder="e.g., Spouse, Parent, Sibling"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Preferences Section */}
+                          <div className="mb-4">
+                            <h6 className="text-info border-bottom pb-2 mb-3">
+                              <i className="bi bi-gear me-2"></i>
+                              Preferences
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Preferred Language</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={editForm.preferredLanguage}
+                                onChange={(e) => setEditForm({ ...editForm, preferredLanguage: e.target.value })}
+                                placeholder="e.g., English, Vietnamese"
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label fw-semibold">Preferred Contact Method</label>
+                              <select
+                                className="form-select"
+                                value={editForm.preferredContactMethod}
+                                onChange={(e) => setEditForm({ ...editForm, preferredContactMethod: e.target.value })}
+                              >
+                                <option value="">Select Contact Method</option>
+                                <option value="Email">Email</option>
+                                <option value="Phone">Phone</option>
+                                <option value="SMS">SMS</option>
+                              </select>
                             </div>
                           </div>
                         </div>
@@ -683,7 +912,7 @@ export default function Patients() {
 
                           {/* Insurance Information Section */}
                           <div className="mb-4">
-                            <h6 className="text-info border-bottom pb-2 mb-3">
+                            <h6 className="text-warning border-bottom pb-2 mb-3">
                               <i className="bi bi-shield-check me-2"></i>
                               Insurance Information
                             </h6>
