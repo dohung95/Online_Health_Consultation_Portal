@@ -129,9 +129,32 @@ export function AuthProvider({ children }) {
             const firebaseResponse = await getFirebaseTokenAPI(csharpToken);
             const firebaseToken = firebaseResponse.firebaseToken;
 
-            await signInWithCustomToken(auth, firebaseToken);
+            const userCredential = await signInWithCustomToken(auth, firebaseToken);
+            const user = userCredential.user; // ← Lấy user Firebase
 
-            // (Hàm 'onAuthStateChanged' của Firebase sẽ tự động cập nhật user)
+            // === THÊM ĐOẠN NÀY: Tạo/update user document trong Firestore ===
+            const userRef = doc(db, "users", user.uid);
+
+            // Decode token để lấy thông tin
+            const decoded = decodeToken(csharpToken);
+            const username = decoded?.preferred_username || decoded?.email || user.email || "User";
+
+            // Lấy role từ token
+            const roleClaimType = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+            let userRole = decoded?.[roleClaimType] || decoded?.role || "patient";
+            if (Array.isArray(userRole)) userRole = userRole[0]; // Nếu là mảng, lấy role đầu tiên
+
+            await setDoc(userRef, {
+                uid: user.uid,
+                displayName: username,
+                email: decoded?.email || user.email || email,
+                photoURL: user.photoURL || "",
+                role: userRole
+            }, { merge: true }); // merge: true = update nếu đã tồn tại, create nếu chưa
+
+            console.log(`✓ User ${username} (${userRole}) saved to Firebase`);
+            // ================================================================
+
             return true;
         } catch (error) {
             console.error("Double login error:", error);
@@ -302,14 +325,27 @@ export function AuthProvider({ children }) {
                 roomId
             });
 
-            // ===== THÊM ĐOẠN NÀY: GỬI THÔNG BÁO CHO NGƯỜI NHẬN =====
-            if (connection) {
+            // ===== KIỂM TRA VÀ GỬI THÔNG BÁO CHO NGƯỜI NHẬN =====
+            if (!connection) {
+                console.error("Error: No SignalR connection");
+                alert("Error: Unable to send call notification. Please try again.");
+                return;
+            }
+
+            // Kiểm tra connection state
+            if (connection.state !== signalR.HubConnectionState.Connected) {
+                console.error(`Error: SignalR connection is not in Connected state. Current state: ${connection.state}`);
+                alert("Error: Connection not ready. Please wait a moment and try again.");
+                return;
+            }
+
+            try {
                 // Gửi thông báo qua SignalR cho bệnh nhân
                 await connection.invoke("InitiateCall", targetUserId, roomId);
                 console.log(`✓ Đã gửi thông báo cuộc gọi đến ${targetUserName}`);
-            } else {
-                console.error("Error: No SignalR connection");
-                alert("Error: Unable to send call notification. Please try again.");
+            } catch (invokeError) {
+                console.error("Error invoking InitiateCall:", invokeError);
+                alert("Error: Unable to send call notification. " + invokeError.message);
                 return;
             }
             // =========================================================
@@ -329,42 +365,59 @@ export function AuthProvider({ children }) {
 
     // 2. Khi BẠN bấm "Bắt máy"
     const acceptCall = async () => {
-        // 1. Chỉ kiểm tra connection và cuộc gọi đến
-        if (connection && incomingCall) {
+        // 1. Kiểm tra connection và cuộc gọi đến
+        if (!connection) {
+            console.error("Error: No SignalR connection");
+            alert("Error: Connection not established. Please try again.");
+            return;
+        }
 
-            // === SỬA LỖI: Đọc token và decode tại chỗ ===
+        if (!incomingCall) {
+            console.error("Error: No incoming call");
+            return;
+        }
 
-            // 2. Lấy token của chính Bệnh nhân (người nhận)
+        // 2. Kiểm tra connection state
+        if (connection.state !== signalR.HubConnectionState.Connected) {
+            console.error(`Error: SignalR connection is not in Connected state. Current state: ${connection.state}`);
+            alert("Error: Connection not ready. Please wait and try again.");
+            return;
+        }
+
+        try {
+            // 3. Lấy token của chính Bác sĩ (người nhận)
             const currentToken = localStorage.getItem('token');
             if (!currentToken) {
-                console.error("Error: No token found for the receiver (Patient)");
+                console.error("Error: No token found for the receiver");
                 alert("Error: No token found, please log in again.");
                 return;
             }
 
-            // 3. Tự giải mã token (dùng hàm decodeToken của bạn)
+            // 4. Tự giải mã token
             const decodedUser = decodeToken(currentToken);
             if (!decodedUser) {
-                console.error("Error: Unable to decode token of the receiver (Patient)");
+                console.error("Error: Unable to decode token of the receiver");
                 alert("Error: Invalid token.");
                 return;
             }
 
-            // 4. Lấy thông tin user TƯƠI MỚI (fresh)
+            // 5. Lấy thông tin user TƯƠI MỚI (fresh)
             const userId = decodedUser.sub;
             const userName = decodedUser.preferred_username || decodedUser.email;
 
-            // 5. Báo cho server là bạn đã bắt máy
+            // 6. Báo cho server là bạn đã bắt máy
             await connection.invoke("AcceptCall", incomingCall.callerId, incomingCall.roomId);
+            console.log(`✓ Đã chấp nhận cuộc gọi từ ${incomingCall.callerName}`);
 
-            // 6. Mở cửa sổ Zego (vì BẠN là người nhận)
+            // 7. Mở cửa sổ Zego (vì BẠN là người nhận)
             const callUrl = `/video-calling?roomID=${incomingCall.roomId}&userID=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
             const windowSpecs = 'width=1000,height=700,noopener,noreferrer';
             window.open(callUrl, '_blank', windowSpecs);
 
             setIncomingCall(null); // Đóng pop-up
-        } else {
-            console.error("Unable to accept call: Connection or incoming call undefined.");
+        } catch (error) {
+            console.error("Error accepting call:", error);
+            alert("Error: Unable to accept call. " + error.message);
         }
     };
 

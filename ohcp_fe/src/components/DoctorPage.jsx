@@ -46,12 +46,9 @@ const DoctorProfile = () => {
   const handleViewAppointment = async (appointment) => {
     try {
       setLoading(true);
-      console.log('Appointment object:', appointment);
       
       // Try different possible field names for patient ID
       const patientId = appointment.patient?.patientID;
-      
-      console.log('Extracted patientId:', patientId);
       
       if (!patientId) {
         throw new Error('Patient ID not found in appointment object');
