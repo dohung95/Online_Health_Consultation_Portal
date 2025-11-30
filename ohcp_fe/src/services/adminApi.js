@@ -88,11 +88,6 @@ export const appointmentsApi = {
   update: async (id, data) => {
     const response = await adminApi.put(`/adminappointments/${id}`, data);
     return response.data;
-  },
-
-  delete: async (id) => {
-    const response = await adminApi.delete(`/adminappointments/${id}`);
-    return response.data;
   }
 };
 
@@ -119,16 +114,6 @@ export const medicalRecordsApi = {
 
   getByPatientId: async (patientId) => {
     const response = await adminApi.get(`/adminmedicalrecords/patient/${patientId}`);
-    return response.data;
-  },
-
-  update: async (id) => {
-    const response = await adminApi.put(`/adminmedicalrecords/${id}`);
-    return response.data;
-  },
-
-  delete: async (id) => {
-    const response = await adminApi.delete(`/adminmedicalrecords/${id}`);
     return response.data;
   }
 };

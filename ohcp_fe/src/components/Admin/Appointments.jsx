@@ -158,22 +158,6 @@ export default function Appointments() {
     }
   };
 
-  const handleDelete = async (appointmentId) => {
-    if (!window.confirm('Are you sure you want to delete this appointment?')) {
-      return;
-    }
-
-    try {
-      await appointmentsApi.delete(appointmentId);
-      alert('Appointment deleted successfully');
-      fetchAppointments();
-      fetchStats();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete appointment');
-      console.error('Error deleting appointment:', err);
-    }
-  };
-
   // Format date
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -371,13 +355,6 @@ export default function Appointments() {
                                 onClick={() => handleEditAppointment(appointment)}
                               >
                                 <i className="bi bi-pencil"></i>
-                              </button>
-                              <button
-                                className="btn btn-outline-danger btn-sm"
-                                title="Delete"
-                                onClick={() => handleDelete(appointment.appointmentID)}
-                              >
-                                <i className="bi bi-trash"></i>
                               </button>
                             </div>
                           </td>

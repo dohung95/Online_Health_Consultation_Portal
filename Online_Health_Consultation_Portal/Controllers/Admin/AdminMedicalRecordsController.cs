@@ -234,55 +234,5 @@ namespace OHCP_BK.Controllers.Admin
                 return StatusCode(500, new { error = "An error occurred while fetching patient medical records", details = ex.Message });
             }
         }
-
-        // PUT: api/admin/adminmedicalrecords/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMedicalRecord(int id)
-        {
-            try
-            {
-                var record = await _context.HealthRecords.FindAsync(id);
-
-                if (record == null)
-                {
-                    return NotFound(new { error = "Medical record not found" });
-                }
-
-                // Update the LastUpdated timestamp
-                record.LastUpdated = DateTime.Now;
-
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "Medical record updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "An error occurred while updating medical record", details = ex.Message });
-            }
-        }
-
-        // DELETE: api/admin/adminmedicalrecords/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMedicalRecord(int id)
-        {
-            try
-            {
-                var record = await _context.HealthRecords.FindAsync(id);
-
-                if (record == null)
-                {
-                    return NotFound(new { error = "Medical record not found" });
-                }
-
-                _context.HealthRecords.Remove(record);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "Medical record deleted successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "An error occurred while deleting medical record", details = ex.Message });
-            }
-        }
     }
 }
