@@ -586,10 +586,10 @@ export default function Invoices() {
 
         {/* View Invoice Details Modal */}
         {showViewModal && selectedInvoice && (
-          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog">
-              <div className="modal-content">
-                <div className="admin-modal-header primary">
+          <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
+                <div className="modal-header admin-modal-header primary" style={{borderBottom: 'none'}}>
                   <h5 className="modal-title">
                     <i className="bi bi-receipt me-2"></i>
                     Invoice Details
@@ -600,73 +600,114 @@ export default function Invoices() {
                     onClick={() => setShowViewModal(false)}
                   ></button>
                 </div>
-                <div className="admin-modal-body">
-                  <div className="row mb-3">
-                    <div className="col-6">
-                      <strong>Invoice ID:</strong>
-                      <p>#{selectedInvoice.invoiceID}</p>
-                    </div>
-                    <div className="col-6">
-                      <strong>Status:</strong>
-                      <p>
-                        <span className={`badge bg-${getStatusBadgeClass(selectedInvoice.status)}`}>
-                          {selectedInvoice.status}
-                        </span>
-                      </p>
+                <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
+                  {/* Invoice Header */}
+                  <div className="admin-card mb-4" style={{
+                    background: 'linear-gradient(135deg, var(--admin-primary-dark) 0%, var(--admin-primary) 100%)',
+                    color: 'white',
+                    padding: 'var(--spacing-lg)'
+                  }}>
+                    <div className="row align-items-center">
+                      <div className="col">
+                        <div style={{fontSize: 'var(--font-size-sm)', opacity: 0.9, marginBottom: '4px'}}>Invoice ID</div>
+                        <h4 className="mb-0" style={{fontWeight: '700'}}>#{selectedInvoice.invoiceID}</h4>
+                      </div>
+                      <div className="col-auto text-end">
+                        <div style={{fontSize: 'var(--font-size-sm)', opacity: 0.9, marginBottom: '4px'}}>Total Amount</div>
+                        <h3 className="mb-0" style={{fontWeight: '700'}}>{formatCurrency(selectedInvoice.amount)}</h3>
+                      </div>
                     </div>
                   </div>
-                  <div className="row mb-3">
-                    <div className="col-12">
+
+                  {/* Invoice Information */}
+                  <div className="admin-modal-section">
+                    <h6 className="admin-modal-section-title primary">
+                      <i className="bi bi-info-circle"></i>
+                      Invoice Information
+                    </h6>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="admin-info-row">
+                          <strong>Issue Date:</strong>
+                          <span>{formatDate(selectedInvoice.issueDate)}</span>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="admin-info-row">
+                          <strong>Status:</strong>
+                          <span className={`admin-badge ${getStatusBadgeClass(selectedInvoice.status)}`}>
+                            {selectedInvoice.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Patient Information */}
+                  <div className="admin-modal-section">
+                    <h6 className="admin-modal-section-title primary">
+                      <i className="bi bi-person"></i>
+                      Patient Information
+                    </h6>
+                    <div className="admin-info-row">
                       <strong>Patient Name:</strong>
-                      <p>{selectedInvoice.patientName || 'N/A'}</p>
+                      <span>{selectedInvoice.patientName || 'N/A'}</span>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="admin-info-row">
+                          <strong>Patient ID:</strong>
+                          <span>{selectedInvoice.patientID}</span>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="admin-info-row">
+                          <strong>Appointment ID:</strong>
+                          <span>#{selectedInvoice.appointmentID}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="row mb-3">
-                    <div className="col-6">
-                      <strong>Patient ID:</strong>
-                      <p>{selectedInvoice.patientID}</p>
-                    </div>
-                    <div className="col-6">
-                      <strong>Appointment ID:</strong>
-                      <p>#{selectedInvoice.appointmentID}</p>
-                    </div>
-                  </div>
-                  <div className="row mb-3">
-                    <div className="col-12">
-                      <strong>Issue Date:</strong>
-                      <p>{formatDate(selectedInvoice.issueDate)}</p>
-                    </div>
-                  </div>
-                  <div className="row mb-3">
-                    <div className="col-12">
-                      <strong>Amount:</strong>
-                      <h4 className="text-success">{formatCurrency(selectedInvoice.amount)}</h4>
-                    </div>
-                  </div>
+
+                  {/* Appointment Details */}
                   {selectedInvoice.consultationType && (
-                    <div className="card bg-light">
-                      <div className="card-body">
-                        <h6 className="card-title">Appointment Details</h6>
-                        <p className="mb-1"><strong>Type:</strong> {selectedInvoice.consultationType}</p>
-                        <p className="mb-0"><strong>Status:</strong> {selectedInvoice.appointmentStatus}</p>
+                    <div className="admin-modal-section">
+                      <h6 className="admin-modal-section-title primary">
+                        <i className="bi bi-calendar-check"></i>
+                        Appointment Details
+                      </h6>
+                      <div className="row">
+                        <div className="col-md-6">
+                          <div className="admin-info-row">
+                            <strong>Consultation Type:</strong>
+                            <span>{selectedInvoice.consultationType}</span>
+                          </div>
+                        </div>
+                        <div className="col-md-6">
+                          <div className="admin-info-row">
+                            <strong>Appointment Status:</strong>
+                            <span>{selectedInvoice.appointmentStatus}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
-                <div className="modal-footer">
+                <div className="admin-modal-footer">
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="admin-btn-modal secondary"
                     onClick={() => setShowViewModal(false)}
                   >
+                    <i className="bi bi-x-circle"></i>
                     Close
                   </button>
                   <button
                     type="button"
-                    className="btn btn-primary"
+                    className="admin-btn-modal primary"
                     onClick={handlePrintInvoice}
                   >
-                    <i className="bi bi-printer me-2"></i>
+                    <i className="bi bi-printer"></i>
                     Print Invoice
                   </button>
                 </div>
@@ -677,10 +718,10 @@ export default function Invoices() {
 
         {/* Update Status Modal */}
         {showStatusModal && selectedInvoice && (
-          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
             <div className="modal-dialog">
-              <div className="modal-content">
-                <div className="admin-modal-header info">
+              <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
+                <div className="modal-header admin-modal-header primary" style={{borderBottom: 'none'}}>
                   <h5 className="modal-title">
                     <i className="bi bi-pencil-square me-2"></i>
                     Update Invoice Status
@@ -692,68 +733,70 @@ export default function Invoices() {
                   ></button>
                 </div>
                 <form onSubmit={handleSubmitStatusUpdate}>
-                  <div className="admin-modal-body">
-                    <div className="mb-3">
-                      <label className="form-label">Invoice ID</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={`#${selectedInvoice.invoiceID}`}
-                        disabled
-                      />
+                  <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
+                    {/* Invoice Summary */}
+                    <div className="admin-modal-section">
+                      <h6 className="admin-modal-section-title primary">
+                        <i className="bi bi-receipt"></i>
+                        Invoice Summary
+                      </h6>
+                      <div className="admin-info-row">
+                        <strong>Invoice ID:</strong>
+                        <span>#{selectedInvoice.invoiceID}</span>
+                      </div>
+                      <div className="admin-info-row">
+                        <strong>Patient Name:</strong>
+                        <span>{selectedInvoice.patientName || 'N/A'}</span>
+                      </div>
+                      <div className="admin-info-row">
+                        <strong>Amount:</strong>
+                        <span style={{color: 'var(--admin-success)', fontWeight: '600'}}>{formatCurrency(selectedInvoice.amount)}</span>
+                      </div>
+                      <div className="admin-info-row">
+                        <strong>Current Status:</strong>
+                        <span className={`admin-badge ${getStatusBadgeClass(selectedInvoice.status)}`}>
+                          {selectedInvoice.status}
+                        </span>
+                      </div>
                     </div>
-                    <div className="mb-3">
-                      <label className="form-label">Patient Name</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={selectedInvoice.patientName || 'N/A'}
-                        disabled
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Amount</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={formatCurrency(selectedInvoice.amount)}
-                        disabled
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Current Status</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={selectedInvoice.status}
-                        disabled
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">New Status *</label>
-                      <select
-                        className="form-select"
-                        value={newStatus}
-                        onChange={(e) => setNewStatus(e.target.value)}
-                        required
-                      >
-                        <option value="Generated">Generated</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Paid">Paid</option>
-                        <option value="Cancelled">Cancelled</option>
-                      </select>
+
+                    {/* Status Update */}
+                    <div className="admin-modal-section">
+                      <h6 className="admin-modal-section-title primary">
+                        <i className="bi bi-arrow-repeat"></i>
+                        Update Status
+                      </h6>
+                      <div className="mb-3">
+                        <label className="admin-form-label">New Status <span className="text-danger">*</span></label>
+                        <select
+                          className="form-select admin-form-control"
+                          value={newStatus}
+                          onChange={(e) => setNewStatus(e.target.value)}
+                          required
+                        >
+                          <option value="Generated">Generated</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Paid">Paid</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <div style={{fontSize: 'var(--font-size-xs)', color: 'var(--admin-text-light)', marginTop: 'var(--spacing-sm)'}}>
+                          <i className="bi bi-info-circle me-1"></i>
+                          Select the new status for this invoice
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="modal-footer">
+                  <div className="admin-modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="admin-btn-modal secondary"
                       onClick={() => setShowStatusModal(false)}
                     >
+                      <i className="bi bi-x-circle"></i>
                       Cancel
                     </button>
-                    <button type="submit" className="btn btn-primary">
-                      <i className="bi bi-save me-2"></i>
+                    <button type="submit" className="admin-btn-modal success">
+                      <i className="bi bi-check-circle"></i>
                       Update Status
                     </button>
                   </div>

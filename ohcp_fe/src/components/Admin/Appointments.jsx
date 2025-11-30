@@ -158,22 +158,6 @@ export default function Appointments() {
     }
   };
 
-  const handleDelete = async (appointmentId) => {
-    if (!window.confirm('Are you sure you want to delete this appointment?')) {
-      return;
-    }
-
-    try {
-      await appointmentsApi.delete(appointmentId);
-      alert('Appointment deleted successfully');
-      fetchAppointments();
-      fetchStats();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete appointment');
-      console.error('Error deleting appointment:', err);
-    }
-  };
-
   // Format date
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -372,13 +356,6 @@ export default function Appointments() {
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
-                              <button
-                                className="btn btn-outline-danger btn-sm"
-                                title="Delete"
-                                onClick={() => handleDelete(appointment.appointmentID)}
-                              >
-                                <i className="bi bi-trash"></i>
-                              </button>
                             </div>
                           </td>
                         </tr>
@@ -565,13 +542,13 @@ export default function Appointments() {
                       </div>
                     </div>
                   </div>
-                  <div className="modal-footer bg-light">
+                  <div className="admin-modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="admin-btn-modal secondary"
                       onClick={() => setShowViewModal(false)}
                     >
-                      <i className="bi bi-x-circle me-2"></i>
+                      <i className="bi bi-x-circle"></i>
                       Close
                     </button>
                   </div>
@@ -700,17 +677,17 @@ export default function Appointments() {
                         </div>
                       </div>
                     </div>
-                    <div className="modal-footer bg-light">
+                    <div className="admin-modal-footer">
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="admin-btn-modal secondary"
                         onClick={() => setShowEditModal(false)}
                       >
-                        <i className="bi bi-x-circle me-2"></i>
+                        <i className="bi bi-x-circle"></i>
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-success">
-                        <i className="bi bi-check-circle me-2"></i>
+                      <button type="submit" className="admin-btn-modal success">
+                        <i className="bi bi-check-circle"></i>
                         Save Changes
                       </button>
                     </div>

@@ -31,15 +31,7 @@ export default function MedicalRecords() {
 
   // Modal states
   const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
-
-  // Edit form state
-  const [editForm, setEditForm] = useState({
-    category: '',
-    diagnosis: '',
-    status: ''
-  });
 
   // Fetch stats
   const fetchStats = async () => {
@@ -115,188 +107,213 @@ export default function MedicalRecords() {
     setShowViewModal(true);
   };
 
-  // Handle edit record
-  const handleEditRecord = (record) => {
-    setSelectedRecord(record);
-    setEditForm({
-      category: record.category || '',
-      diagnosis: record.diagnosis || '',
-      status: record.status || ''
-    });
-    setShowEditModal(true);
-  };
-
-  // Handle update record
-  const handleUpdateRecord = async (e) => {
-    e.preventDefault();
-
-    try {
-      await medicalRecordsApi.update(selectedRecord.healthRecordID);
-      alert('Medical record updated successfully');
-      setShowEditModal(false);
-      fetchRecords();
-      fetchStats();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update medical record');
-      console.error('Error updating medical record:', err);
-    }
-  };
-
-  // Handle download record - Generate compact PDF report
+  // Handle download record as PDF
   const handleDownloadRecord = (record) => {
     const printWindow = window.open('', '_blank');
-
     const printContent = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Medical Record #${record.healthRecordID}</title>
+        <title>Medical Record - ${record.healthRecordID}</title>
         <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
           body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px;
             color: #333;
-            font-size: 11pt;
-            line-height: 1.3;
+            line-height: 1.6;
           }
           .header {
             text-align: center;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #0d6efd;
-            padding-bottom: 8px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #475569;
           }
           .header h1 {
-            color: #0d6efd;
-            font-size: 18pt;
-            margin-bottom: 3px;
+            color: #1e293b;
+            font-size: 28px;
+            margin-bottom: 10px;
           }
           .header p {
-            color: #6c757d;
-            font-size: 10pt;
+            color: #64748b;
+            font-size: 14px;
           }
-          .content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+          .record-info {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #475569;
+          }
+          .record-info h2 {
+            color: #1e293b;
+            font-size: 18px;
             margin-bottom: 15px;
           }
-          .info-section h3 {
-            color: #0d6efd;
-            font-size: 12pt;
-            margin-bottom: 8px;
-            padding-bottom: 3px;
-            border-bottom: 1px solid #dee2e6;
+          .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
           }
-          .info-row {
+          .info-item {
+            display: flex;
+            flex-direction: column;
+          }
+          .info-label {
+            font-weight: 600;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase;
             margin-bottom: 5px;
-            font-size: 10pt;
           }
-          .info-row strong {
-            color: #495057;
-            display: inline-block;
-            width: 110px;
+          .info-value {
+            color: #1e293b;
+            font-size: 14px;
+          }
+          .section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+          }
+          .section h3 {
+            color: #1e293b;
+            font-size: 16px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+          }
+          .section-content {
+            padding: 10px 0;
           }
           .badge {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 9pt;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
           }
-          .badge-success { background: #198754; color: white; }
-          .badge-warning { background: #ffc107; color: #000; }
-          .diagnosis-box {
-            background: #fff3cd;
-            border-left: 3px solid #ffc107;
-            padding: 10px;
-            margin: 15px 0;
-            grid-column: 1 / -1;
+          .badge-success {
+            background: #dcfce7;
+            color: #166534;
           }
-          .diagnosis-box h4 {
-            color: #856404;
-            font-size: 11pt;
-            margin-bottom: 5px;
-          }
-          .diagnosis-box p {
-            font-size: 10pt;
-            color: #333;
+          .badge-secondary {
+            background: #f1f5f9;
+            color: #475569;
           }
           .footer {
-            margin-top: 15px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
             text-align: center;
-            color: #6c757d;
-            border-top: 1px solid #dee2e6;
-            padding-top: 8px;
-            font-size: 8pt;
+            color: #64748b;
+            font-size: 12px;
           }
           @media print {
-            body { padding: 15px; }
-            @page { margin: 1cm; }
+            body {
+              padding: 20px;
+            }
+            .no-print {
+              display: none;
+            }
           }
         </style>
       </head>
       <body>
         <div class="header">
-          <h1>ONLINE HEALTH CONSULTATION PORTAL</h1>
-          <p>Medical Record Report</p>
+          <h1>Medical Record</h1>
+          <p>Online Health Consultation Portal</p>
         </div>
 
-        <div class="content">
-          <div class="info-section">
-            <h3>Record Information</h3>
-            <div class="info-row">
-              <strong>Record ID:</strong> #${record.healthRecordID}
+        <div class="record-info">
+          <h2>Record Information</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Record ID</span>
+              <span class="info-value">#${record.healthRecordID}</span>
             </div>
-            <div class="info-row">
-              <strong>Date:</strong> ${new Date(record.date).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              })}
+            <div class="info-item">
+              <span class="info-label">Category</span>
+              <span class="info-value">${record.category}</span>
             </div>
-            <div class="info-row">
-              <strong>Last Updated:</strong> ${new Date(record.lastUpdated).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              })}
+            <div class="info-item">
+              <span class="info-label">Record Date</span>
+              <span class="info-value">${formatDate(record.date)}</span>
             </div>
-            <div class="info-row">
-              <strong>Category:</strong> ${record.category || 'General'}
+            <div class="info-item">
+              <span class="info-label">Status</span>
+              <span class="info-value">
+                <span class="badge ${record.status.toLowerCase() === 'active' ? 'badge-success' : 'badge-secondary'}">
+                  ${record.status}
+                </span>
+              </span>
             </div>
-            <div class="info-row">
-              <strong>Status:</strong> <span class="badge badge-${record.status === 'Active' ? 'success' : 'warning'}">${record.status}</span>
-            </div>
-          </div>
-
-          <div class="info-section">
-            <h3>Patient & Doctor</h3>
-            <div class="info-row">
-              <strong>Patient Name:</strong> ${record.patientName || 'N/A'}
-            </div>
-            <div class="info-row">
-              <strong>Patient ID:</strong> ${record.patientID}
-            </div>
-            <div class="info-row">
-              <strong>Doctor:</strong> ${record.doctorName || 'N/A'}
+            <div class="info-item">
+              <span class="info-label">Last Updated</span>
+              <span class="info-value">${formatDate(record.lastUpdated)}</span>
             </div>
           </div>
+        </div>
 
-          <div class="diagnosis-box">
-            <h4>Diagnosis</h4>
-            <p>${record.diagnosis || 'No diagnosis recorded'}</p>
+        <div class="section">
+          <h3>Patient Information</h3>
+          <div class="section-content">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Patient Name</span>
+                <span class="info-value">${record.patientName}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Patient ID</span>
+                <span class="info-value">${record.patientID}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Doctor Information</h3>
+          <div class="section-content">
+            <div class="info-item">
+              <span class="info-label">Doctor Name</span>
+              <span class="info-value">${record.doctorName || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Diagnosis & Notes</h3>
+          <div class="section-content">
+            <div class="info-item">
+              <span class="info-label">Diagnosis</span>
+              <span class="info-value">${record.diagnosis || 'No diagnosis recorded'}</span>
+            </div>
           </div>
         </div>
 
         <div class="footer">
-          <p>Generated: ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })} | Confidential Medical Information</p>
+          <p>Generated on ${new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+          <p>This is a confidential medical document. Please handle with care.</p>
+        </div>
+
+        <div class="no-print" style="margin-top: 30px; text-align: center;">
+          <button onclick="window.print()" style="padding: 10px 30px; background: #475569; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+            Print / Save as PDF
+          </button>
+          <button onclick="window.close()" style="padding: 10px 30px; background: #e2e8f0; color: #475569; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; margin-left: 10px;">
+            Close
+          </button>
         </div>
 
         <script>
+          // Auto print dialog after page loads
           window.onload = function() {
-            window.print();
-          }
+            setTimeout(function() {
+              window.print();
+            }, 250);
+          };
         </script>
       </body>
       </html>
@@ -304,22 +321,6 @@ export default function MedicalRecords() {
 
     printWindow.document.write(printContent);
     printWindow.document.close();
-  };
-
-  const handleDelete = async (recordId) => {
-    if (!window.confirm('Are you sure you want to delete this medical record?')) {
-      return;
-    }
-
-    try {
-      await medicalRecordsApi.delete(recordId);
-      alert('Medical record deleted successfully');
-      fetchRecords();
-      fetchStats();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete medical record');
-      console.error('Error deleting medical record:', err);
-    }
   };
 
   const formatDate = (dateString) => {
@@ -500,25 +501,11 @@ export default function MedicalRecords() {
                                 <i className="bi bi-eye"></i>
                               </button>
                               <button
-                                className="btn btn-outline-info btn-sm"
-                                title="Edit"
-                                onClick={() => handleEditRecord(record)}
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </button>
-                              <button
                                 className="btn btn-outline-secondary btn-sm"
                                 title="Download"
                                 onClick={() => handleDownloadRecord(record)}
                               >
                                 <i className="bi bi-download"></i>
-                              </button>
-                              <button
-                                className="btn btn-outline-danger btn-sm"
-                                title="Delete"
-                                onClick={() => handleDelete(record.healthRecordID)}
-                              >
-                                <i className="bi bi-trash"></i>
                               </button>
                             </div>
                           </td>
@@ -621,10 +608,10 @@ export default function MedicalRecords() {
 
           {/* View Medical Record Modal */}
           {showViewModal && selectedRecord && (
-            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+            <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
               <div className="modal-dialog modal-lg modal-dialog-scrollable">
-                <div className="modal-content">
-                  <div className="admin-modal-header primary">
+                <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
+                  <div className="modal-header admin-modal-header primary" style={{borderBottom: 'none'}}>
                     <h5 className="modal-title">
                       <i className="bi bi-file-medical me-2"></i>
                       Medical Record Details
@@ -635,161 +622,117 @@ export default function MedicalRecords() {
                       onClick={() => setShowViewModal(false)}
                     ></button>
                   </div>
-                  <div className="admin-modal-body">
-                    <div className="row">
-                      <div className="col-md-6">
-                        <div className="admin-modal-section">
-                          <h6 className="admin-modal-section-title primary">
-                            <i className="bi bi-info-circle me-2"></i>
-                            Record Information
-                          </h6>
-                          <div className="mb-3">
-                            <strong>Record ID:</strong>
-                            <p className="mb-0">{selectedRecord.healthRecordID}</p>
-                          </div>
-                          <div className="mb-3">
-                            <strong>Date:</strong>
-                            <p className="mb-0">{formatDate(selectedRecord.date)}</p>
-                          </div>
-                          <div className="mb-3">
-                            <strong>Category:</strong>
-                            <p className="mb-0">
-                              <span className="badge bg-light text-dark border">
-                                {selectedRecord.category}
-                              </span>
-                            </p>
-                          </div>
-                          <div className="mb-3">
-                            <strong>Status:</strong>
-                            <p className="mb-0">
-                              <span className={`badge bg-${selectedRecord.status.toLowerCase() === 'active' ? 'success' : 'secondary'}`}>
-                                {selectedRecord.status}
-                              </span>
-                            </p>
+                  <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
+                    {/* Record Header Card */}
+                    <div className="admin-card mb-4" style={{
+                      background: 'linear-gradient(135deg, var(--admin-primary-dark) 0%, var(--admin-primary) 100%)',
+                      color: 'white',
+                      padding: 'var(--spacing-lg)'
+                    }}>
+                      <div className="row align-items-center">
+                        <div className="col">
+                          <div style={{fontSize: 'var(--font-size-sm)', opacity: 0.9, marginBottom: '4px'}}>Record ID</div>
+                          <h4 className="mb-0" style={{fontWeight: '700'}}>#{selectedRecord.healthRecordID}</h4>
+                        </div>
+                        <div className="col-auto">
+                          <div className="d-flex gap-2">
+                            <div style={{
+                              background: 'rgba(255, 255, 255, 0.2)',
+                              padding: '8px 16px',
+                              borderRadius: 'var(--radius-md)',
+                              fontSize: 'var(--font-size-sm)',
+                              fontWeight: '600'
+                            }}>
+                              <i className="bi bi-bookmark me-1"></i>
+                              {selectedRecord.category}
+                            </div>
+                            <div style={{
+                              background: selectedRecord.status.toLowerCase() === 'active' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(148, 163, 184, 0.3)',
+                              padding: '8px 16px',
+                              borderRadius: 'var(--radius-md)',
+                              fontSize: 'var(--font-size-sm)',
+                              fontWeight: '600'
+                            }}>
+                              <i className={`bi bi-${selectedRecord.status.toLowerCase() === 'active' ? 'check-circle' : 'archive'} me-1`}></i>
+                              {selectedRecord.status}
+                            </div>
                           </div>
                         </div>
                       </div>
+                      <div className="mt-3 pt-3" style={{borderTop: '1px solid rgba(255, 255, 255, 0.2)'}}>
+                        <div className="row">
+                          <div className="col-md-6">
+                            <div style={{fontSize: 'var(--font-size-xs)', opacity: 0.8}}>Record Date</div>
+                            <div style={{fontWeight: '600'}}>{formatDate(selectedRecord.date)}</div>
+                          </div>
+                          <div className="col-md-6 text-md-end">
+                            <div style={{fontSize: 'var(--font-size-xs)', opacity: 0.8}}>Last Updated</div>
+                            <div style={{fontWeight: '600'}}>{formatDate(selectedRecord.lastUpdated)}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="row">
+                      {/* Left Column */}
                       <div className="col-md-6">
+                        {/* Patient Information */}
                         <div className="admin-modal-section">
-                          <h6 className="admin-modal-section-title info">
-                            <i className="bi bi-people me-2"></i>
-                            Patient & Doctor Information
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-person"></i>
+                            Patient Information
                           </h6>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Patient Name:</strong>
-                            <p className="mb-0">{selectedRecord.patientName}</p>
+                            <span>{selectedRecord.patientName}</span>
                           </div>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
+                            <strong>Patient ID:</strong>
+                            <span>{selectedRecord.patientID}</span>
+                          </div>
+                        </div>
+
+                        {/* Doctor Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-person-badge"></i>
+                            Doctor Information
+                          </h6>
+                          <div className="admin-info-row">
                             <strong>Doctor Name:</strong>
-                            <p className="mb-0">{selectedRecord.doctorName || 'N/A'}</p>
+                            <span>{selectedRecord.doctorName || 'N/A'}</span>
                           </div>
-                          <div className="mb-3">
+                        </div>
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="col-md-6">
+                        {/* Diagnosis */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-clipboard2-pulse"></i>
+                            Diagnosis & Notes
+                          </h6>
+                          <div className="admin-info-row">
                             <strong>Diagnosis:</strong>
-                            <p className="mb-0">{selectedRecord.diagnosis}</p>
+                            <span style={{display: 'block', marginTop: 'var(--spacing-sm)', whiteSpace: 'pre-wrap'}}>
+                              {selectedRecord.diagnosis || 'No diagnosis recorded'}
+                            </span>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="modal-footer bg-light">
+                  <div className="admin-modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="admin-btn-modal secondary"
                       onClick={() => setShowViewModal(false)}
                     >
-                      <i className="bi bi-x-circle me-2"></i>
+                      <i className="bi bi-x-circle"></i>
                       Close
                     </button>
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Edit Medical Record Modal */}
-          {showEditModal && selectedRecord && (
-            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
-              <div className="modal-dialog modal-lg">
-                <div className="modal-content">
-                  <div className="admin-modal-header info">
-                    <h5 className="modal-title">
-                      <i className="bi bi-pencil-square me-2"></i>
-                      Edit Medical Record
-                    </h5>
-                    <button
-                      type="button"
-                      className="btn-close btn-close-white"
-                      onClick={() => setShowEditModal(false)}
-                    ></button>
-                  </div>
-                  <form onSubmit={handleUpdateRecord}>
-                    <div className="admin-modal-body">
-                      <div className="alert alert-info">
-                        <i className="bi bi-info-circle me-2"></i>
-                        <strong>Note:</strong> You are viewing record for {selectedRecord.patientName}
-                      </div>
-                      <div className="row">
-                        <div className="col-md-6 mb-3">
-                          <label className="form-label fw-semibold">Category</label>
-                          <select
-                            className="form-select"
-                            value={editForm.category}
-                            onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                            disabled
-                          >
-                            <option value="Diagnosis">Diagnosis</option>
-                            <option value="Lab Results">Lab Results</option>
-                            <option value="Prescription">Prescription</option>
-                            <option value="X-Ray/Imaging">X-Ray/Imaging</option>
-                            <option value="Surgery Report">Surgery Report</option>
-                          </select>
-                          <small className="text-muted">Category cannot be changed</small>
-                        </div>
-                        <div className="col-md-6 mb-3">
-                          <label className="form-label fw-semibold">Status <span className="text-danger">*</span></label>
-                          <select
-                            className="form-select"
-                            value={editForm.status}
-                            onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                            disabled
-                          >
-                            <option value="Active">Active</option>
-                            <option value="Archived">Archived</option>
-                          </select>
-                          <small className="text-muted">Status cannot be changed via this form</small>
-                        </div>
-                        <div className="col-12 mb-3">
-                          <label className="form-label fw-semibold">Diagnosis</label>
-                          <textarea
-                            className="form-control"
-                            rows="4"
-                            value={editForm.diagnosis}
-                            onChange={(e) => setEditForm({ ...editForm, diagnosis: e.target.value })}
-                            disabled
-                          ></textarea>
-                          <small className="text-muted">Diagnosis is read-only</small>
-                        </div>
-                      </div>
-                      <div className="alert alert-warning">
-                        <i className="bi bi-exclamation-triangle me-2"></i>
-                        <strong>Current Limitation:</strong> The backend API only supports approving/updating status of records, not full editing of content.
-                      </div>
-                    </div>
-                    <div className="modal-footer bg-light">
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={() => setShowEditModal(false)}
-                      >
-                        <i className="bi bi-x-circle me-2"></i>
-                        Cancel
-                      </button>
-                      <button type="submit" className="btn btn-success">
-                        <i className="bi bi-check-circle me-2"></i>
-                        Approve Record
-                      </button>
-                    </div>
-                  </form>
                 </div>
               </div>
             </div>

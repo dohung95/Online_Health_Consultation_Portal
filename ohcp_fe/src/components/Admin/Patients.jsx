@@ -37,10 +37,18 @@ export default function Patients() {
     gender: '',
     email: '',
     address: '',
+    city: '',
+    country: '',
+    bloodType: '',
+    occupation: '',
+    preferredLanguage: '',
+    preferredContactMethod: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactRelationship: '',
     medicalHistorySummary: '',
     insuranceProvider: '',
-    insurancePolicyNumber: '',
-    status: ''
+    insurancePolicyNumber: ''
   });
 
   // Fetch patients from API
@@ -123,10 +131,18 @@ export default function Patients() {
       gender: patient.gender || '',
       email: patient.email || '',
       address: patient.address || '',
+      city: patient.city || '',
+      country: patient.country || '',
+      bloodType: patient.bloodType || '',
+      occupation: patient.occupation || '',
+      preferredLanguage: patient.preferredLanguage || '',
+      preferredContactMethod: patient.preferredContactMethod || '',
+      emergencyContactName: patient.emergencyContactName || '',
+      emergencyContactPhone: patient.emergencyContactPhone || '',
+      emergencyContactRelationship: patient.emergencyContactRelationship || '',
       medicalHistorySummary: patient.medicalHistorySummary || '',
       insuranceProvider: patient.insuranceProvider || '',
-      insurancePolicyNumber: patient.insurancePolicyNumber || '',
-      status: patient.status
+      insurancePolicyNumber: patient.insurancePolicyNumber || ''
     });
     setShowEditModal(true);
   };
@@ -136,24 +152,43 @@ export default function Patients() {
     e.preventDefault();
 
     try {
-      // Prepare data according to UpdatePatientAdminDto
+      // Prepare data according to UpdatePatientAdminDto (using PascalCase to match backend)
       const updateData = {
-        fullName: editForm.fullName,
-        phoneNumber: editForm.phoneNumber,
-        dateOfBirth: editForm.dateOfBirth,
-        medicalHistorySummary: editForm.medicalHistorySummary,
-        insuranceProvider: editForm.insuranceProvider,
-        insurancePolicyNumber: editForm.insurancePolicyNumber,
-        status: editForm.status
+        FullName: editForm.fullName,
+        PhoneNumber: editForm.phoneNumber,
+        DateOfBirth: editForm.dateOfBirth,
+        Gender: editForm.gender,
+        Address: editForm.address,
+        City: editForm.city,
+        Country: editForm.country,
+        BloodType: editForm.bloodType,
+        Occupation: editForm.occupation,
+        PreferredLanguage: editForm.preferredLanguage,
+        PreferredContactMethod: editForm.preferredContactMethod,
+        EmergencyContactName: editForm.emergencyContactName,
+        EmergencyContactPhone: editForm.emergencyContactPhone,
+        EmergencyContactRelationship: editForm.emergencyContactRelationship,
+        MedicalHistorySummary: editForm.medicalHistorySummary,
+        InsuranceProvider: editForm.insuranceProvider,
+        InsurancePolicyNumber: editForm.insurancePolicyNumber
       };
 
-      await patientsApi.update(selectedPatient.patientID, updateData);
+      console.log('Sending update data:', updateData);
+      console.log('Patient ID:', selectedPatient.patientID);
+
+      const response = await patientsApi.update(selectedPatient.patientID, updateData);
+      console.log('Update response:', response);
+
       alert('Patient updated successfully');
       setShowEditModal(false);
       fetchPatients();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update patient');
-      console.error('Error updating patient:', err);
+      console.error('Full error object:', err);
+      console.error('Error response:', err.response);
+      console.error('Error data:', err.response?.data);
+
+      const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update patient';
+      alert(`Update failed: ${errorMessage}`);
     }
   };
 
@@ -269,7 +304,6 @@ export default function Patients() {
                         <th>Phone</th>
                         <th>Email</th>
                         <th>Last Visit</th>
-                        <th>Status</th>
                         <th className="text-center">Actions</th>
                       </tr>
                     </thead>
@@ -290,11 +324,6 @@ export default function Patients() {
                           <td>{patient.phone}</td>
                           <td>{patient.email}</td>
                           <td>{patient.lastVisit || 'N/A'}</td>
-                          <td>
-                            <span className={`badge bg-${patient.status === 'Active' ? 'success' : 'secondary'}`}>
-                              {patient.status}
-                            </span>
-                          </td>
                           <td className="text-center">
                             <div className="admin-btn-group">
                               <button
@@ -412,142 +441,280 @@ export default function Patients() {
 
           {/* View Patient Details Modal */}
           {showViewModal && selectedPatient && (
-            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
-              <div className="modal-dialog modal-lg modal-dialog-scrollable">
-                <div className="modal-content">
-                  <div className="modal-header">
+            <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
+              <div className="modal-dialog modal-xl modal-dialog-scrollable">
+                <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
+                  <div className="modal-header admin-modal-header primary" style={{borderBottom: 'none'}}>
                     <h5 className="modal-title">
                       <i className="bi bi-person-circle me-2"></i>
-                      Patient Details & Health Records
+                      Patient Details
                     </h5>
                     <button
                       type="button"
-                      className="btn-close"
+                      className="btn-close btn-close-white"
                       onClick={() => setShowViewModal(false)}
                     ></button>
                   </div>
-                  <div className="modal-body">
-                    {/* Patient Information */}
-                    <div className="card mb-3">
-                      <div className="card-header bg-primary text-white">
-                        <h6 className="mb-0">Patient Information</h6>
-                      </div>
-                      <div className="card-body">
-                        <div className="row">
-                          <div className="col-md-6 mb-3">
-                            <strong>Full Name:</strong>
-                            <p className="mb-0">{selectedPatient.fullName}</p>
+                  <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
+                    {/* Patient Header Card - Highlighted */}
+                    <div className="admin-card mb-4" style={{
+                      background: 'linear-gradient(135deg, var(--admin-primary-dark) 0%, var(--admin-primary) 100%)',
+                      color: 'white',
+                      padding: 'var(--spacing-lg)'
+                    }}>
+                      <div className="row align-items-center">
+                        <div className="col-auto">
+                          <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: 'var(--radius-full)',
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '32px',
+                            fontWeight: '700',
+                            border: '3px solid rgba(255, 255, 255, 0.3)'
+                          }}>
+                            {selectedPatient.fullName.charAt(0)}
                           </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Patient ID:</strong>
-                            <p className="mb-0">{selectedPatient.patientID}</p>
+                        </div>
+                        <div className="col">
+                          <h4 className="mb-1" style={{fontWeight: '700', fontSize: 'var(--font-size-2xl)'}}>
+                            {selectedPatient.fullName}
+                          </h4>
+                          <div className="d-flex flex-wrap gap-3 mt-2" style={{fontSize: 'var(--font-size-sm)'}}>
+                            <span style={{opacity: 0.9}}>
+                              <i className="bi bi-person-badge me-1"></i>
+                              ID: {selectedPatient.patientID}
+                            </span>
+                            <span style={{opacity: 0.9}}>
+                              <i className="bi bi-telephone me-1"></i>
+                              {selectedPatient.phone}
+                            </span>
+                            <span style={{opacity: 0.9}}>
+                              <i className="bi bi-envelope me-1"></i>
+                              {selectedPatient.email}
+                            </span>
                           </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Age:</strong>
-                            <p className="mb-0">{selectedPatient.age} years</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Gender:</strong>
-                            <p className="mb-0">{selectedPatient.gender}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Phone:</strong>
-                            <p className="mb-0">{selectedPatient.phone}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Email:</strong>
-                            <p className="mb-0">{selectedPatient.email}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Date of Birth:</strong>
-                            <p className="mb-0">{formatDate(selectedPatient.dateOfBirth)}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Status:</strong>
-                            <p className="mb-0">
-                              <span className={`badge bg-${selectedPatient.status === 'Active' ? 'success' : 'secondary'}`}>
-                                {selectedPatient.status}
-                              </span>
-                            </p>
-                          </div>
-                          <div className="col-12 mb-3">
-                            <strong>Medical History Summary:</strong>
-                            <p className="mb-0">{selectedPatient.medicalHistorySummary || 'No medical history recorded'}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Insurance Provider:</strong>
-                            <p className="mb-0">{selectedPatient.insuranceProvider || 'N/A'}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Insurance Policy Number:</strong>
-                            <p className="mb-0">{selectedPatient.insurancePolicyNumber || 'N/A'}</p>
+                        </div>
+                        <div className="col-auto text-end">
+                          <div className="d-flex flex-column gap-2">
+                            <div style={{
+                              background: 'rgba(255, 255, 255, 0.2)',
+                              padding: '8px 16px',
+                              borderRadius: 'var(--radius-md)',
+                              fontSize: 'var(--font-size-sm)',
+                              fontWeight: '600'
+                            }}>
+                              <i className="bi bi-cake me-1"></i>
+                              {selectedPatient.age} years old
+                            </div>
+                            {selectedPatient.gender && (
+                              <div style={{
+                                background: 'rgba(255, 255, 255, 0.2)',
+                                padding: '8px 16px',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: 'var(--font-size-sm)',
+                                fontWeight: '600'
+                              }}>
+                                <i className="bi bi-gender-ambiguous me-1"></i>
+                                {selectedPatient.gender}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Health Records */}
-                    <div className="card">
-                      <div className="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                        <h6 className="mb-0">Health Records</h6>
-                        <span className="badge bg-light text-dark">{patientHealthRecords.length} records</span>
-                      </div>
-                      <div className="card-body">
-                        {loadingRecords ? (
-                          <div className="text-center p-3">
-                            <div className="spinner-border text-primary" role="status">
-                              <span className="visually-hidden">Loading...</span>
+                    <div className="row">
+                      {/* Left Column */}
+                      <div className="col-lg-6">
+                        {/* Personal Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-person-circle"></i>
+                            Additional Information
+                          </h6>
+                          <div className="row">
+                            <div className="col-md-6">
+                              <div className="admin-info-row">
+                                <strong>Date of Birth:</strong>
+                                <span>{formatDate(selectedPatient.dateOfBirth)}</span>
+                              </div>
                             </div>
-                            <p className="mt-2">Loading health records...</p>
+                            <div className="col-md-6">
+                              <div className="admin-info-row">
+                                <strong>Blood Type:</strong>
+                                <span>{selectedPatient.bloodType || 'N/A'}</span>
+                              </div>
+                            </div>
                           </div>
-                        ) : patientHealthRecords.length === 0 ? (
-                          <div className="text-center p-3 text-muted">
-                            <i className="bi bi-file-medical fs-1"></i>
-                            <p className="mt-2">No health records found for this patient</p>
+                          <div className="admin-info-row">
+                            <strong>Occupation:</strong>
+                            <span>{selectedPatient.occupation || 'N/A'}</span>
                           </div>
-                        ) : (
-                          <div className="table-responsive">
-                            <table className="table table-hover">
-                              <thead>
-                                <tr>
-                                  <th>Record ID</th>
-                                  <th>Date</th>
-                                  <th>Category</th>
-                                  <th>Diagnosis</th>
-                                  <th>Status</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {patientHealthRecords.map((record) => (
-                                  <tr key={record.healthRecordID}>
-                                    <td><strong>{record.healthRecordID}</strong></td>
-                                    <td>{formatDate(record.date)}</td>
-                                    <td>
-                                      <span className="badge bg-light text-dark border">
-                                        {record.category}
-                                      </span>
-                                    </td>
-                                    <td>{record.diagnosis}</td>
-                                    <td>
-                                      <span className={`badge bg-${record.status.toLowerCase() === 'active' ? 'success' : 'secondary'}`}>
-                                        {record.status}
-                                      </span>
-                                    </td>
+                        </div>
+
+                        {/* Address Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-geo-alt"></i>
+                            Address Information
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Address:</strong>
+                            <span>{selectedPatient.address || 'N/A'}</span>
+                          </div>
+                          <div className="row">
+                            <div className="col-md-6">
+                              <div className="admin-info-row">
+                                <strong>City:</strong>
+                                <span>{selectedPatient.city || 'N/A'}</span>
+                              </div>
+                            </div>
+                            <div className="col-md-6">
+                              <div className="admin-info-row">
+                                <strong>Country:</strong>
+                                <span>{selectedPatient.country || 'N/A'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Emergency Contact */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-telephone-fill"></i>
+                            Emergency Contact
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Contact Name:</strong>
+                            <span>{selectedPatient.emergencyContactName || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Contact Phone:</strong>
+                            <span>{selectedPatient.emergencyContactPhone || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Relationship:</strong>
+                            <span>{selectedPatient.emergencyContactRelationship || 'N/A'}</span>
+                          </div>
+                        </div>
+
+                        {/* Preferences */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-gear"></i>
+                            Preferences
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Preferred Language:</strong>
+                            <span>{selectedPatient.preferredLanguage || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Contact Method:</strong>
+                            <span>{selectedPatient.preferredContactMethod || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="col-lg-6">
+                        {/* Medical Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-heart-pulse"></i>
+                            Medical Information
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Medical History:</strong>
+                            <span style={{display: 'block', marginTop: 'var(--spacing-sm)'}}>
+                              {selectedPatient.medicalHistorySummary || 'No medical history recorded'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Insurance Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-shield-check"></i>
+                            Insurance Information
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Provider:</strong>
+                            <span>{selectedPatient.insuranceProvider || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Policy Number:</strong>
+                            <span>{selectedPatient.insurancePolicyNumber || 'N/A'}</span>
+                          </div>
+                        </div>
+
+                        {/* Health Records */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-file-medical"></i>
+                            Health Records
+                            <span className="admin-badge primary ms-2">{patientHealthRecords.length} records</span>
+                          </h6>
+                          {loadingRecords ? (
+                            <div className="admin-loading">
+                              <div className="spinner-border text-primary" role="status">
+                                <span className="visually-hidden">Loading...</span>
+                              </div>
+                              <p className="mt-2">Loading health records...</p>
+                            </div>
+                          ) : patientHealthRecords.length === 0 ? (
+                            <div className="admin-empty-state">
+                              <i className="bi bi-file-medical"></i>
+                              <p className="mt-2">No health records found</p>
+                            </div>
+                          ) : (
+                            <div className="table-responsive">
+                              <table className="admin-table table mb-0">
+                                <thead>
+                                  <tr>
+                                    <th>Record ID</th>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Diagnosis</th>
+                                    <th>Status</th>
                                   </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
+                                </thead>
+                                <tbody>
+                                  {patientHealthRecords.map((record) => (
+                                    <tr key={record.healthRecordID}>
+                                      <td><strong>{record.healthRecordID}</strong></td>
+                                      <td>{formatDate(record.date)}</td>
+                                      <td>
+                                        <span className="admin-badge primary">
+                                          {record.category}
+                                        </span>
+                                      </td>
+                                      <td>{record.diagnosis}</td>
+                                      <td>
+                                        <span className={`admin-badge ${record.status.toLowerCase() === 'active' ? 'success' : 'info'}`}>
+                                          {record.status}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="modal-footer">
+                  <div className="admin-modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="admin-btn-modal secondary"
                       onClick={() => setShowViewModal(false)}
                     >
+                      <i className="bi bi-x-circle"></i>
                       Close
                     </button>
                   </div>
@@ -558,10 +725,10 @@ export default function Patients() {
 
           {/* Edit Patient Modal */}
           {showEditModal && selectedPatient && (
-            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
-              <div className="modal-dialog modal-xl" style={{maxWidth: '90%'}}>
-                <div className="modal-content">
-                  <div className="modal-header bg-primary text-white">
+            <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
+              <div className="modal-dialog modal-xl" style={{maxWidth: '95%'}}>
+                <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
+                  <div className="modal-header admin-modal-header info" style={{borderBottom: 'none'}}>
                     <h5 className="modal-title">
                       <i className="bi bi-pencil-square me-2"></i>
                       Edit Patient Information
@@ -573,107 +740,226 @@ export default function Patients() {
                     ></button>
                   </div>
                   <form onSubmit={handleUpdatePatient}>
-                    <div className="modal-body" style={{maxHeight: '75vh', overflowY: 'auto'}}>
+                    <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
                       <div className="row">
-                        {/* Left Column - Personal Information */}
+                        {/* Left Column */}
                         <div className="col-lg-6">
-                          <div className="mb-4">
-                            <h6 className="text-primary border-bottom pb-2 mb-3">
-                              <i className="bi bi-person-circle me-2"></i>
+                          {/* Personal Information Section */}
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-person-circle"></i>
                               Personal Information
                             </h6>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Full Name <span className="text-danger">*</span></label>
+                              <label className="admin-form-label">Full Name <span className="text-danger">*</span></label>
                               <input
                                 type="text"
-                                className="form-control"
+                                className="form-control admin-form-control"
                                 value={editForm.fullName}
                                 onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
                                 required
                               />
                             </div>
-                            <div className="mb-3">
-                              <label className="form-label fw-semibold">Email <span className="text-danger">*</span></label>
-                              <input
-                                type="email"
-                                className="form-control"
-                                value={editForm.email}
-                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                required
-                              />
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Email <span className="text-danger">*</span></label>
+                                <input
+                                  type="email"
+                                  className="form-control admin-form-control"
+                                  value={editForm.email}
+                                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                  required
+                                  readOnly
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Phone Number <span className="text-danger">*</span></label>
+                                <input
+                                  type="tel"
+                                  className="form-control admin-form-control"
+                                  value={editForm.phoneNumber}
+                                  onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                                  required
+                                />
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Date of Birth <span className="text-danger">*</span></label>
+                                <input
+                                  type="date"
+                                  className="form-control admin-form-control"
+                                  value={editForm.dateOfBirth}
+                                  onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Gender <span className="text-danger">*</span></label>
+                                <select
+                                  className="form-select admin-form-control"
+                                  value={editForm.gender}
+                                  onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                                  required
+                                >
+                                  <option value="">Select Gender</option>
+                                  <option value="Male">Male</option>
+                                  <option value="Female">Female</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Blood Type</label>
+                                <select
+                                  className="form-select admin-form-control"
+                                  value={editForm.bloodType}
+                                  onChange={(e) => setEditForm({ ...editForm, bloodType: e.target.value })}
+                                >
+                                  <option value="">Select Blood Type</option>
+                                  <option value="A+">A+</option>
+                                  <option value="A-">A-</option>
+                                  <option value="B+">B+</option>
+                                  <option value="B-">B-</option>
+                                  <option value="AB+">AB+</option>
+                                  <option value="AB-">AB-</option>
+                                  <option value="O+">O+</option>
+                                  <option value="O-">O-</option>
+                                </select>
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Occupation</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.occupation}
+                                  onChange={(e) => setEditForm({ ...editForm, occupation: e.target.value })}
+                                  placeholder="Enter occupation"
+                                />
+                              </div>
                             </div>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Phone Number <span className="text-danger">*</span></label>
-                              <input
-                                type="tel"
-                                className="form-control"
-                                value={editForm.phoneNumber}
-                                onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                                required
-                              />
-                            </div>
-                            <div className="mb-3">
-                              <label className="form-label fw-semibold">Date of Birth <span className="text-danger">*</span></label>
-                              <input
-                                type="date"
-                                className="form-control"
-                                value={editForm.dateOfBirth}
-                                onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
-                                required
-                              />
-                            </div>
-                            <div className="mb-3">
-                              <label className="form-label fw-semibold">Gender <span className="text-danger">*</span></label>
-                              <select
-                                className="form-select"
-                                value={editForm.gender}
-                                onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                                required
-                              >
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                              </select>
-                            </div>
-                            <div className="mb-3">
-                              <label className="form-label fw-semibold">Status <span className="text-danger">*</span></label>
-                              <select
-                                className="form-select"
-                                value={editForm.status}
-                                onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                                required
-                              >
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
-                              </select>
-                            </div>
-                            <div className="mb-3">
-                              <label className="form-label fw-semibold">Address</label>
+                              <label className="admin-form-label">Address</label>
                               <input
                                 type="text"
-                                className="form-control"
+                                className="form-control admin-form-control"
                                 value={editForm.address}
                                 onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                                 placeholder="Enter full address"
                               />
                             </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">City</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.city}
+                                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                                  placeholder="Enter city"
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Country</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.country}
+                                  onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
+                                  placeholder="Enter country"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Emergency Contact Section */}
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-telephone-fill"></i>
+                              Emergency Contact
+                            </h6>
+                            <div className="mb-3">
+                              <label className="admin-form-label">Contact Name</label>
+                              <input
+                                type="text"
+                                className="form-control admin-form-control"
+                                value={editForm.emergencyContactName}
+                                onChange={(e) => setEditForm({ ...editForm, emergencyContactName: e.target.value })}
+                                placeholder="Enter contact name"
+                              />
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Contact Phone</label>
+                                <input
+                                  type="tel"
+                                  className="form-control admin-form-control"
+                                  value={editForm.emergencyContactPhone}
+                                  onChange={(e) => setEditForm({ ...editForm, emergencyContactPhone: e.target.value })}
+                                  placeholder="Enter phone"
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Relationship</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.emergencyContactRelationship}
+                                  onChange={(e) => setEditForm({ ...editForm, emergencyContactRelationship: e.target.value })}
+                                  placeholder="e.g., Spouse, Parent"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Preferences Section */}
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-gear"></i>
+                              Preferences
+                            </h6>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Preferred Language</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.preferredLanguage}
+                                  onChange={(e) => setEditForm({ ...editForm, preferredLanguage: e.target.value })}
+                                  placeholder="e.g., English"
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Contact Method</label>
+                                <select
+                                  className="form-select admin-form-control"
+                                  value={editForm.preferredContactMethod}
+                                  onChange={(e) => setEditForm({ ...editForm, preferredContactMethod: e.target.value })}
+                                >
+                                  <option value="">Select Method</option>
+                                  <option value="Email">Email</option>
+                                  <option value="Phone">Phone</option>
+                                  <option value="SMS">SMS</option>
+                                </select>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Right Column - Medical & Insurance Information */}
+                        {/* Right Column */}
                         <div className="col-lg-6">
                           {/* Medical Information Section */}
-                          <div className="mb-4">
-                            <h6 className="text-success border-bottom pb-2 mb-3">
-                              <i className="bi bi-heart-pulse me-2"></i>
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-heart-pulse"></i>
                               Medical Information
                             </h6>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Medical History Summary</label>
+                              <label className="admin-form-label">Medical History Summary</label>
                               <textarea
-                                className="form-control"
-                                rows="8"
+                                className="form-control admin-form-control"
+                                rows="12"
                                 value={editForm.medicalHistorySummary}
                                 onChange={(e) => setEditForm({ ...editForm, medicalHistorySummary: e.target.value })}
                                 placeholder="Enter medical history, allergies, chronic conditions..."
@@ -682,26 +968,26 @@ export default function Patients() {
                           </div>
 
                           {/* Insurance Information Section */}
-                          <div className="mb-4">
-                            <h6 className="text-info border-bottom pb-2 mb-3">
-                              <i className="bi bi-shield-check me-2"></i>
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-shield-check"></i>
                               Insurance Information
                             </h6>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Insurance Provider</label>
+                              <label className="admin-form-label">Insurance Provider</label>
                               <input
                                 type="text"
-                                className="form-control"
+                                className="form-control admin-form-control"
                                 value={editForm.insuranceProvider}
                                 onChange={(e) => setEditForm({ ...editForm, insuranceProvider: e.target.value })}
                                 placeholder="e.g., Blue Cross, Aetna"
                               />
                             </div>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Insurance Policy Number</label>
+                              <label className="admin-form-label">Insurance Policy Number</label>
                               <input
                                 type="text"
-                                className="form-control"
+                                className="form-control admin-form-control"
                                 value={editForm.insurancePolicyNumber}
                                 onChange={(e) => setEditForm({ ...editForm, insurancePolicyNumber: e.target.value })}
                                 placeholder="Enter policy number"
@@ -711,17 +997,17 @@ export default function Patients() {
                         </div>
                       </div>
                     </div>
-                    <div className="modal-footer bg-light">
+                    <div className="admin-modal-footer">
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="admin-btn-modal secondary"
                         onClick={() => setShowEditModal(false)}
                       >
-                        <i className="bi bi-x-circle me-2"></i>
+                        <i className="bi bi-x-circle"></i>
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-primary">
-                        <i className="bi bi-check-circle me-2"></i>
+                      <button type="submit" className="admin-btn-modal success">
+                        <i className="bi bi-check-circle"></i>
                         Save Changes
                       </button>
                     </div>

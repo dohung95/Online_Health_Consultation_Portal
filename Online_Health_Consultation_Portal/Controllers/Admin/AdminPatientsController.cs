@@ -84,7 +84,7 @@ namespace OHCP_BK.Controllers.Admin
                         Age = p.DateOfBirth.HasValue
                             ? DateTime.Now.Year - p.DateOfBirth.Value.Year
                             : 0,
-                        Gender = "N/A", // You can add Gender field to Patient model if needed
+                        Gender = p.Gender ?? "N/A",
                         Phone = p.User.PhoneNumber ?? "N/A",
                         Email = p.User.Email ?? "N/A",
                         DateOfBirth = p.DateOfBirth,
@@ -99,6 +99,16 @@ namespace OHCP_BK.Controllers.Admin
                         MedicalHistorySummary = p.MedicalHistorySummary,
                         InsuranceProvider = p.InsuranceProvider,
                         InsurancePolicyNumber = p.InsurancePolicyNumber,
+                        Address = p.Address,
+                        City = p.City,
+                        Country = p.Country,
+                        BloodType = p.BloodType,
+                        EmergencyContactName = p.EmergencyContactName,
+                        EmergencyContactPhone = p.EmergencyContactPhone,
+                        EmergencyContactRelationship = p.EmergencyContactRelationship,
+                        PreferredLanguage = p.PreferredLanguage,
+                        PreferredContactMethod = p.PreferredContactMethod,
+                        Occupation = p.Occupation,
                         CreatedDate = p.User.CreatedDate
                     })
                     .ToListAsync();
@@ -141,7 +151,7 @@ namespace OHCP_BK.Controllers.Admin
                     Age = patient.DateOfBirth.HasValue
                         ? DateTime.Now.Year - patient.DateOfBirth.Value.Year
                         : 0,
-                    Gender = "N/A",
+                    Gender = patient.Gender ?? "N/A",
                     Phone = patient.User.PhoneNumber ?? "N/A",
                     Email = patient.User.Email ?? "N/A",
                     DateOfBirth = patient.DateOfBirth,
@@ -156,6 +166,16 @@ namespace OHCP_BK.Controllers.Admin
                     MedicalHistorySummary = patient.MedicalHistorySummary,
                     InsuranceProvider = patient.InsuranceProvider,
                     InsurancePolicyNumber = patient.InsurancePolicyNumber,
+                    Address = patient.Address,
+                    City = patient.City,
+                    Country = patient.Country,
+                    BloodType = patient.BloodType,
+                    EmergencyContactName = patient.EmergencyContactName,
+                    EmergencyContactPhone = patient.EmergencyContactPhone,
+                    EmergencyContactRelationship = patient.EmergencyContactRelationship,
+                    PreferredLanguage = patient.PreferredLanguage,
+                    PreferredContactMethod = patient.PreferredContactMethod,
+                    Occupation = patient.Occupation,
                     CreatedDate = patient.User.CreatedDate
                 };
 
@@ -168,79 +188,7 @@ namespace OHCP_BK.Controllers.Admin
         }
 
         // POST: api/admin/adminpatients
-        [HttpPost]
-        public async Task<ActionResult<PatientAdminDto>> CreatePatient(CreatePatientAdminDto dto)
-        {
-            try
-            {
-                // Check if email already exists
-                var existingUser = await _userManager.FindByEmailAsync(dto.Email);
-                if (existingUser != null)
-                {
-                    return BadRequest(new { error = "Email already exists" });
-                }
-
-                // Create user
-                var user = new AppUser
-                {
-                    UserName = dto.Email,
-                    Email = dto.Email,
-                    PhoneNumber = dto.PhoneNumber,
-                    EmailConfirmed = true,
-                    PhoneNumberConfirmed = true,
-                    CreatedDate = DateTime.Now
-                };
-
-                var result = await _userManager.CreateAsync(user, dto.Password);
-
-                if (!result.Succeeded)
-                {
-                    return BadRequest(new { error = "Failed to create user", details = result.Errors });
-                }
-
-                // Assign patient role
-                await _userManager.AddToRoleAsync(user, "patient");
-
-                // Create patient profile
-                var patient = new Patient
-                {
-                    PatientID = user.Id,
-                    FullName = dto.FullName,
-                    DateOfBirth = dto.DateOfBirth,
-                    MedicalHistorySummary = dto.MedicalHistorySummary,
-                    InsuranceProvider = dto.InsuranceProvider,
-                    InsurancePolicyNumber = dto.InsurancePolicyNumber
-                };
-
-                _context.Patients.Add(patient);
-                await _context.SaveChangesAsync();
-
-                var patientDto = new PatientAdminDto
-                {
-                    PatientID = patient.PatientID,
-                    FullName = patient.FullName,
-                    Age = patient.DateOfBirth.HasValue
-                        ? DateTime.Now.Year - patient.DateOfBirth.Value.Year
-                        : 0,
-                    Gender = "N/A",
-                    Phone = user.PhoneNumber ?? "N/A",
-                    Email = user.Email ?? "N/A",
-                    DateOfBirth = patient.DateOfBirth,
-                    Status = "Active",
-                    MedicalHistorySummary = patient.MedicalHistorySummary,
-                    InsuranceProvider = patient.InsuranceProvider,
-                    InsurancePolicyNumber = patient.InsurancePolicyNumber,
-                    CreatedDate = user.CreatedDate
-                };
-
-                return CreatedAtAction(nameof(GetPatient), new { id = patient.PatientID }, patientDto);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "An error occurred while creating patient", details = ex.Message });
-            }
-        }
-
+        
         // PUT: api/admin/adminpatients/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePatient(string id, UpdatePatientAdminDto dto)
@@ -256,34 +204,158 @@ namespace OHCP_BK.Controllers.Admin
                     return NotFound(new { error = "Patient not found" });
                 }
 
-                // Update patient info
-                if (!string.IsNullOrWhiteSpace(dto.FullName))
+                // Normalize empty strings to null for nullable fields to avoid null vs "" comparison issues
+                dto.Gender = string.IsNullOrWhiteSpace(dto.Gender) ? null : dto.Gender;
+                dto.BloodType = string.IsNullOrWhiteSpace(dto.BloodType) ? null : dto.BloodType;
+                dto.Occupation = string.IsNullOrWhiteSpace(dto.Occupation) ? null : dto.Occupation;
+                dto.Address = string.IsNullOrWhiteSpace(dto.Address) ? null : dto.Address;
+                dto.City = string.IsNullOrWhiteSpace(dto.City) ? null : dto.City;
+                dto.Country = string.IsNullOrWhiteSpace(dto.Country) ? null : dto.Country;
+                dto.EmergencyContactName = string.IsNullOrWhiteSpace(dto.EmergencyContactName) ? null : dto.EmergencyContactName;
+                dto.EmergencyContactPhone = string.IsNullOrWhiteSpace(dto.EmergencyContactPhone) ? null : dto.EmergencyContactPhone;
+                dto.EmergencyContactRelationship = string.IsNullOrWhiteSpace(dto.EmergencyContactRelationship) ? null : dto.EmergencyContactRelationship;
+                dto.PreferredLanguage = string.IsNullOrWhiteSpace(dto.PreferredLanguage) ? null : dto.PreferredLanguage;
+                dto.PreferredContactMethod = string.IsNullOrWhiteSpace(dto.PreferredContactMethod) ? null : dto.PreferredContactMethod;
+                dto.MedicalHistorySummary = string.IsNullOrWhiteSpace(dto.MedicalHistorySummary) ? null : dto.MedicalHistorySummary;
+                dto.InsuranceProvider = string.IsNullOrWhiteSpace(dto.InsuranceProvider) ? null : dto.InsuranceProvider;
+                dto.InsurancePolicyNumber = string.IsNullOrWhiteSpace(dto.InsurancePolicyNumber) ? null : dto.InsurancePolicyNumber;
+
+                // Track changes for debugging
+                var changesMade = false;
+
+                // Update patient info - always update even if null to allow clearing values
+                if (!string.IsNullOrWhiteSpace(dto.FullName) && patient.FullName != dto.FullName)
                 {
                     patient.FullName = dto.FullName;
+                    changesMade = true;
                 }
 
-                if (dto.DateOfBirth.HasValue)
+                if (dto.DateOfBirth.HasValue && patient.DateOfBirth != dto.DateOfBirth)
                 {
                     patient.DateOfBirth = dto.DateOfBirth;
+                    changesMade = true;
                 }
 
-                patient.MedicalHistorySummary = dto.MedicalHistorySummary;
-                patient.InsuranceProvider = dto.InsuranceProvider;
-                patient.InsurancePolicyNumber = dto.InsurancePolicyNumber;
+                if (patient.Gender != dto.Gender)
+                {
+                    patient.Gender = dto.Gender;
+                    changesMade = true;
+                }
+
+                if (patient.MedicalHistorySummary != dto.MedicalHistorySummary)
+                {
+                    patient.MedicalHistorySummary = dto.MedicalHistorySummary;
+                    changesMade = true;
+                }
+
+                if (patient.InsuranceProvider != dto.InsuranceProvider)
+                {
+                    patient.InsuranceProvider = dto.InsuranceProvider;
+                    changesMade = true;
+                }
+
+                if (patient.InsurancePolicyNumber != dto.InsurancePolicyNumber)
+                {
+                    patient.InsurancePolicyNumber = dto.InsurancePolicyNumber;
+                    changesMade = true;
+                }
+
+                if (patient.Address != dto.Address)
+                {
+                    patient.Address = dto.Address;
+                    changesMade = true;
+                }
+
+                if (patient.City != dto.City)
+                {
+                    patient.City = dto.City;
+                    changesMade = true;
+                }
+
+                if (patient.Country != dto.Country)
+                {
+                    patient.Country = dto.Country;
+                    changesMade = true;
+                }
+
+                if (patient.BloodType != dto.BloodType)
+                {
+                    patient.BloodType = dto.BloodType;
+                    changesMade = true;
+                }
+
+                if (patient.EmergencyContactName != dto.EmergencyContactName)
+                {
+                    patient.EmergencyContactName = dto.EmergencyContactName;
+                    changesMade = true;
+                }
+
+                if (patient.EmergencyContactPhone != dto.EmergencyContactPhone)
+                {
+                    patient.EmergencyContactPhone = dto.EmergencyContactPhone;
+                    changesMade = true;
+                }
+
+                if (patient.EmergencyContactRelationship != dto.EmergencyContactRelationship)
+                {
+                    patient.EmergencyContactRelationship = dto.EmergencyContactRelationship;
+                    changesMade = true;
+                }
+
+                if (patient.PreferredLanguage != dto.PreferredLanguage)
+                {
+                    patient.PreferredLanguage = dto.PreferredLanguage;
+                    changesMade = true;
+                }
+
+                if (patient.PreferredContactMethod != dto.PreferredContactMethod)
+                {
+                    patient.PreferredContactMethod = dto.PreferredContactMethod;
+                    changesMade = true;
+                }
+
+                if (patient.Occupation != dto.Occupation)
+                {
+                    patient.Occupation = dto.Occupation;
+                    changesMade = true;
+                }
 
                 // Update user info
-                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
+                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && patient.User.PhoneNumber != dto.PhoneNumber)
                 {
                     patient.User.PhoneNumber = dto.PhoneNumber;
+                    changesMade = true;
                 }
 
-                // Mark entities as modified to ensure EF Core tracks changes
+                if (!changesMade)
+                {
+                    return BadRequest(new {
+                        error = "No changes detected",
+                        details = "The data you submitted is identical to the current data in database"
+                    });
+                }
+
+                // Explicitly mark as modified
                 _context.Entry(patient).State = EntityState.Modified;
-                _context.Entry(patient.User).State = EntityState.Modified;
 
-                await _context.SaveChangesAsync();
+                var affectedRows = await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Patient updated successfully" });
+                // Verify that changes were actually saved to database
+                if (affectedRows == 0)
+                {
+                    return StatusCode(500, new {
+                        error = "Update failed",
+                        details = "No rows were affected. The data might not have been saved to the database.",
+                        changesMade = true,
+                        affectedRows = 0
+                    });
+                }
+
+                return Ok(new {
+                    message = "Patient updated successfully",
+                    affectedRows,
+                    changesMade = true
+                });
             }
             catch (Exception ex)
             {
