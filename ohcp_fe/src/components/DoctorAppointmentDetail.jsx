@@ -73,8 +73,8 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
       <main className="flex-grow-1 d-flex justify-content-center p-4 p-md-5">
         <div className="w-100" style={{ maxWidth: '1280px' }}>
           <div className="row g-4">
-            {/* Left Column (col-lg-8) */}
-            <div className="col-lg-8 d-flex flex-column gap-4">
+            {/* Left Column (col-lg-12) */}
+            <div className="col-lg-12 d-flex flex-column gap-4">
               
               {/* ProfileHeader */}
               <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
@@ -92,9 +92,7 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                         </p>
                       </div>
                     </div>
-                    <button className="btn btn-secondary-custom h-auto py-2 px-4 w-100 w-md-auto text-wrap">
-                      View Medical History
-                    </button>
+                    
                   </div>
                 </div>
               </div>
@@ -143,31 +141,6 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                     Prescribe Medication
                   </button>
                   
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column (col-lg-4) */}
-            <div className="col-lg-4 d-flex flex-column gap-4">
-              {/* Medical History */}
-              <div className="rounded-3 border border-border-light bg-content-light shadow-sm" style={{height: '100%'}}>
-                <div className="border-bottom border-border-light p-4 p-md-4">
-                  <h2 className="fs-5 fw-bold text-text-light-primary mb-0">Medical History</h2>
-                </div>
-                <div className="p-4 p-md-4 d-flex flex-column gap-4">
-                  <div>
-                    <h3 className="small fw-semibold text-text-light-secondary mb-2">Chronic Conditions</h3>
-                    <div className="d-flex flex-wrap gap-2">
-                      <span className="badge rounded-3 badge-blue">Hypertension</span>
-                      <span className="badge rounded-3 badge-blue">Type 2 Diabetes</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="small fw-semibold text-text-light-secondary mb-2">Allergies</h3>
-                    <div className="d-flex flex-wrap gap-2">
-                      <span className="badge rounded-3 badge-red">Penicillin</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
