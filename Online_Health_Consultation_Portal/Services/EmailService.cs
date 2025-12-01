@@ -79,12 +79,12 @@ namespace OHCP_BK.Services
                 <body>
                     <div class='container'>
                         <div class='header'>
-                            <h2>Liên Hệ Từ Trang Web</h2>
+                            <h2>Contact From Website</h2>
                             <p>Online Health Consultation Portal</p>
                         </div>
                         <div class='content'>
                             <div class='field'>
-                                <div class='label'>Họ và tên:</div>
+                                <div class='label'>Full name:</div>
                                 <div class='value'>{contactData.Name}</div>
                             </div>
                             <div class='field'>
@@ -92,20 +92,20 @@ namespace OHCP_BK.Services
                                 <div class='value'>{contactData.Email}</div>
                             </div>
                             <div class='field'>
-                                <div class='label'>Số điện thoại:</div>
+                                <div class='label'>Phone:</div>
                                 <div class='value'>{contactData.Phone}</div>
                             </div>
                             <div class='field'>
-                                <div class='label'>Chủ đề:</div>
+                                <div class='label'>Topic:</div>
                                 <div class='value'>{contactData.Subject}</div>
                             </div>
                             <div class='field'>
-                                <div class='label'>Nội dung tin nhắn:</div>
+                                <div class='label'>Message content:</div>
                                 <div class='message'>{contactData.Message.Replace("\n", "<br>")}</div>
                             </div>
                             <hr>
                             <p style='color: #666; font-size: 12px; text-align: center;'>
-                                Email này được gửi tự động từ hệ thống liên hệ của Online Health Consultation Portal
+                                This email was sent automatically from the Online Health Consultation Portal contact system.
                             </p>
                         </div>
                     </div>

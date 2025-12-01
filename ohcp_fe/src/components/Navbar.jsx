@@ -87,9 +87,12 @@ function Navbar() {
                                     </a>
                                 </p>
                             </div>
-                            <button className="btn-appointment" style={{ border: "none" }}>
-                                MAKE AN APPOINTMENT
-                            </button>
+                            <NavLink to="/schedule" className="nav-link">
+                                <button className="btn-appointment" style={{ border: "none" }}>
+                                    MAKE AN APPOINTMENT
+                                </button>
+                            </NavLink>
+
                         </div>
                     </div>
                 </div>
