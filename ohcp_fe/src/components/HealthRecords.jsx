@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { healthRecordApi } from '../api/healthRecordApi';
+import DocumentViewerModal from './DocumentViewerModal';
 
 const HealthRecords = () => {
     // State for Documents
@@ -24,6 +25,8 @@ const HealthRecords = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
     const [sortBy, setSortBy] = useState('newest');
+    const [selectedDocument, setSelectedDocument] = useState(null);
+    const [showViewer, setShowViewer] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -98,6 +101,15 @@ const HealthRecords = () => {
         }
         return filtered;
     };
+
+    const handleViewDocument = (document) => {
+    setSelectedDocument(document);
+    setShowViewer(true);
+};
+const handleCloseViewer = () => {
+    setShowViewer(false);
+    setSelectedDocument(null);
+};
 
     // --- HANDLE SAVE HISTORY ---
     const handleSaveHistory = async () => {
@@ -468,7 +480,7 @@ const HealthRecords = () => {
                                         <span className="fw-bold text-primary">
                                             <i className="bi bi-calendar-event me-2"></i>
                                             {/* Use toLocaleDateString to show only date */}
-                                            Upload Session - {new Date(record.lastUpdated).toLocaleDateString('vi-VN')}
+                                            Document 
                                         </span>
 
                                         <span className="badge bg-light text-dark border">
@@ -530,14 +542,12 @@ const HealthRecords = () => {
                                                             </small>
                                                         )}
                                                     </div>
-                                                    <a
-                                                        href={doc.fileUrl}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        className="btn btn-sm btn-outline-primary"
-                                                    >
-                                                        <i className="bi bi-eye me-1"></i>View
-                                                    </a>
+                                                    <button
+    className="btn btn-sm btn-outline-primary"
+    onClick={() => handleViewDocument(doc)}
+>
+    <i className="bi bi-eye me-1"></i>View
+</button>
                                                 </div>
                                                 {/* Description */}
                                                 {doc.description && (
@@ -576,6 +586,14 @@ const HealthRecords = () => {
                     </div>
                 )}
             </div>
+
+            {selectedDocument && (
+                <DocumentViewerModal
+                    show={showViewer}
+                    onHide={handleCloseViewer}
+                    document={selectedDocument}
+                />
+            )}
         </div>
     );
 };

@@ -267,18 +267,12 @@ namespace OHCP_BK.Controllers
                     PatientID = userId,
                     DoctorID = dto.DoctorID,
                     AppointmentTime = dto.AppointmentTime,
-                    ConsultationType = dto.ConsultationType, // Video Call/Audio Call/Chat
+                    ConsultationType = dto.ConsultationType, // Video Call/Chat
                     Status = AppointmentConstants.StatusScheduled // Constant: "Scheduled"
                 };
 
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
-
-                // ---------------------------------------------------------
-                // TODO: Integration with calendar system (Y�u c?u ?? b�i)
-                // You can Notification ho?c send Email confirm
-                // Ex: _emailService.SendBookingConfirmation(userId, appointment);
-                // ---------------------------------------------------------
 
                 // Return result (call GetAppointment to return full details with join tables)
                 return CreatedAtAction(nameof(GetAppointment), new { id = appointment.AppointmentID }, new

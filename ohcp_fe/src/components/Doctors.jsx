@@ -10,7 +10,7 @@ const Doctors = () => {
   // 2. State pagination
   const [pagination, setPagination] = useState({
     page: 1,
-    pageSize: 5, 
+    pageSize: 5,
     totalPages: 1,
     totalItems: 0
   });
@@ -19,14 +19,18 @@ const Doctors = () => {
   const [filters, setFilters] = useState({
     name: '',
     specialty: '',
-    location: '',
-    language: ''
+    location: ''
   });
+  const [specialties, setSpecialties] = useState([]);
 
   const { isAuthenticated } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    loadSpecialties();
+  }, []);
 
   // Load when page changes
   useEffect(() => {
@@ -50,6 +54,17 @@ const Doctors = () => {
     // Cleanup function: clear timer
     return () => clearTimeout(timer);
   }, [filters]); // Run again when 'filters' changes
+
+  const loadSpecialties = async () => {
+    try {
+      const data = await doctorService.getSpecialties();
+      setSpecialties(data);
+    } catch (error) {
+      console.error("Error loading specialties:", error);
+      // Fallback to empty array
+      setSpecialties([]);
+    }
+  };
 
   const loadDoctors = async () => {
     setLoading(true);
@@ -90,11 +105,11 @@ const Doctors = () => {
   };
 
   // Handle search
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setPagination(prev => ({ ...prev, page: 1 }));
-    loadDoctors();
-  };
+  // const handleSearch = (e) => {
+  //   e.preventDefault();
+  //   setPagination(prev => ({ ...prev, page: 1 }));
+  //   loadDoctors();
+  // };
 
   // Handle page change
   const handlePageChange = (newPage) => {
@@ -124,10 +139,11 @@ const Doctors = () => {
                   <label className="form-label fw-bold">Specialty</label>
                   <select name="specialty" className="form-select" onChange={handleFilterChange} value={filters.specialty}>
                     <option value="">All Specialties</option>
-                    <option value="Cardiology">Cardiology</option>
-                    <option value="Dermatology">Dermatology</option>
-                    <option value="Neurology">Neurology</option>
-                    <option value="General">General Practitioner</option>
+                    {specialties.map((spec) => (
+                      <option key={spec} value={spec}>
+                        {spec}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="mb-3">
@@ -139,15 +155,7 @@ const Doctors = () => {
                     value={filters.location}
                   />
                 </div>
-                <div className="mb-3">
-                  <label className="form-label fw-bold">Language</label>
-                  <input
-                    type="text" name="language" className="form-control"
-                    placeholder="e.g. English..."
-                    onChange={handleFilterChange}
-                    value={filters.language}
-                  />
-                </div>
+
                 <div className="mb-3">
                   <label className="form-label fw-bold">Name</label>
                   <input
@@ -160,7 +168,7 @@ const Doctors = () => {
 
                 <button
                   className="btn btn-outline-secondary w-100"
-                  onClick={() => setFilters({ name: '', specialty: '', location: '', language: '' })}
+                  onClick={() => setFilters({ name: '', specialty: '', location: '' })}
                 >
                   Clear Filters
                 </button>

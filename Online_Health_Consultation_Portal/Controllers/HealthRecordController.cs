@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OHCP_BK.Data;
 using OHCP_BK.Dtos;
 using OHCP_BK.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace OHCP_BK.Controllers
 {
@@ -16,12 +19,14 @@ namespace OHCP_BK.Controllers
         private readonly OHCPContext _context;
         private readonly ILogger<HealthRecordController> _logger;
         private IWebHostEnvironment _environment;
+        private readonly IConfiguration _configuration;
 
-        public HealthRecordController(OHCPContext context, ILogger<HealthRecordController> logger, IWebHostEnvironment environment)
+        public HealthRecordController(OHCPContext context, ILogger<HealthRecordController> logger, IWebHostEnvironment environment, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
             _environment = environment;
+            _configuration = configuration;
         }
 
         // GET: api/HealthRecord
@@ -251,6 +256,117 @@ namespace OHCP_BK.Controllers
                 _logger.LogError($"Error deleting health record {id}: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
+        }
+
+        [HttpGet("document/{documentId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetDocument(int documentId, [FromQuery] string token)
+        {
+            // ═══════════════════════════════════════════════
+            // VALIDATE TOKEN
+            // ═══════════════════════════════════════════════
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized(new { message = "Token is required" });
+            }
+
+            string userId;
+            string role;
+
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.ASCII.GetBytes(_configuration["Jwt:SecretKey"]);
+
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = _configuration["Jwt:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = _configuration["Jwt:Audience"],
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+                role = principal.FindFirstValue(ClaimTypes.Role);
+
+                if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(role))
+                {
+                    return Unauthorized(new { message = "Invalid token claims" });
+                }
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                return Unauthorized(new { message = "Token has expired" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Token validation failed: {ex.Message}");
+                return Unauthorized(new { message = "Invalid token" });
+            }
+
+            // ═══════════════════════════════════════════════
+            // GET DOCUMENT
+            // ═══════════════════════════════════════════════
+            var document = await _context.MedicalDocuments
+                .FirstOrDefaultAsync(d => d.DocumentID == documentId);
+            if (document == null)
+            {
+                return NotFound(new { message = "Document not found" });
+            }
+            // ═══════════════════════════════════════════════
+            // CHECK AUTHORIZATION
+            // ═══════════════════════════════════════════════
+            if (role == "doctor")
+            {
+                // Doctor must have access via share
+                var hasAccess = await _context.HealthRecordShares
+                    .AnyAsync(s => s.SharedWithDoctorID == userId &&
+                                  s.HealthRecordID == document.HealthRecordID &&
+                                  (s.ExpiryDate == null || s.ExpiryDate > DateTime.Now));
+                if (!hasAccess)
+                {
+                    return StatusCode(403, new { message = "Access denied" });
+                }
+            }
+            else if (role == "patient")
+            {
+                // Patient must own the record
+                var record = await _context.HealthRecords
+                    .FirstOrDefaultAsync(r => r.HealthRecordID == document.HealthRecordID);
+                if (record?.PatientID != userId)
+                {
+                    return StatusCode(403, new { message = "Access denied" });
+                }
+            }
+            else
+            {
+                return StatusCode(403, new { message = "Invalid role" });
+            }
+            // ═══════════════════════════════════════════════
+            // RETURN FILE
+            // ═══════════════════════════════════════════════
+            var filePath = document.FileLocation;
+
+            // Handle relative paths
+            if (filePath.StartsWith("/"))
+            {
+                filePath = Path.Combine(_environment.WebRootPath,
+                    filePath.TrimStart('/').Replace("/", "\\"));
+            }
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                _logger.LogError($"File not found: {filePath}");
+                return NotFound(new { message = "File not found on server" });
+            }
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            var contentType = document.DocumentType ?? "application/octet-stream";
+
+            return File(fileBytes, contentType, document.DocumentName);
         }
     }
 }
