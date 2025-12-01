@@ -1,8 +1,31 @@
 import './Css/ContactUs.css';
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import Loading from './Loading';
+import axios from 'axios';
 function ContactUs() {
+  const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  });
+  const [userProfile, setUserProfile] = useState(null);
+
+  // Fetch user profile data
+  const fetchUserProfile = async () => {
+    try {
+      const response = await axios.get('https://localhost:7267/api/account/profile');
+      setUserProfile(response.data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   useEffect(() => {
     // Giả lập thời gian load trang (có thể thay bằng logic load data thực tế)
@@ -12,6 +35,106 @@ function ContactUs() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // No longer blocking access - allow viewing the page without login
+
+  // Fetch user profile only when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserProfile();
+    } else {
+      // Clear user profile when not authenticated
+      setUserProfile(null);
+    }
+  }, [isAuthenticated]);
+
+  // Populate form data when user profile is loaded
+  useEffect(() => {
+    if (userProfile) {
+      setFormData(prev => ({
+        ...prev,
+        name: userProfile.fullName || '',
+        email: userProfile.email || '',
+        phone: userProfile.phoneNumber || ''
+      }));
+    }
+  }, [userProfile]);
+
+  // Check authentication before submitting
+  const checkAuthAndRedirect = () => {
+    if (!isAuthenticated) {
+      // Show alert and redirect to login
+      alert('Please login to submit contact!');
+      window.location.href = '/login';
+      return false;
+    }
+    return true;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Check authentication before submitting
+    if (!checkAuthAndRedirect()) {
+      return;
+    }
+
+    // Validate form data
+    if (!formData.name || !formData.email || !formData.phone || !formData.subject || !formData.message) {
+      setSubmitMessage('Please fill in all information!');
+      return;
+    }
+
+    // Validate lengths
+    if (formData.name.length < 2) {
+      setSubmitMessage('Name must be at least 2 characters!');
+      return;
+    }
+    if (formData.phone.length < 8) {
+      setSubmitMessage('Phone number must be at least 8 characters!');
+      return;
+    }
+    if (formData.subject.length < 3) {
+      setSubmitMessage('Subject must be at least 3 characters!');
+      return;
+    }
+    if (formData.message.length < 5) {
+      setSubmitMessage('Message content must be at least 5 characters!');
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      const response = await axios.post('https://localhost:7267/api/contact', formData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      setSubmitMessage('Thank you for contacting us! We will respond as soon as possible.');
+      // Reset form after successful submission
+      setFormData({
+        name: userProfile?.fullName || '',
+        email: userProfile?.email || '',
+        phone: userProfile?.phoneNumber || '',
+        subject: '',
+        message: ''
+      });
+
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      if (error.response?.data?.message) {
+        setSubmitMessage(error.response.data.message);
+      } else {
+        setSubmitMessage('An error occurred while sending the message. Please try again later.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading) {
     return <Loading />;
@@ -32,31 +155,92 @@ function ContactUs() {
 
         <div>
           <div className='contactus-form-container'>
-            <form action="">
+            <form onSubmit={handleSubmit}>
               <div className='row contactus-form-row'>
                 <div className='col-md-6'>
-                  <input type="text" id="name" name="name" placeholder="Name" className='contactus-input' />
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Name"
+                    className='contactus-input'
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    readOnly={!!userProfile}
+                  />
                 </div>
                 <div className='col-md-6'>
-                  <input type="text" id="email" name="email" placeholder="Email" className='contactus-input' />
+                  <input
+                    type="text"
+                    id="email"
+                    name="email"
+                    placeholder="Email"
+                    className='contactus-input'
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    readOnly={!!userProfile}
+                  />
                 </div>
               </div>
 
               <div className='contactus-form-row'>
-                <input type="text" id='phone' name='phone' placeholder='Phone Number' className='contactus-input' />
+                <input
+                  type="text"
+                  id='phone'
+                  name='phone'
+                  placeholder='Phone Number'
+                  className='contactus-input'
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  readOnly={!!userProfile}
+                />
               </div>
 
               <div className='contactus-form-row'>
-                <input type="text" id='subject' name='subject' placeholder='Subject' className='contactus-input' />
+                <input
+                  type="text"
+                  id='subject'
+                  name='subject'
+                  placeholder='Subject'
+                  className='contactus-input'
+                  value={formData.subject}
+                  onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                />
               </div>
 
               <div>
-                <textarea id="message" name="message" placeholder="Leave Your Message Here....." className='contactus-textarea'></textarea>
+                <textarea
+                  id="message"
+                  name="message"
+                  placeholder="Leave Your Message Here....."
+                  className='contactus-textarea'
+                  value={formData.message}
+                  onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                ></textarea>
               </div>
 
               <div>
-                <button type='submit' className='contactus-submit-btn'><b>Send Message</b></button>
+                <button
+                  type='submit'
+                  className='contactus-submit-btn'
+                  disabled={submitting}
+                >
+                  <b>{submitting ? 'Sending...' : 'Send Message'}</b>
+                </button>
               </div>
+
+              {submitMessage && (
+                <div style={{
+                  marginTop: '20px',
+                  padding: '10px',
+                  borderRadius: '5px',
+                  backgroundColor: submitMessage.includes('Thank you!') ? '#d4edda' : '#f8d7da',
+                  border: `1px solid ${submitMessage.includes('Thank you!') ? '#c3e6cb' : '#f5c6cb'}`,
+                  color: submitMessage.includes('Thank you!') ? '#155724' : '#721c24'
+                }}>
+                  {submitMessage}
+                </div>
+              )}
             </form>
           </div>
         </div>

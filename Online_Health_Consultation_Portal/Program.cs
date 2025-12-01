@@ -141,6 +141,7 @@ builder.Services.AddAuthorization(o =>
 
 builder.Services.AddTransient<ITokenService, TokenService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Đăng ký dịch vụ nhắc nhở
 builder.Services.AddScoped<IMedicationReminderService, MedicationReminderService>();
@@ -212,6 +213,7 @@ app.UseExceptionHandler(errorApp =>
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors("AllowReactApp");
 app.UseStaticFiles();
+app.UseRouting(); // Required for endpoint routing
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
