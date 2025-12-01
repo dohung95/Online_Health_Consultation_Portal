@@ -265,6 +265,9 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                   >
                     Prescribe Medication
                   </button>
+                </div>
+              </div>
+            </div>
             {/* Full Width Tab Section (col-12) */}
             <div className="col-12">
               <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
