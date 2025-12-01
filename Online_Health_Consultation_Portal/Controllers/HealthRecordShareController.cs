@@ -67,7 +67,64 @@ namespace OHCP_BK.Controllers
                                            && !s.IsRevoked);
                 if (existingShare != null)
                 {
-                    return BadRequest("This health record is already shared with this doctor");
+                    // UPDATE logic: Merge documents
+                    if (request.DocumentIDs != null && request.DocumentIDs.Any())
+                    {
+                        // CASE 1: Đã share TOÀN BỘ record trước đó
+                        if (existingShare.SharedDocumentIDs == null)
+                        {
+                            return BadRequest("The entire record is already shared with this doctor. You cannot share specific documents as they are already included.");
+                        }
+                        // Deserialize existing documents
+                        var existingDocIds = JsonSerializer.Deserialize<List<int>>(existingShare.SharedDocumentIDs) ?? new List<int>();
+                        // --- KIỂM TRA TRÙNG LẶP ---
+                        // Tìm các documents MỚI (chưa có trong existingDocIds)
+                        var newDocumentsToShare = request.DocumentIDs.Except(existingDocIds).ToList();
+
+                        // Nếu không có document nào mới (tất cả đã được share rồi)
+                        if (!newDocumentsToShare.Any())
+                        {
+                            return BadRequest("All selected documents are already shared with this doctor");
+                        }
+                        // ---------------------------
+                        // Merge new documents with existing ones
+                        var mergedDocIds = existingDocIds
+                            .Union(request.DocumentIDs)
+                            .Distinct()
+                            .ToList();
+                        // Update the share record
+                        existingShare.SharedDocumentIDs = JsonSerializer.Serialize(mergedDocIds);
+                        existingShare.PermissionLevel = request.PermissionLevel;
+                        existingShare.ExpiryDate = request.ExpiryDate;
+                        await _context.SaveChangesAsync();
+                        return Ok(new
+                        {
+                            message = "Share updated successfully",
+                            shareId = existingShare.ShareID,
+                            addedDocuments = newDocumentsToShare.Count,
+                            totalDocuments = mergedDocIds.Count,
+                            shareType = "documents_merged"
+                        });
+                    }
+                    else
+                    {
+                        // If sharing entire record
+                        if (existingShare.SharedDocumentIDs == null)
+                        {
+                            return BadRequest("The entire record is already shared with this doctor");
+                        }
+                        // Update to entire record
+                        existingShare.SharedDocumentIDs = null; // null = entire record
+                        existingShare.PermissionLevel = request.PermissionLevel;
+                        existingShare.ExpiryDate = request.ExpiryDate;
+                        await _context.SaveChangesAsync();
+                        return Ok(new
+                        {
+                            message = "Share updated to entire record",
+                            shareId = existingShare.ShareID,
+                            shareType = "entire_record_updated"
+                        });
+                    }
                 }
                 // Create new share
                 var share = new HealthRecordShare

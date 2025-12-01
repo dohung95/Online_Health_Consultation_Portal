@@ -104,13 +104,6 @@ const Doctors = () => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  // Handle search
-  // const handleSearch = (e) => {
-  //   e.preventDefault();
-  //   setPagination(prev => ({ ...prev, page: 1 }));
-  //   loadDoctors();
-  // };
-
   // Handle page change
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
@@ -123,6 +116,32 @@ const Doctors = () => {
   const renderStars = (rating) => {
     const r = Math.round(rating);
     return <span className="text-warning">{"★".repeat(r)}{"☆".repeat(5 - r)}</span>;
+  };
+
+  // Helper: Tạo danh sách trang rút gọn (ví dụ: 1 ... 4 5 6 ... 10)
+  const getPaginationItems = (current, total) => {
+    const delta = 2; // Số trang hiển thị bên cạnh trang hiện tại
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+    for (let i = 1; i <= total; i++) {
+      // Luôn lấy trang 1, trang cuối, và các trang xung quanh current
+      if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+        range.push(i);
+      }
+    }
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+    return rangeWithDots;
   };
 
   return (
@@ -240,12 +259,19 @@ const Doctors = () => {
                         </button>
                       </li>
 
-                      {/* Array Page [1, 2, 3...] */}
-                      {[...Array(pagination.totalPages)].map((_, i) => (
-                        <li key={i + 1} className={`page-item ${pagination.page === i + 1 ? 'active' : ''}`}>
-                          <button className="page-link" onClick={() => handlePageChange(i + 1)}>
-                            {i + 1}
-                          </button>
+                      {/* Smart Pagination */}
+                      {getPaginationItems(pagination.page, pagination.totalPages).map((item, index) => (
+                        <li
+                          key={index}
+                          className={`page-item ${item === pagination.page ? 'active' : ''} ${item === '...' ? 'disabled' : ''}`}
+                        >
+                          {item === '...' ? (
+                            <span className="page-link">...</span>
+                          ) : (
+                            <button className="page-link" onClick={() => handlePageChange(item)}>
+                              {item}
+                            </button>
+                          )}
                         </li>
                       ))}
 

@@ -22,25 +22,6 @@ namespace OHCP_BK.Controllers
             _logger = logger;
         }
 
-        //// GET: api/Appointment
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
-        //{
-        //    try
-        //    {
-        //        var appointments = await _context.Appointments
-        //            .Include(a => a.Patient)
-        //            .Include(a => a.Doctor)
-        //            .ToListAsync();
-        //        return Ok(appointments);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"Error getting appointments: {ex.Message}");
-        //        return StatusCode(500, "Internal server error");
-        //    }
-        //}
-
         // GET: api/Appointment
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetAppointments()
@@ -173,41 +154,54 @@ namespace OHCP_BK.Controllers
         }
 
         // 1. API Get list of free hours (For Calendar Frontend)
-        [HttpGet("available-slots")]
-        public async Task<ActionResult<IEnumerable<TimeSlotDTO>>> GetAvailableSlots(string doctorId, DateTime date)
-        {
-            // Working hours: Morning 7am-11am, Afternoon 1pm-5pm
-            var startHours = new[] { 7, 8, 9, 10, 13, 14, 15, 16 };
-            var resultSlots = new List<TimeSlotDTO>();
-
-            // Get the doctor's BOOKED appointments for that day
-            var bookedTimes = await _context.Appointments
-                .Where(a => a.DoctorID == doctorId
-                            && a.AppointmentTime.Date == date.Date
-                            && a.Status != AppointmentConstants.StatusCancelled) // Ignore canceled appointments
-                .Select(a => a.AppointmentTime.Hour)
-                .ToListAsync();
-
-            foreach (var hour in startHours)
+            [HttpGet("available-slots")]
+            public async Task<ActionResult<IEnumerable<TimeSlotDTO>>> GetAvailableSlots(string doctorId, DateTime date)
             {
-                var slotTime = date.Date.AddHours(hour);
+                var startWork = new TimeSpan(8, 0, 0);
+                var endWork = new TimeSpan(20, 0, 0);
+                var slotDuration = TimeSpan.FromMinutes(30);
 
-                // Past test logic: If the selected date is today, only show future time
-                if (date.Date == DateTime.UtcNow.Date && slotTime <= DateTime.UtcNow.AddHours(7)) // +7 for VN timezone
+                var resultSlots = new List<TimeSlotDTO>();
+
+            // 2. Get BOOKED schedule
+            // IMPORTANT: Must get TimeOfDay (hour:minute) instead of Hour (only get hour) to compare 30p accurately
+            var bookedTimes = await _context.Appointments
+                    .Where(a => a.DoctorID == doctorId
+                                && a.AppointmentTime.Date == date.Date
+                                && a.Status != AppointmentConstants.StatusCancelled)
+                    .Select(a => a.AppointmentTime.TimeOfDay)
+                    .ToListAsync();
+
+            // 3. Loop to create slot (Replaces old int array foreach)
+            var currentSlot = startWork;
+                while (currentSlot < endWork)
                 {
-                    continue;
+                    var slotDateTime = date.Date.Add(currentSlot);
+
+                // Past check logic: Keep the same as the old code
+                // Note: DateTime.UtcNow.AddHours(7) is Vietnam time
+                if (date.Date == DateTime.UtcNow.Date && slotDateTime <= DateTime.UtcNow.AddHours(7))
+                    {
+                        currentSlot = currentSlot.Add(slotDuration);
+                        continue;
+                    }
+
+                // Create DTO that returns the correct format FE is using
+                resultSlots.Add(new TimeSlotDTO
+                    {
+                        StartTime = slotDateTime,
+                    // Ends in 30 minutes
+                    EndTime = slotDateTime.Add(slotDuration),
+                    // Duplicate check: compare exact TimeOfDay
+                    IsAvailable = !bookedTimes.Contains(currentSlot)
+                    });
+
+                // Add 30p to the next loop
+                currentSlot = currentSlot.Add(slotDuration);
                 }
 
-                resultSlots.Add(new TimeSlotDTO
-                {
-                    StartTime = slotTime,
-                    EndTime = slotTime.AddHours(1),
-                    IsAvailable = !bookedTimes.Contains(hour)
-                });
+                return Ok(resultSlots);
             }
-
-            return Ok(resultSlots);
-        }
 
         // POST: api/Appointment
         [HttpPost]
