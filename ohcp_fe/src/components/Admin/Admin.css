@@ -623,6 +623,11 @@
 
 .admin-modal-section {
   margin-bottom: var(--spacing-lg);
+  transition: all 0.3s ease;
+}
+
+.admin-modal-section:hover {
+  transform: translateY(-2px);
 }
 
 .admin-modal-section-title {
@@ -650,6 +655,15 @@
   padding: var(--spacing-sm);
   background-color: var(--admin-bg);
   border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.admin-info-row:hover {
+  background-color: rgba(236, 254, 255, 0.3);
+  border-color: var(--admin-border);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(8, 145, 178, 0.06);
 }
 
 .admin-info-row strong {
@@ -657,6 +671,11 @@
   font-weight: 600;
   display: inline-block;
   min-width: 140px;
+  transition: color 0.2s ease;
+}
+
+.admin-info-row:hover strong {
+  color: var(--admin-primary);
 }
 
 .admin-info-row span {
@@ -769,17 +788,55 @@
   font-weight: 600;
   color: var(--admin-text);
   margin-bottom: var(--spacing-sm);
+  transition: color 0.2s ease;
+}
+
+.admin-form-label:hover {
+  color: var(--admin-primary);
 }
 
 .admin-form-control {
   font-size: var(--font-size-sm);
   border-color: var(--admin-border-dark);
   border-radius: var(--radius-md);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: white;
+}
+
+.admin-form-control:hover {
+  border-color: var(--admin-primary-light);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.08);
 }
 
 .admin-form-control:focus {
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.1);
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
+  transform: translateY(-1px);
+  background-color: #fefefe;
+}
+
+.admin-form-control:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(8, 145, 178, 0.12);
+}
+
+/* Enhanced select dropdown styling */
+.admin-form-control option {
+  padding: 8px 12px;
+  background-color: white;
+  color: var(--admin-text);
+}
+
+/* Enhanced textarea styling */
+.admin-form-control[type="textarea"] {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.admin-form-control::placeholder {
+  color: var(--admin-text-lighter);
+  opacity: 0.7;
 }
 
 /* ==== PAGINATION ==== */

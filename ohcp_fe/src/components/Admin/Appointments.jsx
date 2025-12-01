@@ -461,10 +461,10 @@ export default function Appointments() {
 
           {/* View Appointment Details Modal */}
           {showViewModal && selectedAppointment && (
-            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+            <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
               <div className="modal-dialog modal-lg modal-dialog-scrollable">
-                <div className="modal-content">
-                  <div className="modal-header bg-primary text-white">
+                <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
+                  <div className="modal-header admin-modal-header primary">
                     <h5 className="modal-title">
                       <i className="bi bi-calendar-check me-2"></i>
                       Appointment Details
@@ -475,68 +475,66 @@ export default function Appointments() {
                       onClick={() => setShowViewModal(false)}
                     ></button>
                   </div>
-                  <div className="modal-body">
+                  <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
                     <div className="row">
                       {/* Left Column */}
                       <div className="col-md-6">
-                        <div className="mb-4">
-                          <h6 className="text-primary border-bottom pb-2 mb-3">
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
                             <i className="bi bi-info-circle me-2"></i>
                             Appointment Information
                           </h6>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Appointment ID:</strong>
-                            <p className="mb-0">{selectedAppointment.appointmentID}</p>
+                            <span>{selectedAppointment.appointmentID}</span>
                           </div>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Date:</strong>
-                            <p className="mb-0">{selectedAppointment.date}</p>
+                            <span>{selectedAppointment.date}</span>
                           </div>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Time:</strong>
-                            <p className="mb-0">{selectedAppointment.time}</p>
+                            <span>{selectedAppointment.time}</span>
                           </div>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Consultation Type:</strong>
-                            <p className="mb-0">{selectedAppointment.consultationType || 'N/A'}</p>
+                            <span>{selectedAppointment.consultationType || 'N/A'}</span>
                           </div>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Status:</strong>
-                            <p className="mb-0">
-                              <span className={`badge bg-${getStatusBadgeClass(selectedAppointment.status)}`}>
-                                {selectedAppointment.status}
-                              </span>
-                            </p>
+                            <span className={`admin-badge ${getStatusBadgeClass(selectedAppointment.status)}`}>
+                              {selectedAppointment.status}
+                            </span>
                           </div>
                         </div>
                       </div>
 
                       {/* Right Column */}
                       <div className="col-md-6">
-                        <div className="mb-4">
-                          <h6 className="text-success border-bottom pb-2 mb-3">
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title info">
                             <i className="bi bi-people me-2"></i>
                             Patient & Doctor Information
                           </h6>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Patient Name:</strong>
-                            <p className="mb-0">{selectedAppointment.patientName}</p>
+                            <span>{selectedAppointment.patientName}</span>
                           </div>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Doctor Name:</strong>
-                            <p className="mb-0">{selectedAppointment.doctorName}</p>
+                            <span>{selectedAppointment.doctorName}</span>
                           </div>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Department:</strong>
-                            <p className="mb-0">{selectedAppointment.department}</p>
+                            <span>{selectedAppointment.department}</span>
                           </div>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Reason:</strong>
-                            <p className="mb-0">{selectedAppointment.reason || 'No reason provided'}</p>
+                            <span>{selectedAppointment.reason || 'No reason provided'}</span>
                           </div>
-                          <div className="mb-3">
+                          <div className="admin-info-row">
                             <strong>Notes:</strong>
-                            <p className="mb-0">{selectedAppointment.notes || 'No notes'}</p>
+                            <span>{selectedAppointment.notes || 'No notes'}</span>
                           </div>
                         </div>
                       </div>
@@ -559,10 +557,10 @@ export default function Appointments() {
 
           {/* Edit Appointment Modal */}
           {showEditModal && selectedAppointment && (
-            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+            <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
               <div className="modal-dialog modal-xl" style={{maxWidth: '90%'}}>
-                <div className="modal-content">
-                  <div className="modal-header bg-success text-white">
+                <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
+                  <div className="modal-header admin-modal-header info">
                     <h5 className="modal-title">
                       <i className="bi bi-pencil-square me-2"></i>
                       Edit Appointment
@@ -574,51 +572,51 @@ export default function Appointments() {
                     ></button>
                   </div>
                   <form onSubmit={handleUpdateAppointment}>
-                    <div className="modal-body" style={{maxHeight: '75vh', overflowY: 'auto'}}>
+                    <div className="modal-body admin-modal-body" style={{maxHeight: '75vh', overflowY: 'auto', backgroundColor: 'var(--admin-bg)'}}>
                       <div className="row">
                         {/* Left Column - Basic Information */}
                         <div className="col-lg-6">
-                          <div className="mb-4">
-                            <h6 className="text-primary border-bottom pb-2 mb-3">
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title primary">
                               <i className="bi bi-calendar-event me-2"></i>
                               Appointment Details
                             </h6>
-                            <div className="mb-3">
-                              <strong className="d-block mb-2">Patient:</strong>
-                              <p className="text-muted">{selectedAppointment.patientName}</p>
+                            <div className="admin-info-row">
+                              <strong>Patient:</strong>
+                              <span>{selectedAppointment.patientName}</span>
+                            </div>
+                            <div className="admin-info-row">
+                              <strong>Doctor:</strong>
+                              <span>{selectedAppointment.doctorName}</span>
+                            </div>
+                            <div className="admin-info-row">
+                              <strong>Department:</strong>
+                              <span>{selectedAppointment.department}</span>
                             </div>
                             <div className="mb-3">
-                              <strong className="d-block mb-2">Doctor:</strong>
-                              <p className="text-muted">{selectedAppointment.doctorName}</p>
-                            </div>
-                            <div className="mb-3">
-                              <strong className="d-block mb-2">Department:</strong>
-                              <p className="text-muted">{selectedAppointment.department}</p>
-                            </div>
-                            <div className="mb-3">
-                              <label className="form-label fw-semibold">Appointment Date <span className="text-danger">*</span></label>
+                              <label className="admin-form-label">Appointment Date <span className="text-danger">*</span></label>
                               <input
                                 type="date"
-                                className="form-control"
+                                className="form-control admin-form-control"
                                 value={editForm.appointmentDate}
                                 onChange={(e) => setEditForm({ ...editForm, appointmentDate: e.target.value })}
                                 required
                               />
                             </div>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Appointment Time <span className="text-danger">*</span></label>
+                              <label className="admin-form-label">Appointment Time <span className="text-danger">*</span></label>
                               <input
                                 type="time"
-                                className="form-control"
+                                className="form-control admin-form-control"
                                 value={editForm.appointmentTime}
                                 onChange={(e) => setEditForm({ ...editForm, appointmentTime: e.target.value })}
                                 required
                               />
                             </div>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Consultation Type <span className="text-danger">*</span></label>
+                              <label className="admin-form-label">Consultation Type <span className="text-danger">*</span></label>
                               <select
-                                className="form-select"
+                                className="form-select admin-form-control"
                                 value={editForm.consultationType}
                                 onChange={(e) => setEditForm({ ...editForm, consultationType: e.target.value })}
                                 required
@@ -629,9 +627,9 @@ export default function Appointments() {
                               </select>
                             </div>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Status <span className="text-danger">*</span></label>
+                              <label className="admin-form-label">Status <span className="text-danger">*</span></label>
                               <select
-                                className="form-select"
+                                className="form-select admin-form-control"
                                 value={editForm.status}
                                 onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
                                 required
@@ -648,15 +646,15 @@ export default function Appointments() {
 
                         {/* Right Column - Additional Information */}
                         <div className="col-lg-6">
-                          <div className="mb-4">
-                            <h6 className="text-success border-bottom pb-2 mb-3">
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
                               <i className="bi bi-file-text me-2"></i>
                               Additional Information
                             </h6>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Reason for Visit</label>
+                              <label className="admin-form-label">Reason for Visit</label>
                               <textarea
-                                className="form-control"
+                                className="form-control admin-form-control"
                                 rows="5"
                                 value={editForm.reason}
                                 onChange={(e) => setEditForm({ ...editForm, reason: e.target.value })}
@@ -664,9 +662,9 @@ export default function Appointments() {
                               ></textarea>
                             </div>
                             <div className="mb-3">
-                              <label className="form-label fw-semibold">Notes</label>
+                              <label className="admin-form-label">Notes</label>
                               <textarea
-                                className="form-control"
+                                className="form-control admin-form-control"
                                 rows="8"
                                 value={editForm.notes}
                                 onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
