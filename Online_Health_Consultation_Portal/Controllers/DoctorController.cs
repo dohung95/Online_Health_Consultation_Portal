@@ -263,8 +263,6 @@ namespace OHCP_BK.Controllers
 
                 return Ok(doctors); // Tr? v? M?ng [] tr?c ti?p, kh�ng b?c PagedResult
 
-                return Ok(doctors);
-
             }
             catch (Exception ex)
             {
