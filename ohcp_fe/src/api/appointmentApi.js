@@ -14,9 +14,11 @@ const getAuthConfig = () => {
 
 export const appointmentService = {
     getAvailableSlots: async (doctorId, date) => {
-        const response = await axios.get(`${API_URL}/Appointment/available-slots`, getAuthConfig(), {
-            params: { doctorId, date }
-        });
+        const config = getAuthConfig();
+        // Thêm params vào config
+        config.params = { doctorId, date };
+        // Gọi axios với đúng 2 tham số
+        const response = await axios.get(`${API_URL}/Appointment/available-slots`, config);
         return response.data;
     },
 

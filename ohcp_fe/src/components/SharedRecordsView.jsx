@@ -194,12 +194,40 @@ const SharedRecordsView = () => {
                                                     >
                                                         <div className="d-flex align-items-center">
                                                             <i className="bi bi-file-pdf text-danger me-3" style={{ fontSize: '1.5rem' }}></i>
-                                                            <div>
-                                                                <div className="fw-bold text-primary">
+                                                            <div className="flex-grow-1">
+                                                                {/* Title với category badge */}
+                                                                <div className="fw-bold text-primary d-flex align-items-center">
+                                                                    {doc.category && (
+                                                                        <span className="badge bg-info bg-opacity-10 text-info me-2 fw-normal" style={{ fontSize: '0.65rem' }}>
+                                                                            {doc.category}
+                                                                        </span>
+                                                                    )}
                                                                     {doc.fileName || `Document ${idx + 1}`}
                                                                 </div>
-                                                                <small className="text-muted">
-                                                                    {doc.uploadDate && `Uploaded: ${formatDate(doc.uploadDate)}`}
+
+                                                                {/* Document info line */}
+                                                                <small className="text-muted d-flex gap-2" style={{ fontSize: '0.75rem' }}>
+                                                                    {/* Document Date */}
+                                                                    {doc.documentDate && (
+                                                                        <span>
+                                                                            <i className="bi bi-calendar-check me-1"></i>
+                                                                            {formatDate(doc.documentDate)}
+                                                                        </span>
+                                                                    )}
+                                                                    {/* Upload Date */}
+                                                                    {doc.uploadedAt && (
+                                                                        <span>
+                                                                            <i className="bi bi-cloud-upload me-1"></i>
+                                                                            Uploaded: {formatDate(doc.uploadedAt)}
+                                                                        </span>
+                                                                    )}
+                                                                    {/* Document Type */}
+                                                                    {doc.documentType && (
+                                                                        <span>
+                                                                            <i className="bi bi-file-text me-1"></i>
+                                                                            {doc.documentType}
+                                                                        </span>
+                                                                    )}
                                                                 </small>
                                                             </div>
                                                         </div>
@@ -270,12 +298,40 @@ const SharedRecordsView = () => {
                                                                 >
                                                                     <div className="d-flex align-items-center">
                                                                         <i className="bi bi-file-pdf text-danger me-3" style={{ fontSize: '1.5rem' }}></i>
-                                                                        <div>
-                                                                            <div className="fw-bold text-primary">
+                                                                        <div className="flex-grow-1">
+                                                                            {/* Title với category badge */}
+                                                                            <div className="fw-bold text-primary d-flex align-items-center">
+                                                                                {doc.category && (
+                                                                                    <span className="badge bg-info bg-opacity-10 text-info me-2 fw-normal" style={{ fontSize: '0.65rem' }}>
+                                                                                        {doc.category}
+                                                                                    </span>
+                                                                                )}
                                                                                 {doc.fileName || `Document ${idx + 1}`}
                                                                             </div>
-                                                                            <small className="text-muted">
-                                                                                {doc.uploadDate && `Uploaded: ${formatDate(doc.uploadDate)}`}
+
+                                                                            {/* Document info line */}
+                                                                            <small className="text-muted d-flex gap-2" style={{ fontSize: '0.75rem' }}>
+                                                                                {/* Document Date */}
+                                                                                {doc.documentDate && (
+                                                                                    <span>
+                                                                                        <i className="bi bi-calendar-check me-1"></i>
+                                                                                        {formatDate(doc.documentDate)}
+                                                                                    </span>
+                                                                                )}
+                                                                                {/* Upload Date */}
+                                                                                {doc.uploadedAt && (
+                                                                                    <span>
+                                                                                        <i className="bi bi-cloud-upload me-1"></i>
+                                                                                        Uploaded: {formatDate(doc.uploadedAt)}
+                                                                                    </span>
+                                                                                )}
+                                                                                {/* Document Type */}
+                                                                                {doc.documentType && (
+                                                                                    <span>
+                                                                                        <i className="bi bi-file-text me-1"></i>
+                                                                                        {doc.documentType}
+                                                                                    </span>
+                                                                                )}
                                                                             </small>
                                                                         </div>
                                                                     </div>
