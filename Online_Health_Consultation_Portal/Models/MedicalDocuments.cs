@@ -7,22 +7,22 @@ namespace OHCP_BK.Models
     {
         [Key]
         public int DocumentID { get; set; }
-        
+
         [Required]
         [ForeignKey(nameof(HealthRecord))]
         public int HealthRecordID { get; set; }
-        
+
         [Required]
         public string DocumentName { get; set; } = null!;
-        
+
         [Required]
         public string DocumentType { get; set; } = null!;
-        
+
         [Required]
         public string FileLocation { get; set; } = null!;
 
         // Document categorization
-        public string? Category { get; set; } 
+        public string? Category { get; set; }
         // Options: "X-Ray", "CT-Scan", "MRI", "Ultrasound", "Lab-Report", 
         //          "Blood-Test", "Prescription", "Consultation-Notes", "Other"
         // Patient's description when uploading
@@ -39,5 +39,4 @@ namespace OHCP_BK.Models
 
         public virtual HealthRecord HealthRecord { get; set; } = null!;
     }
-
 }

@@ -23,6 +23,39 @@ namespace OHCP_BK.Models
         
         public string? InsurancePolicyNumber { get; set; }
 
+        [MaxLength(10)]
+        public string? Gender { get; set; }
+    
+        [MaxLength(255)]
+        public string? Address { get; set; }
+    
+        [MaxLength(100)]
+        public string? City { get; set; }
+    
+        [MaxLength(100)]
+        public string? Country { get; set; }
+        
+        [MaxLength(10)]
+        public string? BloodType { get; set; }
+        
+        [MaxLength(100)]
+        public string? EmergencyContactName { get; set; }
+        
+        [MaxLength(20)]
+        public string? EmergencyContactPhone { get; set; }
+        
+        [MaxLength(50)]
+        public string? EmergencyContactRelationship { get; set; }
+        
+        [MaxLength(50)]
+        public string? PreferredLanguage { get; set; }
+        
+        [MaxLength(20)]
+        public string? PreferredContactMethod { get; set; }
+        
+        [MaxLength(100)]
+        public string? Occupation { get; set; }
+
         public virtual AppUser User { get; set; } = null!;
 
         public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();

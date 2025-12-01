@@ -296,6 +296,9 @@ namespace OHCP_BK.Controllers.Admin
                     appointment.Status = dto.Status;
                 }
 
+                // Mark entity as modified to ensure EF Core tracks changes
+                _context.Entry(appointment).State = EntityState.Modified;
+
                 await _context.SaveChangesAsync();
 
                 return Ok(new { message = "Appointment updated successfully" });
@@ -303,30 +306,6 @@ namespace OHCP_BK.Controllers.Admin
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "An error occurred while updating appointment", details = ex.Message });
-            }
-        }
-
-        // DELETE: api/admin/adminappointments/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAppointment(int id)
-        {
-            try
-            {
-                var appointment = await _context.Appointments.FindAsync(id);
-
-                if (appointment == null)
-                {
-                    return NotFound(new { error = "Appointment not found" });
-                }
-
-                _context.Appointments.Remove(appointment);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "Appointment deleted successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "An error occurred while deleting appointment", details = ex.Message });
             }
         }
     }

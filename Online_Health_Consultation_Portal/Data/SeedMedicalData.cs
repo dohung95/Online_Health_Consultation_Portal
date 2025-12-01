@@ -120,7 +120,7 @@ namespace OHCP_BK.Data
             int doctorCount = 1;
             foreach (var doc in doctorData)
             {
-                var username = $"doctor_{doc.Specialty.ToLower().Replace(" ", "").Replace("(", "").Replace(")", "")}_{doctorCount:D2}";
+                var username = $"{doc.FirstName} {doc.LastName}";
                 var email = $"{doc.FirstName.ToLower()}.{doc.LastName.ToLower()}@hospital.com";
 
                 // Check if user already exists
@@ -250,7 +250,7 @@ namespace OHCP_BK.Data
             {
                 var firstName = firstNames[random.Next(firstNames.Length)];
                 var lastName = lastNames[random.Next(lastNames.Length)];
-                var username = $"patient_{i:D3}";
+                var username = $"{firstName} {lastName}";
                 var email = $"{firstName.ToLower()}.{lastName.ToLower()}.{i}@email.com";
 
                 // Check if user already exists
@@ -315,7 +315,7 @@ namespace OHCP_BK.Data
             var patients = await context.Patients.ToListAsync();
             var random = new Random();
 
-            var consultationTypes = new[] { "Video Call", "In-Person", "Phone Call" };
+            var consultationTypes = new[] { "Video Call", "Chat"};
             var statuses = new[] { "Scheduled", "Completed", "Cancelled", "In Progress" };
 
             var appointmentCount = 0;

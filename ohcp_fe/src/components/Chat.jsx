@@ -433,7 +433,7 @@ export default function Chat() {
                             {isGuest && `Chat with ${chatPartner.displayName}`}
                             {!isGuest && isDoctor && !chatPartner && "Patient List"}
                             {!isGuest && isDoctor && chatPartner && `Chat with ${chatPartner.displayName}`}
-                            {!isGuest && isPatient && `Chat with ${chatPartner.displayName}`}
+                            {!isGuest && isPatient && `Chat with Doctor ${chatPartner.displayName}`}
                         </h5>
 
                         <button
@@ -631,7 +631,7 @@ export default function Chat() {
                                                 className="rounded-circle me-2"
                                                 style={{ width: 40, height: 40 }}
                                             />
-                                            <span className="fw-bold">{doc.displayName}</span>
+                                            <span className="fw-bold">Dr.{doc.displayName}</span>
                                         </li>
                                     ))}
                                 </ul>

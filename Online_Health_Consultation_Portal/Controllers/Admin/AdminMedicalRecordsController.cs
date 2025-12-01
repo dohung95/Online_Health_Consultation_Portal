@@ -63,6 +63,7 @@ namespace OHCP_BK.Controllers.Admin
             {
                 var query = _context.HealthRecords
                     .Include(hr => hr.Patient)
+                    .Include(hr => hr.MedicalDocuments)
                     .AsQueryable();
 
                 // Search filter
@@ -95,23 +96,40 @@ namespace OHCP_BK.Controllers.Admin
                 var records = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(hr => new MedicalRecordAdminDto
+                    .ToListAsync();
+
+                // Get doctor names from most recent appointments
+                var recordDtos = new List<MedicalRecordAdminDto>();
+                foreach (var hr in records)
+                {
+                    var latestAppointment = await _context.Appointments
+                        .Include(a => a.Doctor)
+                        .Where(a => a.PatientID == hr.PatientID)
+                        .OrderByDescending(a => a.AppointmentTime)
+                        .FirstOrDefaultAsync();
+
+                    var categoryFromDocuments = hr.MedicalDocuments
+                        .OrderByDescending(md => md.UploadedAt)
+                        .Select(md => md.Category)
+                        .FirstOrDefault() ?? "General";
+
+                    recordDtos.Add(new MedicalRecordAdminDto
                     {
                         HealthRecordID = hr.HealthRecordID,
                         PatientID = hr.PatientID,
                         PatientName = hr.Patient.FullName,
-                        DoctorName = null, // Can be enhanced if you link appointments
+                        DoctorName = latestAppointment?.Doctor.FullName ?? "N/A",
                         Date = hr.LastUpdated,
-                        Category = "General", // Can be enhanced with actual categories
+                        Category = categoryFromDocuments,
                         Diagnosis = hr.Patient.MedicalHistorySummary ?? "No diagnosis recorded",
                         Status = "Active",
                         LastUpdated = hr.LastUpdated
-                    })
-                    .ToListAsync();
+                    });
+                }
 
                 return Ok(new MedicalRecordListResponseDto
                 {
-                    Records = records,
+                    Records = recordDtos,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
@@ -132,6 +150,7 @@ namespace OHCP_BK.Controllers.Admin
             {
                 var record = await _context.HealthRecords
                     .Include(hr => hr.Patient)
+                    .Include(hr => hr.MedicalDocuments)
                     .FirstOrDefaultAsync(hr => hr.HealthRecordID == id);
 
                 if (record == null)
@@ -139,14 +158,26 @@ namespace OHCP_BK.Controllers.Admin
                     return NotFound(new { error = "Medical record not found" });
                 }
 
+                // Get doctor from most recent appointment
+                var latestAppointment = await _context.Appointments
+                    .Include(a => a.Doctor)
+                    .Where(a => a.PatientID == record.PatientID)
+                    .OrderByDescending(a => a.AppointmentTime)
+                    .FirstOrDefaultAsync();
+
+                var categoryFromDocuments = record.MedicalDocuments
+                    .OrderByDescending(md => md.UploadedAt)
+                    .Select(md => md.Category)
+                    .FirstOrDefault() ?? "General";
+
                 var recordDto = new MedicalRecordAdminDto
                 {
                     HealthRecordID = record.HealthRecordID,
                     PatientID = record.PatientID,
                     PatientName = record.Patient.FullName,
-                    DoctorName = null,
+                    DoctorName = latestAppointment?.Doctor.FullName ?? "N/A",
                     Date = record.LastUpdated,
-                    Category = "General",
+                    Category = categoryFromDocuments,
                     Diagnosis = record.Patient.MedicalHistorySummary ?? "No diagnosis recorded",
                     Status = "Active",
                     LastUpdated = record.LastUpdated
@@ -168,77 +199,39 @@ namespace OHCP_BK.Controllers.Admin
             {
                 var records = await _context.HealthRecords
                     .Include(hr => hr.Patient)
+                    .Include(hr => hr.MedicalDocuments)
                     .Where(hr => hr.PatientID == patientId)
                     .OrderByDescending(hr => hr.LastUpdated)
-                    .Select(hr => new MedicalRecordAdminDto
-                    {
-                        HealthRecordID = hr.HealthRecordID,
-                        PatientID = hr.PatientID,
-                        PatientName = hr.Patient.FullName,
-                        DoctorName = null,
-                        Date = hr.LastUpdated,
-                        Category = "General",
-                        Diagnosis = hr.Patient.MedicalHistorySummary ?? "No diagnosis recorded",
-                        Status = "Active",
-                        LastUpdated = hr.LastUpdated
-                    })
                     .ToListAsync();
 
-                return Ok(records);
+                // Get doctor from most recent appointment
+                var latestAppointment = await _context.Appointments
+                    .Include(a => a.Doctor)
+                    .Where(a => a.PatientID == patientId)
+                    .OrderByDescending(a => a.AppointmentTime)
+                    .FirstOrDefaultAsync();
+
+                var recordDtos = records.Select(hr => new MedicalRecordAdminDto
+                {
+                    HealthRecordID = hr.HealthRecordID,
+                    PatientID = hr.PatientID,
+                    PatientName = hr.Patient.FullName,
+                    DoctorName = latestAppointment?.Doctor.FullName ?? "N/A",
+                    Date = hr.LastUpdated,
+                    Category = hr.MedicalDocuments
+                        .OrderByDescending(md => md.UploadedAt)
+                        .Select(md => md.Category)
+                        .FirstOrDefault() ?? "General",
+                    Diagnosis = hr.Patient.MedicalHistorySummary ?? "No diagnosis recorded",
+                    Status = "Active",
+                    LastUpdated = hr.LastUpdated
+                }).ToList();
+
+                return Ok(recordDtos);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "An error occurred while fetching patient medical records", details = ex.Message });
-            }
-        }
-
-        // PUT: api/admin/adminmedicalrecords/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMedicalRecord(int id)
-        {
-            try
-            {
-                var record = await _context.HealthRecords.FindAsync(id);
-
-                if (record == null)
-                {
-                    return NotFound(new { error = "Medical record not found" });
-                }
-
-                // Update the LastUpdated timestamp
-                record.LastUpdated = DateTime.Now;
-
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "Medical record updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "An error occurred while updating medical record", details = ex.Message });
-            }
-        }
-
-        // DELETE: api/admin/adminmedicalrecords/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMedicalRecord(int id)
-        {
-            try
-            {
-                var record = await _context.HealthRecords.FindAsync(id);
-
-                if (record == null)
-                {
-                    return NotFound(new { error = "Medical record not found" });
-                }
-
-                _context.HealthRecords.Remove(record);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "Medical record deleted successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "An error occurred while deleting medical record", details = ex.Message });
             }
         }
     }

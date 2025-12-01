@@ -14,6 +14,16 @@ namespace OHCP_BK.DTOs.Admin
         public string? MedicalHistorySummary { get; set; }
         public string? InsuranceProvider { get; set; }
         public string? InsurancePolicyNumber { get; set; }
+        public string? Address { get; set; }
+        public string? City { get; set; }
+        public string? Country { get; set; }
+        public string? BloodType { get; set; }
+        public string? EmergencyContactName { get; set; }
+        public string? EmergencyContactPhone { get; set; }
+        public string? EmergencyContactRelationship { get; set; }
+        public string? PreferredLanguage { get; set; }
+        public string? PreferredContactMethod { get; set; }
+        public string? Occupation { get; set; }
         public DateTime? CreatedDate { get; set; }
     }
 
@@ -26,26 +36,24 @@ namespace OHCP_BK.DTOs.Admin
         public int TotalPages { get; set; }
     }
 
-    public class CreatePatientAdminDto
-    {
-        public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public DateTime? DateOfBirth { get; set; }
-        public string? MedicalHistorySummary { get; set; }
-        public string? InsuranceProvider { get; set; }
-        public string? InsurancePolicyNumber { get; set; }
-        public string Password { get; set; } = "Patient@123!#"; // Default password
-    }
-
     public class UpdatePatientAdminDto
     {
         public string FullName { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public DateTime? DateOfBirth { get; set; }
+        public string? Gender { get; set; }
         public string? MedicalHistorySummary { get; set; }
         public string? InsuranceProvider { get; set; }
         public string? InsurancePolicyNumber { get; set; }
-        public string Status { get; set; } = "Active";
+        public string? Address { get; set; }
+        public string? City { get; set; }
+        public string? Country { get; set; }
+        public string? BloodType { get; set; }
+        public string? EmergencyContactName { get; set; }
+        public string? EmergencyContactPhone { get; set; }
+        public string? EmergencyContactRelationship { get; set; }
+        public string? PreferredLanguage { get; set; }
+        public string? PreferredContactMethod { get; set; }
+        public string? Occupation { get; set; }
     }
 }

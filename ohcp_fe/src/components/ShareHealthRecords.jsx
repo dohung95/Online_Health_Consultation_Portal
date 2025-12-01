@@ -170,7 +170,7 @@ const ShareHealthRecords = () => {
                                         <option value="">Choose record...</option>
                                         {healthRecords.map(record => (
                                             <option key={record.healthRecordID} value={record.healthRecordID}>
-                                                Record #{record.healthRecordID} -
+                                                
                                                 {new Date(record.lastUpdated).toLocaleDateString()}
                                                 ({record.documents?.length || 0} document(s))
                                             </option>

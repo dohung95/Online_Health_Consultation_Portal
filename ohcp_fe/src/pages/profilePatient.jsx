@@ -9,9 +9,17 @@ export default function PatientProfile() {
         email: '',
         phoneNumber: '',
         dateOfBirth: '',
-        medicalHistorySummary: '',
-        insuranceProvider: '',
-        insurancePolicyNumber: ''
+        gender: '',
+        address: '',
+        city: '',
+        country: '',
+        bloodType: '',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+        emergencyContactRelationship: '',
+        preferredLanguage: '',
+        preferredContactMethod: '',
+        occupation: ''
     });
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('info'); // 'info' hoặc 'security'
@@ -103,6 +111,11 @@ function GeneralInfoForm({ profile, token, onUpdate }) {
     const [saving, setSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
+    // Sync formData khi profile thay đổi
+    useEffect(() => {
+        setFormData(profile);
+    }, [profile]);
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -128,24 +141,36 @@ function GeneralInfoForm({ profile, token, onUpdate }) {
         return (
             formData.fullName !== profile.fullName ||
             formData.phoneNumber !== profile.phoneNumber ||
-            formData.dateOfBirth !== profile.dateOfBirth
+            formData.dateOfBirth !== profile.dateOfBirth ||
+            formData.gender !== profile.gender ||
+            formData.address !== profile.address ||
+            formData.city !== profile.city ||
+            formData.country !== profile.country ||
+            formData.bloodType !== profile.bloodType ||
+            formData.emergencyContactName !== profile.emergencyContactName ||
+            formData.emergencyContactPhone !== profile.emergencyContactPhone ||
+            formData.emergencyContactRelationship !== profile.emergencyContactRelationship ||
+            formData.preferredLanguage !== profile.preferredLanguage ||
+            formData.preferredContactMethod !== profile.preferredContactMethod ||
+            formData.occupation !== profile.occupation
         );
     };
 
     return (
         <form onSubmit={handleSubmit}>
             <div className="row g-4 mb-4">
-                {/* === Basic Information === */}
-                <div className="col-12">
+                {/* === Card 1: Personal Information === */}
+                <div className="col-md-4">
                     <div className="card h-100 border-primary">
                         <div className="card-header bg-primary text-white">
                             <h5 className="mb-0">
                                 <i className="bi bi-person-vcard me-2"></i>
-                                Basic Information
+                                Personal Information
                             </h5>
                         </div>
                         <div className="card-body">
                             <div className="row g-3">
+                                {/* Cột trái */}
                                 <div className="col-6">
                                     <label className="form-label">Full Name</label>
                                     <input
@@ -169,6 +194,17 @@ function GeneralInfoForm({ profile, token, onUpdate }) {
                                         disabled={!isEditing}
                                     />
                                 </div>
+
+                                <div className="col-6">
+                                    <label className="form-label">Email</label>
+                                    <input
+                                        type="email"
+                                        className="form-control bg-light"
+                                        value={formData.email}
+                                        disabled
+                                    />
+                                    <small className="text-muted">Go to Security tab</small>
+                                </div>
                                 <div className="col-6">
                                     <label className="form-label">Date of Birth</label>
                                     <input
@@ -180,16 +216,185 @@ function GeneralInfoForm({ profile, token, onUpdate }) {
                                         disabled={!isEditing}
                                     />
                                 </div>
+
                                 <div className="col-6">
-                                    <label className="form-label">Email</label>
-                                    <input
-                                        type="email"
-                                        className="form-control bg-light"
-                                        value={formData.email}
-                                        disabled
-                                    />
-                                    <small className="text-muted">Go to Security tab to change email</small>
+                                    <label className="form-label">Gender</label>
+                                    <select
+                                        className="form-select"
+                                        name="gender"
+                                        value={formData.gender}
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
                                 </div>
+                                <div className="col-6">
+                                    <label className="form-label">Blood Type</label>
+                                    <select
+                                        className="form-select"
+                                        name="bloodType"
+                                        value={formData.bloodType}
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                    >
+                                        <option value="">Select Blood Type</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                    </select>
+                                </div>
+
+                                <div className="col-12">
+                                    <label className="form-label">Address</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                    />
+                                </div>
+
+                                <div className="col-6">
+                                    <label className="form-label">City</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="city"
+                                        value={formData.city}
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                    />
+                                </div>
+                                <div className="col-6">
+                                    <label className="form-label">Country</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="country"
+                                        value={formData.country}
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* === Card 2: Emergency Contact === */}
+                <div className="col-md-4">
+                    <div className="card h-100 border-danger">
+                        <div className="card-header bg-danger text-white">
+                            <h5 className="mb-0">
+                                <i className="bi bi-phone-vibrate me-2"></i>
+                                Emergency Contact
+                            </h5>
+                        </div>
+                        <div className="card-body">
+                            <div className="mb-3">
+                                <label className="form-label">Contact Name</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    name="emergencyContactName"
+                                    value={formData.emergencyContactName}
+                                    onChange={handleChange}
+                                    disabled={!isEditing}
+                                />
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Contact Phone</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    name="emergencyContactPhone"
+                                    value={formData.emergencyContactPhone}
+                                    onChange={handleChange}
+                                    disabled={!isEditing}
+                                />
+                            </div>
+                            <div className="mb-0">
+                                <label className="form-label">Relationship</label>
+                                <select
+                                    className="form-select"
+                                    name="emergencyContactRelationship"
+                                    value={formData.emergencyContactRelationship}
+                                    onChange={handleChange}
+                                    disabled={!isEditing}
+                                >
+                                    <option value="">Select Relationship</option>
+                                    <option value="Parent">Parent</option>
+                                    <option value="Spouse">Spouse</option>
+                                    <option value="Sibling">Sibling</option>
+                                    <option value="Child">Child</option>
+                                    <option value="Friend">Friend</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* === Card 3: Preferences === */}
+                <div className="col-md-4">
+                    <div className="card h-100 border-success">
+                        <div className="card-header bg-success text-white">
+                            <h5 className="mb-0">
+                                <i className="bi bi-gear me-2"></i>
+                                Preferences
+                            </h5>
+                        </div>
+                        <div className="card-body">
+                            <div className="mb-3">
+                                <label className="form-label">Preferred Language</label>
+                                <select
+                                    className="form-select"
+                                    name="preferredLanguage"
+                                    value={formData.preferredLanguage}
+                                    onChange={handleChange}
+                                    disabled={!isEditing}
+                                >
+                                    <option value="">Select Language</option>
+                                    <option value="Vietnamese">Vietnamese</option>
+                                    <option value="English">English</option>
+                                </select>
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Preferred Contact Method</label>
+                                <select
+                                    className="form-select"
+                                    name="preferredContactMethod"
+                                    value={formData.preferredContactMethod}
+                                    onChange={handleChange}
+                                    disabled={!isEditing}
+                                >
+                                    <option value="">Select Method</option>
+                                    <option value="Email">Email</option>
+                                    <option value="SMS">SMS</option>
+                                    <option value="Phone">Phone Call</option>
+                                </select>
+                            </div>
+                            <div className="mb-0">
+                                <label className="form-label">Occupation</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    name="occupation"
+                                    value={formData.occupation}
+                                    onChange={handleChange}
+                                    disabled={!isEditing}
+                                />
                             </div>
                         </div>
                     </div>

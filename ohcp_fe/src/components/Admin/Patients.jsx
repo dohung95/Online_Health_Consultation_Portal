@@ -34,10 +34,21 @@ export default function Patients() {
     fullName: '',
     phoneNumber: '',
     dateOfBirth: '',
+    gender: '',
+    email: '',
+    address: '',
+    city: '',
+    country: '',
+    bloodType: '',
+    occupation: '',
+    preferredLanguage: '',
+    preferredContactMethod: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactRelationship: '',
     medicalHistorySummary: '',
     insuranceProvider: '',
-    insurancePolicyNumber: '',
-    status: ''
+    insurancePolicyNumber: ''
   });
 
   // Fetch patients from API
@@ -117,10 +128,21 @@ export default function Patients() {
       fullName: patient.fullName,
       phoneNumber: patient.phone,
       dateOfBirth: patient.dateOfBirth ? patient.dateOfBirth.split('T')[0] : '',
+      gender: patient.gender || '',
+      email: patient.email || '',
+      address: patient.address || '',
+      city: patient.city || '',
+      country: patient.country || '',
+      bloodType: patient.bloodType || '',
+      occupation: patient.occupation || '',
+      preferredLanguage: patient.preferredLanguage || '',
+      preferredContactMethod: patient.preferredContactMethod || '',
+      emergencyContactName: patient.emergencyContactName || '',
+      emergencyContactPhone: patient.emergencyContactPhone || '',
+      emergencyContactRelationship: patient.emergencyContactRelationship || '',
       medicalHistorySummary: patient.medicalHistorySummary || '',
       insuranceProvider: patient.insuranceProvider || '',
-      insurancePolicyNumber: patient.insurancePolicyNumber || '',
-      status: patient.status
+      insurancePolicyNumber: patient.insurancePolicyNumber || ''
     });
     setShowEditModal(true);
   };
@@ -130,49 +152,46 @@ export default function Patients() {
     e.preventDefault();
 
     try {
-      await patientsApi.update(selectedPatient.patientID, editForm);
+      // Prepare data according to UpdatePatientAdminDto (using PascalCase to match backend)
+      const updateData = {
+        FullName: editForm.fullName,
+        PhoneNumber: editForm.phoneNumber,
+        DateOfBirth: editForm.dateOfBirth,
+        Gender: editForm.gender,
+        Address: editForm.address,
+        City: editForm.city,
+        Country: editForm.country,
+        BloodType: editForm.bloodType,
+        Occupation: editForm.occupation,
+        PreferredLanguage: editForm.preferredLanguage,
+        PreferredContactMethod: editForm.preferredContactMethod,
+        EmergencyContactName: editForm.emergencyContactName,
+        EmergencyContactPhone: editForm.emergencyContactPhone,
+        EmergencyContactRelationship: editForm.emergencyContactRelationship,
+        MedicalHistorySummary: editForm.medicalHistorySummary,
+        InsuranceProvider: editForm.insuranceProvider,
+        InsurancePolicyNumber: editForm.insurancePolicyNumber
+      };
+
+      console.log('Sending update data:', updateData);
+      console.log('Patient ID:', selectedPatient.patientID);
+
+      const response = await patientsApi.update(selectedPatient.patientID, updateData);
+      console.log('Update response:', response);
+
       alert('Patient updated successfully');
       setShowEditModal(false);
       fetchPatients();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update patient');
-      console.error('Error updating patient:', err);
+      console.error('Full error object:', err);
+      console.error('Error response:', err.response);
+      console.error('Error data:', err.response?.data);
+
+      const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update patient';
+      alert(`Update failed: ${errorMessage}`);
     }
   };
 
-  // Handle approve/update health record
-  const handleUpdateHealthRecord = async (recordId) => {
-    if (!window.confirm('Are you sure you want to approve/update this health record?')) {
-      return;
-    }
-
-    try {
-      await medicalRecordsApi.update(recordId);
-      alert('Health record updated successfully');
-      // Refresh health records for this patient
-      const records = await medicalRecordsApi.getByPatientId(selectedPatient.patientID);
-      setPatientHealthRecords(records);
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update health record');
-      console.error('Error updating health record:', err);
-    }
-  };
-
-  // Handle delete patient
-  const handleDelete = async (patientId) => {
-    if (!window.confirm('Are you sure you want to delete this patient?')) {
-      return;
-    }
-
-    try {
-      await patientsApi.delete(patientId);
-      alert('Patient deleted successfully');
-      fetchPatients();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete patient');
-      console.error('Error deleting patient:', err);
-    }
-  };
 
   // Format date
   const formatDate = (dateString) => {
@@ -188,11 +207,7 @@ export default function Patients() {
     >
       <main className="admin-content p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>Patients List</h2>
-            <button className="btn btn-primary">
-              <i className="bi bi-plus-circle me-2"></i>
-              Add New Patient
-            </button>
+            <h2 className="admin-page-title">Patients List</h2>
           </div>
 
           {/* Error Message */}
@@ -204,22 +219,36 @@ export default function Patients() {
           )}
 
           {/* Search and Filter */}
-          <div className="card border-0 shadow-sm mb-4">
+          <div className="admin-card mb-4">
             <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex align-items-center" style={{padding:"5px 10px"}}>
+                  <i className="bi bi-funnel me-2" style={{color: 'var(--admin-text-light)'}}></i>
+                  <h6 className="mb-0" style={{color: 'var(--admin-text-light)', fontSize: '13px', fontWeight: 600}}>SEARCH & FILTERS</h6>
+                </div>
+                <div style={{padding:"15px 5px 0 5px"}}>
+                  <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => {
+                    setFilters({ searchTerm: '', status: '', sortBy: 'newest' });
+                    setPagination({ ...pagination, pageNumber: 1 });
+                  }}
+                  style={{fontSize: '12px'}}
+                >
+                  <i className="bi bi-x-circle me-1"></i>
+                  Clear Filters
+                </button>
+                </div>
+              </div>
               <div className="row g-3">
-                <div className="col-md-6">
-                  <div className="input-group">
-                    <span className="input-group-text bg-white">
-                      <i className="bi bi-search"></i>
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Search by name, ID, or phone..."
-                      value={filters.searchTerm}
-                      onChange={handleSearch}
-                    />
-                  </div>
+                <div className="col-md-6" style={{padding:"0 0 10px 20px"}}>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search by name, email, phone..."
+                    value={filters.searchTerm}
+                    onChange={handleSearch}
+                  />
                 </div>
                 <div className="col-md-3">
                   <select
@@ -232,7 +261,7 @@ export default function Patients() {
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
-                <div className="col-md-3">
+                <div className="col-md-3" style={{padding:"0 20px 0 0"}}>
                   <select
                     className="form-select"
                     value={filters.sortBy}
@@ -259,13 +288,13 @@ export default function Patients() {
                   <p className="mt-2">Loading patients...</p>
                 </div>
               ) : patients.length === 0 ? (
-                <div className="text-center p-5">
-                  <i className="bi bi-inbox fs-1 text-muted"></i>
-                  <p className="mt-2 text-muted">No patients found</p>
+                <div className="admin-empty-state">
+                  <i className="bi bi-inbox"></i>
+                  <p className="mt-2">No patients found</p>
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table table-hover mb-0 align-middle">
+                  <table className="admin-table table mb-0 align-middle">
                     <thead className="table-light">
                       <tr>
                         <th>ID</th>
@@ -275,7 +304,6 @@ export default function Patients() {
                         <th>Phone</th>
                         <th>Email</th>
                         <th>Last Visit</th>
-                        <th>Status</th>
                         <th className="text-center">Actions</th>
                       </tr>
                     </thead>
@@ -296,33 +324,21 @@ export default function Patients() {
                           <td>{patient.phone}</td>
                           <td>{patient.email}</td>
                           <td>{patient.lastVisit || 'N/A'}</td>
-                          <td>
-                            <span className={`badge bg-${patient.status === 'Active' ? 'success' : 'secondary'}`}>
-                              {patient.status}
-                            </span>
-                          </td>
                           <td className="text-center">
-                            <div className="btn-group btn-group-sm" role="group">
+                            <div className="admin-btn-group">
                               <button
-                                className="btn btn-outline-primary"
+                                className="btn btn-outline-slate btn-sm"
                                 title="View Details & Health Records"
                                 onClick={() => handleViewPatient(patient)}
                               >
                                 <i className="bi bi-eye"></i>
                               </button>
                               <button
-                                className="btn btn-outline-success"
+                                className="btn btn-outline-info btn-sm"
                                 title="Edit Patient Info"
                                 onClick={() => handleEditPatient(patient)}
                               >
                                 <i className="bi bi-pencil"></i>
-                              </button>
-                              <button
-                                className="btn btn-outline-danger"
-                                title="Delete"
-                                onClick={() => handleDelete(patient.patientID)}
-                              >
-                                <i className="bi bi-trash"></i>
                               </button>
                             </div>
                           </td>
@@ -336,8 +352,8 @@ export default function Patients() {
             {!loading && patients.length > 0 && (
               <div className="card-footer bg-white">
                 <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-muted">
-                    Showing {((pagination.pageNumber - 1) * pagination.pageSize) + 1} to {Math.min(pagination.pageNumber * pagination.pageSize, pagination.totalCount)} of {pagination.totalCount} entries
+                  <span className="text-muted" style={{fontSize: '13px'}}>
+                    Page <strong style={{color: 'var(--admin-text)'}}>{pagination.pageNumber}</strong> of <strong style={{color: 'var(--admin-text)'}}>{pagination.totalPages}</strong> • <strong style={{color: 'var(--admin-text)'}}>{pagination.totalCount}</strong> total patients
                   </span>
                   <nav>
                     <ul className="pagination mb-0">
@@ -350,19 +366,63 @@ export default function Patients() {
                           Previous
                         </button>
                       </li>
-                      {[...Array(pagination.totalPages)].map((_, index) => (
-                        <li
-                          key={index + 1}
-                          className={`page-item ${pagination.pageNumber === index + 1 ? 'active' : ''}`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange(index + 1)}
-                          >
-                            {index + 1}
-                          </button>
-                        </li>
-                      ))}
+                      {(() => {
+                        const pageNumbers = [];
+                        const totalPages = pagination.totalPages;
+                        const currentPage = pagination.pageNumber;
+
+                        if (totalPages <= 7) {
+                          for (let i = 1; i <= totalPages; i++) {
+                            pageNumbers.push(i);
+                          }
+                        } else {
+                          pageNumbers.push(1);
+
+                          if (currentPage > 3) {
+                            pageNumbers.push('...');
+                          }
+
+                          const start = Math.max(2, currentPage - 1);
+                          const end = Math.min(totalPages - 1, currentPage + 1);
+
+                          for (let i = start; i <= end; i++) {
+                            if (!pageNumbers.includes(i)) {
+                              pageNumbers.push(i);
+                            }
+                          }
+
+                          if (currentPage < totalPages - 2) {
+                            pageNumbers.push('...');
+                          }
+
+                          if (!pageNumbers.includes(totalPages)) {
+                            pageNumbers.push(totalPages);
+                          }
+                        }
+
+                        return pageNumbers.map((page, index) => {
+                          if (page === '...') {
+                            return (
+                              <li key={`ellipsis-${index}`} className="page-item disabled">
+                                <span className="page-link">...</span>
+                              </li>
+                            );
+                          }
+                          return (
+                            <li
+                              key={page}
+                              className={`page-item ${pagination.pageNumber === page ? 'active' : ''}`}
+                            >
+                              <button
+                                className="page-link"
+                                onClick={() => handlePageChange(page)}
+                              >
+                                {page}
+                              </button>
+                            </li>
+                          );
+                        });
+                      })()}
                       <li className={`page-item ${pagination.pageNumber === pagination.totalPages ? 'disabled' : ''}`}>
                         <button
                           className="page-link"
@@ -381,153 +441,280 @@ export default function Patients() {
 
           {/* View Patient Details Modal */}
           {showViewModal && selectedPatient && (
-            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
-              <div className="modal-dialog modal-lg modal-dialog-scrollable">
-                <div className="modal-content">
-                  <div className="modal-header">
+            <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
+              <div className="modal-dialog modal-xl modal-dialog-scrollable">
+                <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
+                  <div className="modal-header admin-modal-header primary" style={{borderBottom: 'none'}}>
                     <h5 className="modal-title">
                       <i className="bi bi-person-circle me-2"></i>
-                      Patient Details & Health Records
+                      Patient Details
                     </h5>
                     <button
                       type="button"
-                      className="btn-close"
+                      className="btn-close btn-close-white"
                       onClick={() => setShowViewModal(false)}
                     ></button>
                   </div>
-                  <div className="modal-body">
-                    {/* Patient Information */}
-                    <div className="card mb-3">
-                      <div className="card-header bg-primary text-white">
-                        <h6 className="mb-0">Patient Information</h6>
-                      </div>
-                      <div className="card-body">
-                        <div className="row">
-                          <div className="col-md-6 mb-3">
-                            <strong>Full Name:</strong>
-                            <p className="mb-0">{selectedPatient.fullName}</p>
+                  <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
+                    {/* Patient Header Card - Highlighted */}
+                    <div className="admin-card mb-4" style={{
+                      background: 'linear-gradient(135deg, var(--admin-primary-dark) 0%, var(--admin-primary) 100%)',
+                      color: 'white',
+                      padding: 'var(--spacing-lg)'
+                    }}>
+                      <div className="row align-items-center">
+                        <div className="col-auto">
+                          <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: 'var(--radius-full)',
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '32px',
+                            fontWeight: '700',
+                            border: '3px solid rgba(255, 255, 255, 0.3)'
+                          }}>
+                            {selectedPatient.fullName.charAt(0)}
                           </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Patient ID:</strong>
-                            <p className="mb-0">{selectedPatient.patientID}</p>
+                        </div>
+                        <div className="col">
+                          <h4 className="mb-1" style={{fontWeight: '700', fontSize: 'var(--font-size-2xl)'}}>
+                            {selectedPatient.fullName}
+                          </h4>
+                          <div className="d-flex flex-wrap gap-3 mt-2" style={{fontSize: 'var(--font-size-sm)'}}>
+                            <span style={{opacity: 0.9}}>
+                              <i className="bi bi-person-badge me-1"></i>
+                              ID: {selectedPatient.patientID}
+                            </span>
+                            <span style={{opacity: 0.9}}>
+                              <i className="bi bi-telephone me-1"></i>
+                              {selectedPatient.phone}
+                            </span>
+                            <span style={{opacity: 0.9}}>
+                              <i className="bi bi-envelope me-1"></i>
+                              {selectedPatient.email}
+                            </span>
                           </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Age:</strong>
-                            <p className="mb-0">{selectedPatient.age} years</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Gender:</strong>
-                            <p className="mb-0">{selectedPatient.gender}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Phone:</strong>
-                            <p className="mb-0">{selectedPatient.phone}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Email:</strong>
-                            <p className="mb-0">{selectedPatient.email}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Date of Birth:</strong>
-                            <p className="mb-0">{formatDate(selectedPatient.dateOfBirth)}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Status:</strong>
-                            <p className="mb-0">
-                              <span className={`badge bg-${selectedPatient.status === 'Active' ? 'success' : 'secondary'}`}>
-                                {selectedPatient.status}
-                              </span>
-                            </p>
-                          </div>
-                          <div className="col-12 mb-3">
-                            <strong>Medical History Summary:</strong>
-                            <p className="mb-0">{selectedPatient.medicalHistorySummary || 'No medical history recorded'}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Insurance Provider:</strong>
-                            <p className="mb-0">{selectedPatient.insuranceProvider || 'N/A'}</p>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong>Insurance Policy Number:</strong>
-                            <p className="mb-0">{selectedPatient.insurancePolicyNumber || 'N/A'}</p>
+                        </div>
+                        <div className="col-auto text-end">
+                          <div className="d-flex flex-column gap-2">
+                            <div style={{
+                              background: 'rgba(255, 255, 255, 0.2)',
+                              padding: '8px 16px',
+                              borderRadius: 'var(--radius-md)',
+                              fontSize: 'var(--font-size-sm)',
+                              fontWeight: '600'
+                            }}>
+                              <i className="bi bi-cake me-1"></i>
+                              {selectedPatient.age} years old
+                            </div>
+                            {selectedPatient.gender && (
+                              <div style={{
+                                background: 'rgba(255, 255, 255, 0.2)',
+                                padding: '8px 16px',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: 'var(--font-size-sm)',
+                                fontWeight: '600'
+                              }}>
+                                <i className="bi bi-gender-ambiguous me-1"></i>
+                                {selectedPatient.gender}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Health Records */}
-                    <div className="card">
-                      <div className="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                        <h6 className="mb-0">Health Records</h6>
-                        <span className="badge bg-light text-dark">{patientHealthRecords.length} records</span>
-                      </div>
-                      <div className="card-body">
-                        {loadingRecords ? (
-                          <div className="text-center p-3">
-                            <div className="spinner-border text-primary" role="status">
-                              <span className="visually-hidden">Loading...</span>
+                    <div className="row">
+                      {/* Left Column */}
+                      <div className="col-lg-6">
+                        {/* Personal Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-person-circle"></i>
+                            Additional Information
+                          </h6>
+                          <div className="row">
+                            <div className="col-md-6">
+                              <div className="admin-info-row">
+                                <strong>Date of Birth:</strong>
+                                <span>{formatDate(selectedPatient.dateOfBirth)}</span>
+                              </div>
                             </div>
-                            <p className="mt-2">Loading health records...</p>
+                            <div className="col-md-6">
+                              <div className="admin-info-row">
+                                <strong>Blood Type:</strong>
+                                <span>{selectedPatient.bloodType || 'N/A'}</span>
+                              </div>
+                            </div>
                           </div>
-                        ) : patientHealthRecords.length === 0 ? (
-                          <div className="text-center p-3 text-muted">
-                            <i className="bi bi-file-medical fs-1"></i>
-                            <p className="mt-2">No health records found for this patient</p>
+                          <div className="admin-info-row">
+                            <strong>Occupation:</strong>
+                            <span>{selectedPatient.occupation || 'N/A'}</span>
                           </div>
-                        ) : (
-                          <div className="table-responsive">
-                            <table className="table table-hover">
-                              <thead>
-                                <tr>
-                                  <th>Record ID</th>
-                                  <th>Date</th>
-                                  <th>Category</th>
-                                  <th>Diagnosis</th>
-                                  <th>Status</th>
-                                  <th>Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {patientHealthRecords.map((record) => (
-                                  <tr key={record.healthRecordID}>
-                                    <td><strong>{record.healthRecordID}</strong></td>
-                                    <td>{formatDate(record.date)}</td>
-                                    <td>
-                                      <span className="badge bg-light text-dark border">
-                                        {record.category}
-                                      </span>
-                                    </td>
-                                    <td>{record.diagnosis}</td>
-                                    <td>
-                                      <span className={`badge bg-${record.status.toLowerCase() === 'active' ? 'success' : 'secondary'}`}>
-                                        {record.status}
-                                      </span>
-                                    </td>
-                                    <td>
-                                      <button
-                                        className="btn btn-sm btn-outline-success"
-                                        title="Approve/Update Record"
-                                        onClick={() => handleUpdateHealthRecord(record.healthRecordID)}
-                                      >
-                                        <i className="bi bi-check-circle me-1"></i>
-                                        Approve
-                                      </button>
-                                    </td>
+                        </div>
+
+                        {/* Address Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-geo-alt"></i>
+                            Address Information
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Address:</strong>
+                            <span>{selectedPatient.address || 'N/A'}</span>
+                          </div>
+                          <div className="row">
+                            <div className="col-md-6">
+                              <div className="admin-info-row">
+                                <strong>City:</strong>
+                                <span>{selectedPatient.city || 'N/A'}</span>
+                              </div>
+                            </div>
+                            <div className="col-md-6">
+                              <div className="admin-info-row">
+                                <strong>Country:</strong>
+                                <span>{selectedPatient.country || 'N/A'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Emergency Contact */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-telephone-fill"></i>
+                            Emergency Contact
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Contact Name:</strong>
+                            <span>{selectedPatient.emergencyContactName || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Contact Phone:</strong>
+                            <span>{selectedPatient.emergencyContactPhone || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Relationship:</strong>
+                            <span>{selectedPatient.emergencyContactRelationship || 'N/A'}</span>
+                          </div>
+                        </div>
+
+                        {/* Preferences */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-gear"></i>
+                            Preferences
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Preferred Language:</strong>
+                            <span>{selectedPatient.preferredLanguage || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Contact Method:</strong>
+                            <span>{selectedPatient.preferredContactMethod || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="col-lg-6">
+                        {/* Medical Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-heart-pulse"></i>
+                            Medical Information
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Medical History:</strong>
+                            <span style={{display: 'block', marginTop: 'var(--spacing-sm)'}}>
+                              {selectedPatient.medicalHistorySummary || 'No medical history recorded'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Insurance Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-shield-check"></i>
+                            Insurance Information
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Provider:</strong>
+                            <span>{selectedPatient.insuranceProvider || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Policy Number:</strong>
+                            <span>{selectedPatient.insurancePolicyNumber || 'N/A'}</span>
+                          </div>
+                        </div>
+
+                        {/* Health Records */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-file-medical"></i>
+                            Health Records
+                            <span className="admin-badge primary ms-2">{patientHealthRecords.length} records</span>
+                          </h6>
+                          {loadingRecords ? (
+                            <div className="admin-loading">
+                              <div className="spinner-border text-primary" role="status">
+                                <span className="visually-hidden">Loading...</span>
+                              </div>
+                              <p className="mt-2">Loading health records...</p>
+                            </div>
+                          ) : patientHealthRecords.length === 0 ? (
+                            <div className="admin-empty-state">
+                              <i className="bi bi-file-medical"></i>
+                              <p className="mt-2">No health records found</p>
+                            </div>
+                          ) : (
+                            <div className="table-responsive">
+                              <table className="admin-table table mb-0">
+                                <thead>
+                                  <tr>
+                                    <th>Record ID</th>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Diagnosis</th>
+                                    <th>Status</th>
                                   </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
+                                </thead>
+                                <tbody>
+                                  {patientHealthRecords.map((record) => (
+                                    <tr key={record.healthRecordID}>
+                                      <td><strong>{record.healthRecordID}</strong></td>
+                                      <td>{formatDate(record.date)}</td>
+                                      <td>
+                                        <span className="admin-badge primary">
+                                          {record.category}
+                                        </span>
+                                      </td>
+                                      <td>{record.diagnosis}</td>
+                                      <td>
+                                        <span className={`admin-badge ${record.status.toLowerCase() === 'active' ? 'success' : 'info'}`}>
+                                          {record.status}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="modal-footer">
+                  <div className="admin-modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="admin-btn-modal secondary"
                       onClick={() => setShowViewModal(false)}
                     >
+                      <i className="bi bi-x-circle"></i>
                       Close
                     </button>
                   </div>
@@ -538,102 +725,289 @@ export default function Patients() {
 
           {/* Edit Patient Modal */}
           {showEditModal && selectedPatient && (
-            <div className="modal show d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
-              <div className="modal-dialog modal-dialog-scrollable">
-                <div className="modal-content">
-                  <div className="modal-header">
+            <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
+              <div className="modal-dialog modal-xl" style={{maxWidth: '95%'}}>
+                <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
+                  <div className="modal-header admin-modal-header info" style={{borderBottom: 'none'}}>
                     <h5 className="modal-title">
                       <i className="bi bi-pencil-square me-2"></i>
                       Edit Patient Information
                     </h5>
                     <button
                       type="button"
-                      className="btn-close"
+                      className="btn-close btn-close-white"
                       onClick={() => setShowEditModal(false)}
                     ></button>
                   </div>
                   <form onSubmit={handleUpdatePatient}>
-                    <div className="modal-body">
-                      <div className="mb-3">
-                        <label className="form-label">Full Name</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={editForm.fullName}
-                          onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Phone Number</label>
-                        <input
-                          type="tel"
-                          className="form-control"
-                          value={editForm.phoneNumber}
-                          onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Date of Birth</label>
-                        <input
-                          type="date"
-                          className="form-control"
-                          value={editForm.dateOfBirth}
-                          onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Medical History Summary</label>
-                        <textarea
-                          className="form-control"
-                          rows="3"
-                          value={editForm.medicalHistorySummary}
-                          onChange={(e) => setEditForm({ ...editForm, medicalHistorySummary: e.target.value })}
-                        ></textarea>
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Insurance Provider</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={editForm.insuranceProvider}
-                          onChange={(e) => setEditForm({ ...editForm, insuranceProvider: e.target.value })}
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Insurance Policy Number</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={editForm.insurancePolicyNumber}
-                          onChange={(e) => setEditForm({ ...editForm, insurancePolicyNumber: e.target.value })}
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Status</label>
-                        <select
-                          className="form-select"
-                          value={editForm.status}
-                          onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                          required
-                        >
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                        </select>
+                    <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
+                      <div className="row">
+                        {/* Left Column */}
+                        <div className="col-lg-6">
+                          {/* Personal Information Section */}
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-person-circle"></i>
+                              Personal Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="admin-form-label">Full Name <span className="text-danger">*</span></label>
+                              <input
+                                type="text"
+                                className="form-control admin-form-control"
+                                value={editForm.fullName}
+                                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Email <span className="text-danger">*</span></label>
+                                <input
+                                  type="email"
+                                  className="form-control admin-form-control"
+                                  value={editForm.email}
+                                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                  required
+                                  readOnly
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Phone Number <span className="text-danger">*</span></label>
+                                <input
+                                  type="tel"
+                                  className="form-control admin-form-control"
+                                  value={editForm.phoneNumber}
+                                  onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                                  required
+                                />
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Date of Birth <span className="text-danger">*</span></label>
+                                <input
+                                  type="date"
+                                  className="form-control admin-form-control"
+                                  value={editForm.dateOfBirth}
+                                  onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Gender <span className="text-danger">*</span></label>
+                                <select
+                                  className="form-select admin-form-control"
+                                  value={editForm.gender}
+                                  onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                                  required
+                                >
+                                  <option value="">Select Gender</option>
+                                  <option value="Male">Male</option>
+                                  <option value="Female">Female</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Blood Type</label>
+                                <select
+                                  className="form-select admin-form-control"
+                                  value={editForm.bloodType}
+                                  onChange={(e) => setEditForm({ ...editForm, bloodType: e.target.value })}
+                                >
+                                  <option value="">Select Blood Type</option>
+                                  <option value="A+">A+</option>
+                                  <option value="A-">A-</option>
+                                  <option value="B+">B+</option>
+                                  <option value="B-">B-</option>
+                                  <option value="AB+">AB+</option>
+                                  <option value="AB-">AB-</option>
+                                  <option value="O+">O+</option>
+                                  <option value="O-">O-</option>
+                                </select>
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Occupation</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.occupation}
+                                  onChange={(e) => setEditForm({ ...editForm, occupation: e.target.value })}
+                                  placeholder="Enter occupation"
+                                />
+                              </div>
+                            </div>
+                            <div className="mb-3">
+                              <label className="admin-form-label">Address</label>
+                              <input
+                                type="text"
+                                className="form-control admin-form-control"
+                                value={editForm.address}
+                                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                placeholder="Enter full address"
+                              />
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">City</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.city}
+                                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                                  placeholder="Enter city"
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Country</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.country}
+                                  onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
+                                  placeholder="Enter country"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Emergency Contact Section */}
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-telephone-fill"></i>
+                              Emergency Contact
+                            </h6>
+                            <div className="mb-3">
+                              <label className="admin-form-label">Contact Name</label>
+                              <input
+                                type="text"
+                                className="form-control admin-form-control"
+                                value={editForm.emergencyContactName}
+                                onChange={(e) => setEditForm({ ...editForm, emergencyContactName: e.target.value })}
+                                placeholder="Enter contact name"
+                              />
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Contact Phone</label>
+                                <input
+                                  type="tel"
+                                  className="form-control admin-form-control"
+                                  value={editForm.emergencyContactPhone}
+                                  onChange={(e) => setEditForm({ ...editForm, emergencyContactPhone: e.target.value })}
+                                  placeholder="Enter phone"
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Relationship</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.emergencyContactRelationship}
+                                  onChange={(e) => setEditForm({ ...editForm, emergencyContactRelationship: e.target.value })}
+                                  placeholder="e.g., Spouse, Parent"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Preferences Section */}
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-gear"></i>
+                              Preferences
+                            </h6>
+                            <div className="row">
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Preferred Language</label>
+                                <input
+                                  type="text"
+                                  className="form-control admin-form-control"
+                                  value={editForm.preferredLanguage}
+                                  onChange={(e) => setEditForm({ ...editForm, preferredLanguage: e.target.value })}
+                                  placeholder="e.g., English"
+                                />
+                              </div>
+                              <div className="col-md-6 mb-3">
+                                <label className="admin-form-label">Contact Method</label>
+                                <select
+                                  className="form-select admin-form-control"
+                                  value={editForm.preferredContactMethod}
+                                  onChange={(e) => setEditForm({ ...editForm, preferredContactMethod: e.target.value })}
+                                >
+                                  <option value="">Select Method</option>
+                                  <option value="Email">Email</option>
+                                  <option value="Phone">Phone</option>
+                                  <option value="SMS">SMS</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right Column */}
+                        <div className="col-lg-6">
+                          {/* Medical Information Section */}
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-heart-pulse"></i>
+                              Medical Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="admin-form-label">Medical History Summary</label>
+                              <textarea
+                                className="form-control admin-form-control"
+                                rows="12"
+                                value={editForm.medicalHistorySummary}
+                                onChange={(e) => setEditForm({ ...editForm, medicalHistorySummary: e.target.value })}
+                                placeholder="Enter medical history, allergies, chronic conditions..."
+                              ></textarea>
+                            </div>
+                          </div>
+
+                          {/* Insurance Information Section */}
+                          <div className="admin-modal-section">
+                            <h6 className="admin-modal-section-title info">
+                              <i className="bi bi-shield-check"></i>
+                              Insurance Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="admin-form-label">Insurance Provider</label>
+                              <input
+                                type="text"
+                                className="form-control admin-form-control"
+                                value={editForm.insuranceProvider}
+                                onChange={(e) => setEditForm({ ...editForm, insuranceProvider: e.target.value })}
+                                placeholder="e.g., Blue Cross, Aetna"
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="admin-form-label">Insurance Policy Number</label>
+                              <input
+                                type="text"
+                                className="form-control admin-form-control"
+                                value={editForm.insurancePolicyNumber}
+                                onChange={(e) => setEditForm({ ...editForm, insurancePolicyNumber: e.target.value })}
+                                placeholder="Enter policy number"
+                              />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="modal-footer">
+                    <div className="admin-modal-footer">
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="admin-btn-modal secondary"
                         onClick={() => setShowEditModal(false)}
                       >
+                        <i className="bi bi-x-circle"></i>
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-primary">
-                        <i className="bi bi-save me-2"></i>
+                      <button type="submit" className="admin-btn-modal success">
+                        <i className="bi bi-check-circle"></i>
                         Save Changes
                       </button>
                     </div>

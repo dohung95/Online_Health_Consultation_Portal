@@ -64,15 +64,12 @@ const MyAppointments = () => {
 
         let firebaseID;
         if (partnerID.includes('-')) {
-            // Has dashes: remove last 4 chars, then remove dashes
-            const idWithout4Chars = partnerID.substring(0, partnerID.length - 4);
-            firebaseID = idWithout4Chars.replace(/-/g, '');
+            // Has dashes: CHỈ remove last 4 chars, GIỮ NGUYÊN dấu gạch ngang
+            firebaseID = partnerID.substring(0, partnerID.length - 4);
         } else {
             // No dashes: remove last 5 chars directly
             firebaseID = partnerID.substring(0, partnerID.length - 5);
         }
-
-        console.log(`[Chat] Opening chat with ${isDoctor ? 'Patient' : 'Doctor'}`);
 
         try {
             const usersRef = collection(db, "users");
@@ -93,7 +90,6 @@ const MyAppointments = () => {
 
             if (!querySnapshot.empty) {
                 const partnerUser = { ...querySnapshot.docs[0].data(), uid: querySnapshot.docs[0].id };
-                console.log(`[Chat] ✓ Found by uid field:`, partnerUser);
                 openChatWith(partnerUser);
                 return;
             }
@@ -150,6 +146,7 @@ const MyAppointments = () => {
             alert("Unable to start video call.");
         }
     };
+
     const getStatusBadge = (status) => {
         switch (status) {
             case 'Scheduled': return 'bg-success';
@@ -163,104 +160,104 @@ const MyAppointments = () => {
 
     return (
         <div className='Background_Doctors'>
-        <div className="container mt-5">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2>My Appointments</h2>
-                <button className="btn btn-primary" onClick={() => navigate('/schedule')}>
-                    + Book New Appointment
-                </button>
-            </div>
-
-            {appointments.length === 0 ? (
-                <div className="alert alert-info">You have no appointments yet.</div>
-            ) : (
-                <div className="table-responsive">
-                    <table className="table table-hover table-bordered shadow-sm">
-                        <thead className="table-light">
-                            <tr>
-                                <th>Date & Time</th>
-                                <th>Doctor</th>
-                                <th>Patient</th>
-                                <th>Type</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {appointments.map((item) => (
-                                <tr key={item.appointmentID}>
-                                    <td>
-                                        {new Date(item.appointmentTime).toLocaleDateString()} <br />
-                                        <small className="text-muted">
-                                            {new Date(item.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </small>
-                                    </td>
-
-                                    <td>
-                                        <strong>{item.doctor?.fullName || "Unknown Doctor"}</strong>
-                                        <br />
-                                        <small className="text-muted">{item.doctor?.specialty}</small>
-                                    </td>
-
-                                    <td>
-                                        <span className="text-capitalize">{item.patient?.fullName || "Unknown Patient"}</span>
-                                        <br />
-                                        <small className="text-muted">
-                                            {item.patient?.dateOfBirth ? new Date(item.patient.dateOfBirth).toLocaleDateString('vi-VN') : 'N/A'}
-                                        </small>
-                                    </td>
-
-                                    <td>
-                                        <span className="text-capitalize">{item.consultationType}</span>
-                                    </td>
-
-                                    <td>
-                                        <span className={`badge ${getStatusBadge(item.status)}`}>
-                                            {item.status}
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        <div className="d-flex gap-2 flex-wrap">
-                                            {item.consultationType === 'chat' && item.status === 'Scheduled' && (
-                                                <button
-                                                    className="btn btn-sm btn-primary"
-                                                    onClick={() => handleChat(item)}
-                                                    title="Start chat"
-                                                >
-                                                    <i className="bi bi-chat-dots me-1"></i>
-                                                    Chat
-                                                </button>
-                                            )}
-
-                                            {item.consultationType === 'video call' && item.status === 'Scheduled' && (
-                                                <button
-                                                    className="btn btn-sm btn-success"
-                                                    onClick={() => handleVideoCall(item)}  // ← Truyền cả object "item"
-                                                    title="Start video call"
-                                                >
-                                                    <i className="bi bi-camera-video me-1"></i>
-                                                    Call Now
-                                                </button>
-                                            )}
-
-                                            {item.status === 'Scheduled' && (
-                                                <button
-                                                    className="btn btn-sm btn-outline-danger"
-                                                    onClick={() => handleCancel(item.appointmentID)}
-                                                >
-                                                    Cancel
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            <div className="container mt-5">
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h2>My Appointments</h2>
+                    <button className="btn btn-primary" onClick={() => navigate('/schedule')}>
+                        + Book New Appointment
+                    </button>
                 </div>
-            )}
-        </div>
+
+                {appointments.length === 0 ? (
+                    <div className="alert alert-info">You have no appointments yet.</div>
+                ) : (
+                    <div className="table-responsive">
+                        <table className="table table-hover table-bordered shadow-sm">
+                            <thead className="table-light">
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Doctor</th>
+                                    <th>Patient</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {appointments.map((item) => (
+                                    <tr key={item.appointmentID}>
+                                        <td>
+                                            {new Date(item.appointmentTime).toLocaleDateString()} <br />
+                                            <small className="text-muted">
+                                                {new Date(item.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </small>
+                                        </td>
+
+                                        <td>
+                                            <strong>{item.doctor?.fullName || "Unknown Doctor"}</strong>
+                                            <br />
+                                            <small className="text-muted">{item.doctor?.specialty}</small>
+                                        </td>
+
+                                        <td>
+                                            <span className="text-capitalize">{item.patient?.fullName || "Unknown Patient"}</span>
+                                            <br />
+                                            <small className="text-muted">
+                                                {item.patient?.dateOfBirth ? new Date(item.patient.dateOfBirth).toLocaleDateString('vi-VN') : 'N/A'}
+                                            </small>
+                                        </td>
+
+                                        <td>
+                                            <span className="text-capitalize">{item.consultationType}</span>
+                                        </td>
+
+                                        <td>
+                                            <span className={`badge ${getStatusBadge(item.status)}`}>
+                                                {item.status}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <div className="d-flex gap-2 flex-wrap">
+                                                {item.consultationType === 'Chat' && item.status === 'Scheduled' && (
+                                                    <button
+                                                        className="btn btn-sm btn-primary"
+                                                        onClick={() => handleChat(item)}
+                                                        title="Start chat"
+                                                    >
+                                                        <i className="bi bi-chat-dots me-1"></i>
+                                                        Chat
+                                                    </button>
+                                                )}
+
+                                                {item.consultationType === 'Video Call' && item.status === 'Scheduled' && (
+                                                    <button
+                                                        className="btn btn-sm btn-success"
+                                                        onClick={() => handleVideoCall(item)}  // ← Truyền cả object "item"
+                                                        title="Start video call"
+                                                    >
+                                                        <i className="bi bi-camera-video me-1"></i>
+                                                        Call Now
+                                                    </button>
+                                                )}
+
+                                                {item.status === 'Scheduled' && (
+                                                    <button
+                                                        className="btn btn-sm btn-outline-danger"
+                                                        onClick={() => handleCancel(item.appointmentID)}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

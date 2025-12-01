@@ -15,6 +15,11 @@ export const doctorService = {
         return response.data; 
     },
 
+    getSpecialties: async () => {
+        const response = await axios.get(`${API_URL}/Doctor/specialties`);
+        return response.data;
+    },
+
     // 2. Search (no pagination for Dropdown Schedule)
     getAllDoctors: async () => {
         const response = await axios.get(`${API_URL}/Doctor/all`);

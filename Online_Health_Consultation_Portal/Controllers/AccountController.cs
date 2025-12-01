@@ -106,10 +106,18 @@ namespace OHCP_BK.Controllers
                 email = user.Email,
                 phoneNumber = user.PhoneNumber,
                 dateOfBirth = patient?.DateOfBirth,
-                medicalHistorySummary = patient?.MedicalHistorySummary,
-                insuranceProvider = patient?.InsuranceProvider,
-                insurancePolicyNumber = patient?.InsurancePolicyNumber,
-                photoURL = "" // (Nếu có)
+                gender = patient?.Gender,
+                address = patient?.Address,
+                city = patient?.City,
+                country = patient?.Country,
+                bloodType = patient?.BloodType,
+                emergencyContactName = patient?.EmergencyContactName,
+                emergencyContactPhone = patient?.EmergencyContactPhone,
+                emergencyContactRelationship = patient?.EmergencyContactRelationship,
+                preferredLanguage = patient?.PreferredLanguage,
+                preferredContactMethod = patient?.PreferredContactMethod,
+                occupation = patient?.Occupation,
+                photoURL = "" 
             });
         }
 
@@ -155,6 +163,17 @@ namespace OHCP_BK.Controllers
                 if (dto.MedicalHistorySummary != null) patient.MedicalHistorySummary = dto.MedicalHistorySummary;
                 if (dto.InsuranceProvider != null) patient.InsuranceProvider = dto.InsuranceProvider;
                 if (dto.InsurancePolicyNumber != null) patient.InsurancePolicyNumber = dto.InsurancePolicyNumber;
+                if (dto.Gender != null) patient.Gender = dto.Gender;
+                if (dto.Address != null) patient.Address = dto.Address;
+                if (dto.City != null) patient.City = dto.City;
+                if (dto.Country != null) patient.Country = dto.Country;
+                if (dto.BloodType != null) patient.BloodType = dto.BloodType;
+                if (dto.EmergencyContactName != null) patient.EmergencyContactName = dto.EmergencyContactName;
+                if (dto.EmergencyContactPhone != null) patient.EmergencyContactPhone = dto.EmergencyContactPhone;
+                if (dto.EmergencyContactRelationship != null) patient.EmergencyContactRelationship = dto.EmergencyContactRelationship;
+                if (dto.PreferredLanguage != null) patient.PreferredLanguage = dto.PreferredLanguage;
+                if (dto.PreferredContactMethod != null) patient.PreferredContactMethod = dto.PreferredContactMethod;
+                if (dto.Occupation != null) patient.Occupation = dto.Occupation;
                 
                 // (Không cần gọi .Update(), EF Core tự theo dõi thay đổi)
             }
