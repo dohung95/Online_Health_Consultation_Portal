@@ -180,8 +180,9 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
       <main className="flex-grow-1 d-flex justify-content-center p-4 p-md-5">
         <div className="w-100" style={{ maxWidth: '1280px' }}>
           <div className="row g-4">
-            {/* Left Column (col-lg-12) */}
-            <div className="col-lg-12 d-flex flex-column gap-4">
+
+            {/* Main Column */}
+            <div className="col-12 d-flex flex-column gap-4">
 
               {/* ProfileHeader */}
               <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
@@ -199,7 +200,6 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                         </p>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -265,13 +265,8 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                   >
                     Prescribe Medication
                   </button>
-
-                </div>
-              </div>
-            </div>
-
-            {/* Full Width Tab Section (col-lg-12) */}
-            <div className="col-lg-12">
+            {/* Full Width Tab Section (col-12) */}
+            <div className="col-12">
               <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
                 <div className="border-bottom border-border-light">
                   <ul className="nav nav-tabs border-0 px-4 px-md-4" role="tablist">
