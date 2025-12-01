@@ -29,9 +29,6 @@ const SharedRecordsView = () => {
     };
 
     const handleViewDocument = (document) => {
-        console.log('Opening document:', document);
-        console.log('🔍 DEBUG fileName:', document.documentName);
-        console.log('🔍 DEBUG all doc fields:', Object.keys(document)); 
         setSelectedDocument(document);
         setShowViewer(true);
     };
@@ -57,7 +54,6 @@ const SharedRecordsView = () => {
                 await loadRecordDetails(healthRecordID, shareId);
             }
         }
-        console.log('🔍 DEBUG: healthRecordID:', healthRecordID);
     };
     const loadRecordDetails = async (healthRecordID, shareId) => {
         try {
