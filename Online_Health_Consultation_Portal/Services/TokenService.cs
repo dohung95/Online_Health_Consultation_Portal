@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using OHCP_BK.Data;
 using OHCP_BK.Exceptions;
 using OHCP_BK.Models;
+using OHCP_BK.Constants;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
@@ -203,6 +204,27 @@ namespace OHCP_BK.Services
                 var user = storedToken.AppUser;
                 if (user == null)
                     throw new InternalServerException("User associated with token not found");
+
+                // Check user status for Patient and Doctor roles
+                var roles = await userManager.GetRolesAsync(user);
+                if (roles.Contains("Patient") || roles.Contains("Doctor"))
+                {
+                    if (user.Status != UserStatusConstants.Active)
+                    {
+                        logger.LogWarning($"Token refresh failed: User '{user.Email}' has status '{user.Status}'");
+
+                        string message = user.Status switch
+                        {
+                            UserStatusConstants.Inactive => "Your account is inactive. Please contact admin.",
+                            UserStatusConstants.Suspended => "Your account has been suspended. Please contact support.",
+                            UserStatusConstants.Banned => "Your account has been banned. Please contact support.",
+                            _ => "Your account is not active. Please contact support."
+                        };
+
+                        throw new UnauthorizedException(message);
+                    }
+                }
+                // Admin role: no status check
 
                 var newAccessToken = await GenerateAccessTokenAsync(user);
                 var newRefreshToken = await GenerateRefreshTokenAsync(user);
