@@ -244,6 +244,27 @@ namespace OHCP_BK.Data
                 null // Some patients without insurance
             };
 
+            var genders = new[] { "Male", "Female", "Other" };
+
+            var cities = new[] { "New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio",
+                "San Diego", "Dallas", "San Jose", "Austin", "Jacksonville", "Fort Worth", "Columbus", "San Francisco",
+                "Charlotte", "Indianapolis", "Seattle", "Denver", "Boston", "Nashville", "Detroit", "Portland", "Las Vegas", "Miami" };
+
+            var countries = new[] { "USA", "United States" };
+
+            var bloodTypes = new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" };
+
+            var relationships = new[] { "Spouse", "Parent", "Sibling", "Child", "Friend", "Partner", "Relative" };
+
+            var languages = new[] { "English", "Spanish", "Mandarin", "French", "German", "Italian", "Portuguese", "Korean", "Japanese", "Vietnamese" };
+
+            var contactMethods = new[] { "Phone", "Email", "SMS", "Any" };
+
+            var occupations = new[] { "Engineer", "Teacher", "Doctor", "Nurse", "Accountant", "Manager", "Sales Representative",
+                "Software Developer", "Marketing Specialist", "Lawyer", "Architect", "Consultant", "Business Owner", "Analyst",
+                "Writer", "Designer", "Chef", "Mechanic", "Electrician", "Plumber", "Carpenter", "Retired", "Student", "Unemployed",
+                "Artist", "Musician", "Real Estate Agent", "Pharmacist", "Therapist", "Social Worker" };
+
             var random = new Random();
 
             for (int i = 1; i <= 100; i++)
@@ -279,15 +300,31 @@ namespace OHCP_BK.Data
 
                     var birthYear = random.Next(1940, 2015); // Ages from children to elderly
                     var insurance = insuranceProviders[random.Next(insuranceProviders.Length)];
+                    var gender = genders[random.Next(genders.Length)];
+                    var city = cities[random.Next(cities.Length)];
+                    var bloodType = bloodTypes[random.Next(bloodTypes.Length)];
+                    var emergencyFirstName = firstNames[random.Next(firstNames.Length)];
+                    var emergencyLastName = lastNames[random.Next(lastNames.Length)];
 
                     var patient = new Patient
                     {
                         PatientID = patientUser.Id,
                         FullName = $"{firstName} {lastName}",
                         DateOfBirth = new DateTime(birthYear, random.Next(1, 13), random.Next(1, 28)),
+                        Gender = gender,
                         MedicalHistorySummary = medicalHistories[random.Next(medicalHistories.Length)],
                         InsuranceProvider = insurance,
-                        InsurancePolicyNumber = insurance != null ? $"{insurance.Replace(" ", "").Substring(0, 3).ToUpper()}{random.Next(100000, 999999)}" : null
+                        InsurancePolicyNumber = insurance != null ? $"{insurance.Replace(" ", "").Substring(0, 3).ToUpper()}{random.Next(100000, 999999)}" : null,
+                        Address = $"{random.Next(100, 9999)} {lastNames[random.Next(lastNames.Length)]} Street",
+                        City = city,
+                        Country = countries[random.Next(countries.Length)],
+                        BloodType = bloodType,
+                        EmergencyContactName = $"{emergencyFirstName} {emergencyLastName}",
+                        EmergencyContactPhone = GeneratePhoneNumber(),
+                        EmergencyContactRelationship = relationships[random.Next(relationships.Length)],
+                        PreferredLanguage = languages[random.Next(languages.Length)],
+                        PreferredContactMethod = contactMethods[random.Next(contactMethods.Length)],
+                        Occupation = occupations[random.Next(occupations.Length)]
                     };
 
                     context.Patients.Add(patient);
