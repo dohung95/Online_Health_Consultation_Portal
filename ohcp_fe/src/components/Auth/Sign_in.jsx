@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { decodeToken } from '../../utils/tokenUtils';
@@ -6,7 +6,7 @@ import { Modal, Button } from 'react-bootstrap';
 import '../Css/Sign_in.css';
 export function Sign_in() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, token, roles } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -111,6 +111,23 @@ export function Sign_in() {
             setLoading(false);
         }
     };
+
+    // Redirect if already logged in with valid token
+    useEffect(() => {
+        if (token && roles && roles.length > 0) {
+            // User is already logged in, redirect to appropriate page
+            console.log('User already logged in, redirecting...');
+
+            // Navigate based on role
+            if (roles.some(r => String(r).trim().toLowerCase() === 'admin')) {
+                navigate('/admin', { replace: true });
+            } else if (roles.some(r => String(r).trim().toLowerCase() === 'doctor')) {
+                navigate('/doctor-page', { replace: true });
+            } else {
+                navigate('/', { replace: true });
+            }
+        }
+    }, [token, roles, navigate]);
 
     return (
         <>
