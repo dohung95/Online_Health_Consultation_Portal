@@ -187,26 +187,26 @@ export function AuthProvider({ children }) {
     const register = async (username, phonenumber, email, password, confirmPassword, role) => {
         try {
             await registerAPI(username, phonenumber, email, password, confirmPassword);
-            const csharpResponse = await loginAPI(email, password);
-            const csharpToken = csharpResponse.accessToken;
-            localStorage.setItem('token', csharpToken);
-            setToken(csharpToken);
+            // const csharpResponse = await loginAPI(email, password);
+            // const csharpToken = csharpResponse.accessToken;
+            // localStorage.setItem('token', csharpToken);
+            // setToken(csharpToken);
 
-            // 3. ĐĂNG NHẬP FIREBASE (Bước mới)
-            const firebaseResponse = await getFirebaseTokenAPI(csharpToken);
-            const firebaseToken = firebaseResponse.firebaseToken;
-            const userCredential = await signInWithCustomToken(auth, firebaseToken);
-            const user = userCredential.user; // Lấy user Firebase
+            // // 3. ĐĂNG NHẬP FIREBASE (Bước mới)
+            // const firebaseResponse = await getFirebaseTokenAPI(csharpToken);
+            // const firebaseToken = firebaseResponse.firebaseToken;
+            // const userCredential = await signInWithCustomToken(auth, firebaseToken);
+            // const user = userCredential.user; // Lấy user Firebase
 
-            // 4. TẠO "DANH BẠ" (Lưu user vào Firestore)
-            const userRef = doc(db, "users", user.uid);
-            await setDoc(userRef, {
-                uid: user.uid,
-                displayName: username,
-                email: email,
-                photoURL: "", // (Ảnh mặc định)
-                role: role // <-- LƯU ROLE VÀO DATABASE
-            }, { merge: true });
+            // // 4. TẠO "DANH BẠ" (Lưu user vào Firestore)
+            // const userRef = doc(db, "users", user.uid);
+            // await setDoc(userRef, {
+            //     uid: user.uid,
+            //     displayName: username,
+            //     email: email,
+            //     photoURL: "", // (Ảnh mặc định)
+            //     role: role // <-- LƯU ROLE VÀO DATABASE
+            // }, { merge: true });
 
             console.log("dmmm role lon:      ", role)
             return true;

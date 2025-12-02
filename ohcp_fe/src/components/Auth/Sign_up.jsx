@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { Modal, Button } from 'react-bootstrap';
 import '../Css/Sign_up.css';
 
 export function Sign_up() {
@@ -18,6 +19,7 @@ export function Sign_up() {
     const [showEmailTooltip, setShowEmailTooltip] = useState(false);
     const [showPhoneTooltip, setShowPhoneTooltip] = useState(false);
     const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const role = "patient";
 
     // Password validation checks
@@ -49,6 +51,18 @@ export function Sign_up() {
         }
     }, [token, roles, navigate]);
 
+    const handleCloseSuccessModal = () => {
+        setShowSuccessModal(false);
+        // Reset form
+        setUsername('');
+        setEmail('');
+        setPhonenumber('');
+        setPassword('');
+        setConfirmPassword('');
+        // Hoặc navigate về login page
+        // navigate('/login');
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -77,10 +91,10 @@ export function Sign_up() {
 
         try {
             await register(username, phonenumber, email, password, confirmPassword, role);
-            // navigate('/');
+            // Hiển thị modal thay vì navigate ngay
+            setShowSuccessModal(true);
         } catch (err) {
             setError(err.message || 'Registration failed');
-            console.log("Registration failed by error: ", err.message)
         } finally {
             setLoading(false);
         }
@@ -515,7 +529,103 @@ export function Sign_up() {
                         Already have an account? <Link to="/login">Login</Link>
                     </p>
                 </div >
-            </div >
+            </div>
+
+            {/* Success Modal */}
+            <Modal
+                show={showSuccessModal}
+                onHide={handleCloseSuccessModal}
+                backdrop="static"
+                keyboard={false}
+                centered
+                size="lg"
+            >
+                <Modal.Header
+                    closeButton
+                    style={{
+                        backgroundColor: '#e7f3ff',
+                        borderBottom: '2px solid #009cde',
+                        padding: '20px'
+                    }}
+                >
+                    <Modal.Title style={{
+                        color: '#0066a1',
+                        fontWeight: '600',
+                        fontSize: '22px',
+                        width: '100%',
+                        textAlign: 'center'
+                    }}>
+                        <i className="bi bi-info-circle-fill" style={{ fontSize: '35px', marginRight: '12px' }}></i>
+                        <div style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                            Registration Successful
+                        </div>
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{
+                    padding: '40px',
+                    textAlign: 'center',
+                    backgroundColor: '#fff'
+                }}>
+                    <div style={{
+                        backgroundColor: '#f0fff4',
+                        border: '2px solid #9ae6b4',
+                        borderRadius: '10px',
+                        padding: '30px',
+                        marginBottom: '20px'
+                    }}>
+                        <i className="bi bi-person-check" style={{
+                            fontSize: '55px',
+                            color: '#38a169',
+                            marginBottom: '20px',
+                            display: 'block'
+                        }}></i>
+                        <h5 style={{
+                            color: '#2d3748',
+                            fontWeight: '600',
+                            marginBottom: '20px',
+                            fontSize: '18px'
+                        }}>
+                            Account Created Successfully
+                        </h5>
+                        <p style={{
+                            fontSize: '16px',
+                            color: '#555',
+                            lineHeight: '1.8',
+                            margin: '0'
+                        }}>
+                            Your account has been created. Please wait for admin approval to activate your account.
+                        </p>
+                    </div>
+                    <div style={{
+                        fontSize: '14px',
+                        color: '#6c757d',
+                        marginTop: '15px'
+                    }}>
+                        <i className="bi bi-envelope"></i> Please contact our support team if you need assistance
+                    </div>
+                </Modal.Body>
+                <Modal.Footer style={{
+                    justifyContent: 'center',
+                    padding: '20px',
+                    backgroundColor: '#f8f9fa'
+                }}>
+                    <Button
+                        onClick={handleCloseSuccessModal}
+                        size="lg"
+                        style={{
+                            minWidth: '150px',
+                            fontWeight: '600',
+                            fontSize: '16px',
+                            backgroundColor: '#009cde',
+                            border: 'none',
+                            color: 'white'
+                        }}
+                    >
+                        <i className="bi bi-check-circle me-2"></i>
+                        I Understand
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
     );
 }
