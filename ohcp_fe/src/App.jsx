@@ -7,10 +7,10 @@ import MyAppointments from './components/MyAppointment';
 import Doctors from './components/Doctors';
 import Records from './components/Records';
 import Video from './components/Video';
-import Prescription from './components/Prescription';
+
 import Chat from './components/Chat';
 import Payment from './components/Payment';
-import Reminders from './components/Reminders';
+
 import ProfilePatient from './pages/profilePatient';
 
 import Admin from './components/Admin/Admin';
@@ -43,6 +43,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/Admin/AdminRoute';
 import HealthRecords from './components/HealthRecords';
 import ShareHealthRecords from './components/ShareHealthRecords';
+import PatientPrescriptionView from './components/PatientPrescriptionView';
 
 
 function App() {
@@ -87,6 +88,7 @@ function AppContent() {
             <Route path="/health-records" element={<HealthRecords />} />
             <Route path="/share-records" element={<ShareHealthRecords />} />
             <Route path="/profile-patient" element={<ProfilePatient />} />
+            
             {/* Doctor only */}
             <Route path="/doctor-page" element={
               <ProtectedRoute allowedRoles={['Doctor']}>
@@ -130,19 +132,15 @@ function AppContent() {
                 <Video />
               </ProtectedRoute>
             } />
-            <Route path="/prescription" element={
-              <ProtectedRoute allowedRoles={['Patient']}>
-                <Prescription />
-              </ProtectedRoute>
-            } />
             <Route path="/payment" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <Payment />
               </ProtectedRoute>
             } />
-            <Route path="/reminders" element={
+            
+            <Route path="/my-prescriptions" element={
               <ProtectedRoute allowedRoles={['Patient']}>
-                <Reminders />
+                <PatientPrescriptionView />
               </ProtectedRoute>
             } />
             

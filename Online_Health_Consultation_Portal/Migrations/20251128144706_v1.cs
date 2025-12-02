@@ -509,6 +509,56 @@ namespace OHCP_BK.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "PrescriptionHeaders",
+                columns: table => new
+                {
+                    PrescriptionHeaderID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AppointmentID = table.Column<int>(type: "int", nullable: false),
+                    PatientID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    IssueDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PrescriptionHeaders", x => x.PrescriptionHeaderID);
+                    table.ForeignKey(
+                        name: "FK_PrescriptionHeaders_Appointments_AppointmentID",
+                        column: x => x.AppointmentID,
+                        principalTable: "Appointments",
+                        principalColumn: "AppointmentID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PrescriptionHeaders_Patients_PatientID",
+                        column: x => x.PatientID,
+                        principalTable: "Patients",
+                        principalColumn: "PatientID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PrescriptionItems",
+                columns: table => new
+                {
+                    PrescriptionItemID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PrescriptionHeaderID = table.Column<int>(type: "int", nullable: false),
+                    MedicationName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Dosage = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Instructions = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    TotalSupplyDays = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PrescriptionItems", x => x.PrescriptionItemID);
+                    table.ForeignKey(
+                        name: "FK_PrescriptionItems_PrescriptionHeaders_PrescriptionHeaderID",
+                        column: x => x.PrescriptionHeaderID,
+                        principalTable: "PrescriptionHeaders",
+                        principalColumn: "PrescriptionHeaderID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Appointments_DoctorID",
                 table: "Appointments",
@@ -587,6 +637,21 @@ namespace OHCP_BK.Migrations
                 column: "PatientID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PrescriptionHeaders_AppointmentID",
+                table: "PrescriptionHeaders",
+                column: "AppointmentID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PrescriptionHeaders_PatientID",
+                table: "PrescriptionHeaders",
+                column: "PatientID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PrescriptionItems_PrescriptionHeaderID",
+                table: "PrescriptionItems",
+                column: "PrescriptionHeaderID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UserId",
                 table: "RefreshTokens",
                 column: "UserId");
@@ -663,6 +728,9 @@ namespace OHCP_BK.Migrations
                 name: "Prescriptions");
 
             migrationBuilder.DropTable(
+                name: "PrescriptionItems");
+
+            migrationBuilder.DropTable(
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
@@ -682,6 +750,9 @@ namespace OHCP_BK.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserTokens");
+
+            migrationBuilder.DropTable(
+                name: "PrescriptionHeaders");
 
             migrationBuilder.DropTable(
                 name: "HealthRecords");

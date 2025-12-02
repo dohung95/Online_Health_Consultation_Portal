@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
 import './Css/Navbar.css'; // Đảm bảo dùng đúng file CSS đã sửa
 
 function Navbar() {
@@ -111,6 +112,9 @@ function Navbar() {
                         <div className="nav-right d-flex align-items-center gap-3">
                             {isAuthenticated ? (
                                 <>
+                                    {/* Notification Bell - Only for authenticated users */}
+                                    {isUser && <NotificationBell />}
+
                                     {/* Patient Dropdown */}
                                     {isUser && (
                                         <div
@@ -131,12 +135,16 @@ function Navbar() {
                                                         <i className="fas fa-calendar-check me-2"></i>
                                                         My Appointments
                                                     </NavLink>
+                                                    <NavLink to="/my-prescriptions" className="dropdown-item">
+                                                        <i className="fas fa-prescription-bottle-alt me-2"></i>
+                                                        My Prescriptions
+                                                    </NavLink>
                                                     <NavLink to="/health-records" className="dropdown-item">
-                                                        <i className="fas fa-calendar-check me-2"></i>
+                                                        <i className="fas fa-file-medical me-2"></i>
                                                         Health Records
                                                     </NavLink>
                                                     <NavLink to="/share-records" className="dropdown-item">
-                                                        <i className="fas fa-calendar-check me-2"></i>
+                                                        <i className="fas fa-share-alt me-2"></i>
                                                         Share Health Records
                                                     </NavLink>
                                                 </div>

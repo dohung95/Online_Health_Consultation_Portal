@@ -22,9 +22,12 @@ export const prescriptionService = {
     return response.data;
   },
 
-  // Get all prescription headers
-  getAllPrescriptions: async () => {
-    const response = await axios.get(`${API_URL}/Prescription`, getAuthHeader());
+ 
+  
+
+  // Get my prescriptions (current patient only)
+  getMyPrescriptions: async () => {
+    const response = await axios.get(`${API_URL}/Prescription/mine`, getAuthHeader());
     return response.data;
   },
 

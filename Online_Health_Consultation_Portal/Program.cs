@@ -10,6 +10,7 @@ using OHCP_BK.Middleware;
 using OHCP_BK.Models;
 using OHCP_BK.Services;
 using OHCP_BK.Hubs;
+using OHCP_BK.BackgroundServices;
 using System;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -167,6 +168,13 @@ builder.Services.AddLogging(logging => logging.AddConsole().SetMinimumLevel(LogL
 // Thêm SignalR
 builder.Services.AddSignalR();
 
+// Register notification service
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+// Register background services
+builder.Services.AddHostedService<MedicationReminderBackgroundService>();
+builder.Services.AddHostedService<AppointmentReminderBackgroundService>();
+
 // Thêm dịch vụ Controllers
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -218,8 +226,8 @@ app.MapControllers();
 // Đăng ký đường dẫn cho Hub
 app.MapHub<OHCP_BK.Hubs.NotificationCalling>("/notificationcalling");
 
-// Map SignalR Hub
-app.MapHub<NotificationHub>("/hubs/notifications");
+// Map SignalR Hub - must match frontend URL
+app.MapHub<NotificationHub>("/notificationHub");
 
 using (var scope = app.Services.CreateScope())
 {

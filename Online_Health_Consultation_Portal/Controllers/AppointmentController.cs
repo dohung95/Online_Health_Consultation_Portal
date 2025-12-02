@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Data;
 using OHCP_BK.Dtos;
 using OHCP_BK.Models;
+using OHCP_BK.Services;
 using System.Security.Claims;
 
 namespace OHCP_BK.Controllers
@@ -15,11 +16,16 @@ namespace OHCP_BK.Controllers
     {
         private readonly OHCPContext _context;
         private readonly ILogger<AppointmentController> _logger;
+        private readonly INotificationService _notificationService;
 
-        public AppointmentController(OHCPContext context, ILogger<AppointmentController> logger)
+        public AppointmentController(
+            OHCPContext context, 
+            ILogger<AppointmentController> logger,
+            INotificationService notificationService)
         {
             _context = context;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
         // GET: api/Appointment
@@ -289,6 +295,43 @@ namespace OHCP_BK.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting appointments for doctor {doctorId}: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // POST: api/Appointment/{id}/send-notification
+        // Example endpoint to demonstrate sending appointment notifications
+        [HttpPost("{id}/send-notification")]
+        public async Task<IActionResult> SendAppointmentNotification(int id)
+        {
+            try
+            {
+                var appointment = await _context.Appointments
+                    .Include(a => a.Doctor)
+                    .Include(a => a.Patient)
+                    .FirstOrDefaultAsync(a => a.AppointmentID == id);
+
+                if (appointment == null)
+                {
+                    return NotFound("Appointment not found");
+                }
+
+                var notification = new AppointmentNotificationDto
+                {
+                    AppointmentId = appointment.AppointmentID,
+                    DoctorName = appointment.Doctor.FullName,
+                    Specialty = appointment.Doctor.Specialty,
+                    AppointmentDateTime = appointment.AppointmentTime,
+                    Location = "Online Consultation" // You can customize this based on ConsultationType
+                };
+
+                await _notificationService.SendAppointmentNotificationAsync(appointment.PatientID, notification);
+
+                return Ok(new { message = "Appointment notification sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error sending appointment notification: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
         }

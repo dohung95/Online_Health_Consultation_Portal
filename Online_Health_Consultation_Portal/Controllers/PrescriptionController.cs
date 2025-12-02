@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
 using OHCP_BK.Data;
 using OHCP_BK.Models;
 using OHCP_BK.Dtos;
 using OHCP_BK.Hubs;
+using OHCP_BK.Services;
 
 namespace OHCP_BK.Controllers
 {
@@ -17,15 +19,18 @@ namespace OHCP_BK.Controllers
         private readonly OHCPContext _context;
         private readonly ILogger<PrescriptionController> _logger;
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly INotificationService _notificationService;
 
         public PrescriptionController(
             OHCPContext context, 
             ILogger<PrescriptionController> logger,
-            IHubContext<NotificationHub> hubContext)
+            IHubContext<NotificationHub> hubContext,
+            INotificationService notificationService)
         {
             _context = context;
             _logger = logger;
             _hubContext = hubContext;
+            _notificationService = notificationService;
         }
 
         // GET: api/Prescription
@@ -37,6 +42,7 @@ namespace OHCP_BK.Controllers
                 var headers = await _context.PrescriptionHeaders
                     .Include(ph => ph.PrescriptionItems)
                     .Include(ph => ph.Appointment)
+                        .ThenInclude(a => a.Doctor)
                     .Include(ph => ph.Patient)
                     .ToListAsync();
 
@@ -46,6 +52,8 @@ namespace OHCP_BK.Controllers
                     AppointmentID = h.AppointmentID,
                     PatientID = h.PatientID,
                     IssueDate = h.IssueDate,
+                    DoctorName = h.Appointment?.Doctor?.FullName,
+                    Specialty = h.Appointment?.Doctor?.Specialty,
                     Medications = h.PrescriptionItems.Select(pi => new PrescriptionItemResponseDTO
                     {
                         PrescriptionItemID = pi.PrescriptionItemID,
@@ -74,6 +82,7 @@ namespace OHCP_BK.Controllers
                 var header = await _context.PrescriptionHeaders
                     .Include(ph => ph.PrescriptionItems)
                     .Include(ph => ph.Appointment)
+                        .ThenInclude(a => a.Doctor)
                     .Include(ph => ph.Patient)
                     .FirstOrDefaultAsync(ph => ph.PrescriptionHeaderID == id);
 
@@ -88,6 +97,8 @@ namespace OHCP_BK.Controllers
                     AppointmentID = header.AppointmentID,
                     PatientID = header.PatientID,
                     IssueDate = header.IssueDate,
+                    DoctorName = header.Appointment?.Doctor?.FullName,
+                    Specialty = header.Appointment?.Doctor?.Specialty,
                     Medications = header.PrescriptionItems.Select(pi => new PrescriptionItemResponseDTO
                     {
                         PrescriptionItemID = pi.PrescriptionItemID,
@@ -218,6 +229,34 @@ namespace OHCP_BK.Controllers
                     // Don't fail the request if SignalR fails
                 }
 
+                // Send immediate medication reminder with all prescription items
+                try
+                {
+                    var medicationDtos = prescriptionItems.Select(item => new MedicationReminderDto
+                    {
+                        PrescriptionId = prescriptionHeader.PrescriptionHeaderID,
+                        MedicationName = item.MedicationName,
+                        Dosage = item.Dosage,
+                        Instructions = item.Instructions,
+                        TotalSupplyDays = item.TotalSupplyDays,
+                        IssueDate = prescriptionHeader.IssueDate
+                    }).ToList();
+
+                    await _notificationService.SendPrescriptionReminderAsync(
+                        request.PatientID, 
+                        medicationDtos, 
+                        prescriptionHeader.PrescriptionHeaderID,
+                        prescriptionHeader.IssueDate
+                    );
+                    
+                    _logger.LogInformation($"Sent immediate prescription reminder with {medicationDtos.Count} medications to patient {request.PatientID}");
+                }
+                catch (Exception reminderEx)
+                {
+                    _logger.LogWarning($"Failed to send prescription reminder: {reminderEx.Message}");
+                    // Don't fail the request if reminder notification fails
+                }
+
                 // Prepare response DTO
                 var response = new PrescriptionHeaderResponseDTO
                 {
@@ -225,6 +264,8 @@ namespace OHCP_BK.Controllers
                     AppointmentID = request.AppointmentID,
                     PatientID = prescriptionHeader.PatientID,
                     IssueDate = prescriptionHeader.IssueDate,
+                    DoctorName = doctor.FullName,
+                    Specialty = doctor.Specialty,
                     Medications = prescriptionItems.Select(pi => new PrescriptionItemResponseDTO
                     {
                         PrescriptionItemID = pi.PrescriptionItemID,
@@ -246,6 +287,53 @@ namespace OHCP_BK.Controllers
             }
         }
 
+        // GET: api/Prescription/mine
+        [HttpGet("mine")]
+        public async Task<ActionResult<IEnumerable<PrescriptionHeaderResponseDTO>>> GetMyPrescriptions()
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized("User ID not found");
+                }
+
+                var headers = await _context.PrescriptionHeaders
+                    .Where(ph => ph.PatientID == userId)
+                    .Include(ph => ph.PrescriptionItems)
+                    .Include(ph => ph.Appointment)
+                        .ThenInclude(a => a.Doctor)
+                    .Include(ph => ph.Patient)
+                    .ToListAsync();
+
+                var response = headers.Select(h => new PrescriptionHeaderResponseDTO
+                {
+                    PrescriptionHeaderID = h.PrescriptionHeaderID,
+                    AppointmentID = h.AppointmentID,
+                    PatientID = h.PatientID,
+                    IssueDate = h.IssueDate,
+                    DoctorName = h.Appointment?.Doctor?.FullName,
+                    Specialty = h.Appointment?.Doctor?.Specialty,
+                    Medications = h.PrescriptionItems.Select(pi => new PrescriptionItemResponseDTO
+                    {
+                        PrescriptionItemID = pi.PrescriptionItemID,
+                        MedicationName = pi.MedicationName,
+                        Dosage = pi.Dosage,
+                        Instructions = pi.Instructions,
+                        TotalSupplyDays = pi.TotalSupplyDays
+                    }).ToList()
+                }).ToList();
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting my prescriptions: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         // GET: api/Prescription/header/5
         [HttpGet("header/{id}")]
         public async Task<ActionResult<PrescriptionHeaderResponseDTO>> GetPrescriptionHeader(int id)
@@ -255,6 +343,7 @@ namespace OHCP_BK.Controllers
                 var header = await _context.PrescriptionHeaders
                     .Include(ph => ph.PrescriptionItems)
                     .Include(ph => ph.Appointment)
+                        .ThenInclude(a => a.Doctor)
                     .Include(ph => ph.Patient)
                     .FirstOrDefaultAsync(ph => ph.PrescriptionHeaderID == id);
 
@@ -269,6 +358,8 @@ namespace OHCP_BK.Controllers
                     AppointmentID = header.AppointmentID,
                     PatientID = header.PatientID,
                     IssueDate = header.IssueDate,
+                    DoctorName = header.Appointment?.Doctor?.FullName,
+                    Specialty = header.Appointment?.Doctor?.Specialty,
                     Medications = header.PrescriptionItems.Select(pi => new PrescriptionItemResponseDTO
                     {
                         PrescriptionItemID = pi.PrescriptionItemID,
@@ -377,6 +468,49 @@ namespace OHCP_BK.Controllers
             {
                 await transaction.RollbackAsync();
                 _logger.LogError($"Error deleting prescription {id}: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // POST: api/Prescription/{id}/send-reminder
+        // Example endpoint to demonstrate sending medication reminders
+        [HttpPost("{id}/send-reminder")]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> SendMedicationReminder(int id)
+        {
+            try
+            {
+                var prescription = await _context.PrescriptionHeaders
+                    .Include(ph => ph.PrescriptionItems)
+                    .Include(ph => ph.Patient)
+                    .FirstOrDefaultAsync(ph => ph.PrescriptionHeaderID == id);
+
+                if (prescription == null)
+                {
+                    return NotFound("Prescription not found");
+                }
+
+                // Send reminder for each medication
+                foreach (var item in prescription.PrescriptionItems)
+                {
+                    var reminder = new MedicationReminderDto
+                    {
+                        PrescriptionId = prescription.PrescriptionHeaderID,
+                        MedicationName = item.MedicationName,
+                        Dosage = item.Dosage,
+                        Instructions = item.Instructions,
+                        IssueDate = prescription.IssueDate,
+                        TotalSupplyDays = item.TotalSupplyDays
+                    };
+
+                    await _notificationService.SendMedicationReminderAsync(prescription.PatientID, reminder);
+                }
+
+                return Ok(new { message = "Medication reminders sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error sending medication reminder: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
         }
