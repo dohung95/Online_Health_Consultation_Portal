@@ -36,6 +36,7 @@ import IncomingCallModal from './components/IncomingCallModal';
 import PrescriptionNotificationModal from './components/PrescriptionNotificationModal';
 import Navbar from './components/Navbar';
 import DoctorProfile from './components/DoctorProfile';
+import PatientPrescriptionView from './components/PatientPrescriptionView';
 
 import DoctorPage from './components/DoctorPage';
 import ProtectedRoute from './components/ProtectedRoute';
