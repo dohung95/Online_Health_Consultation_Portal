@@ -10,7 +10,7 @@ const Doctors = () => {
   // 2. State pagination
   const [pagination, setPagination] = useState({
     page: 1,
-    pageSize: 5, 
+    pageSize: 5,
     totalPages: 1,
     totalItems: 0
   });
@@ -19,14 +19,18 @@ const Doctors = () => {
   const [filters, setFilters] = useState({
     name: '',
     specialty: '',
-    location: '',
-    language: ''
+    location: ''
   });
+  const [specialties, setSpecialties] = useState([]);
 
   const { isAuthenticated } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    loadSpecialties();
+  }, []);
 
   // Load when page changes
   useEffect(() => {
@@ -50,6 +54,17 @@ const Doctors = () => {
     // Cleanup function: clear timer
     return () => clearTimeout(timer);
   }, [filters]); // Run again when 'filters' changes
+
+  const loadSpecialties = async () => {
+    try {
+      const data = await doctorService.getSpecialties();
+      setSpecialties(data);
+    } catch (error) {
+      console.error("Error loading specialties:", error);
+      // Fallback to empty array
+      setSpecialties([]);
+    }
+  };
 
   const loadDoctors = async () => {
     setLoading(true);
@@ -89,13 +104,6 @@ const Doctors = () => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  // Handle search
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setPagination(prev => ({ ...prev, page: 1 }));
-    loadDoctors();
-  };
-
   // Handle page change
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
@@ -108,6 +116,32 @@ const Doctors = () => {
   const renderStars = (rating) => {
     const r = Math.round(rating);
     return <span className="text-warning">{"★".repeat(r)}{"☆".repeat(5 - r)}</span>;
+  };
+
+  // Helper: Tạo danh sách trang rút gọn (ví dụ: 1 ... 4 5 6 ... 10)
+  const getPaginationItems = (current, total) => {
+    const delta = 2; // Số trang hiển thị bên cạnh trang hiện tại
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+    for (let i = 1; i <= total; i++) {
+      // Luôn lấy trang 1, trang cuối, và các trang xung quanh current
+      if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+        range.push(i);
+      }
+    }
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+    return rangeWithDots;
   };
 
   return (
@@ -124,10 +158,11 @@ const Doctors = () => {
                   <label className="form-label fw-bold">Specialty</label>
                   <select name="specialty" className="form-select" onChange={handleFilterChange} value={filters.specialty}>
                     <option value="">All Specialties</option>
-                    <option value="Cardiology">Cardiology</option>
-                    <option value="Dermatology">Dermatology</option>
-                    <option value="Neurology">Neurology</option>
-                    <option value="General">General Practitioner</option>
+                    {specialties.map((spec) => (
+                      <option key={spec} value={spec}>
+                        {spec}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="mb-3">
@@ -139,15 +174,7 @@ const Doctors = () => {
                     value={filters.location}
                   />
                 </div>
-                <div className="mb-3">
-                  <label className="form-label fw-bold">Language</label>
-                  <input
-                    type="text" name="language" className="form-control"
-                    placeholder="e.g. English..."
-                    onChange={handleFilterChange}
-                    value={filters.language}
-                  />
-                </div>
+
                 <div className="mb-3">
                   <label className="form-label fw-bold">Name</label>
                   <input
@@ -160,7 +187,7 @@ const Doctors = () => {
 
                 <button
                   className="btn btn-outline-secondary w-100"
-                  onClick={() => setFilters({ name: '', specialty: '', location: '', language: '' })}
+                  onClick={() => setFilters({ name: '', specialty: '', location: '' })}
                 >
                   Clear Filters
                 </button>
@@ -232,12 +259,19 @@ const Doctors = () => {
                         </button>
                       </li>
 
-                      {/* Array Page [1, 2, 3...] */}
-                      {[...Array(pagination.totalPages)].map((_, i) => (
-                        <li key={i + 1} className={`page-item ${pagination.page === i + 1 ? 'active' : ''}`}>
-                          <button className="page-link" onClick={() => handlePageChange(i + 1)}>
-                            {i + 1}
-                          </button>
+                      {/* Smart Pagination */}
+                      {getPaginationItems(pagination.page, pagination.totalPages).map((item, index) => (
+                        <li
+                          key={index}
+                          className={`page-item ${item === pagination.page ? 'active' : ''} ${item === '...' ? 'disabled' : ''}`}
+                        >
+                          {item === '...' ? (
+                            <span className="page-link">...</span>
+                          ) : (
+                            <button className="page-link" onClick={() => handlePageChange(item)}>
+                              {item}
+                            </button>
+                          )}
                         </li>
                       ))}
 

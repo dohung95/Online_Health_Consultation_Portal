@@ -252,6 +252,7 @@ namespace OHCP_BK.Controllers
                         DoctorID = d.DoctorID,
                         FullName = d.FullName,
                         Specialty = d.Specialty,
+                        LanguageSpoken = d.LanguageSpoken
 
                         // C�c tr??ng kh�c c� th? ?? null ho?c default cho nh?
 
@@ -262,12 +263,33 @@ namespace OHCP_BK.Controllers
 
                 return Ok(doctors); // Tr? v? M?ng [] tr?c ti?p, kh�ng b?c PagedResult
 
-                return Ok(doctors);
-
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting all doctors: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/Doctor/specialties
+        [HttpGet("specialties")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<string>>> GetSpecialties()
+        {
+            try
+            {
+                // Get distinct specialties from Doctors table
+                var specialties = await _context.Doctors
+                    .Where(d => !string.IsNullOrEmpty(d.Specialty))
+                    .Select(d => d.Specialty)
+                    .Distinct()
+                    .OrderBy(s => s)
+                    .ToListAsync();
+                return Ok(specialties);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting specialties: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
         }

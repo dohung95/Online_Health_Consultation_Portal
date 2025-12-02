@@ -11,7 +11,7 @@ namespace OHCP_BK.Dtos
         public DateTime AppointmentTime { get; set; }
 
         [Required(ErrorMessage = "Consultation type is required")]
-        [RegularExpression("^(video|chat)$", ErrorMessage = "Consultation type must be either 'video' or 'chat'")]
+        [RegularExpression("^(Video Call|Chat)$", ErrorMessage = "Consultation type must be either 'Video Call' or 'Chat'")]
         public string ConsultationType { get; set; } = null!;
     }
 }

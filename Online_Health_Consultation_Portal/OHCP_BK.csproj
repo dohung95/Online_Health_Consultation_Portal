@@ -31,6 +31,8 @@
     <Folder Include="NewFolder\" />
 
     <Folder Include="Migrations\" />
+
+    <Folder Include="wwwroot\uploads\medical-documents\" />
   </ItemGroup>
 
 </Project>

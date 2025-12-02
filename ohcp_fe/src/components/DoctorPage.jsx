@@ -8,6 +8,7 @@ import DoctorProfileView from './DoctorProfileView';
 import DoctorAppointmentsView from './DoctorAppointmentsView';
 import ReviewsView from './ReviewsView';
 import DoctorAppointmentDetail from './DoctorAppointmentDetail';
+import SharedRecordsView from './SharedRecordsView';
 
 const DoctorProfile = () => {
   const navigate = useNavigate();
@@ -46,12 +47,9 @@ const DoctorProfile = () => {
   const handleViewAppointment = async (appointment) => {
     try {
       setLoading(true);
-      console.log('Appointment object:', appointment);
       
       // Try different possible field names for patient ID
       const patientId = appointment.patient?.patientID;
-      
-      console.log('Extracted patientId:', patientId);
       
       if (!patientId) {
         throw new Error('Patient ID not found in appointment object');
@@ -128,7 +126,7 @@ const DoctorProfile = () => {
               <p className="mb-0 small fw-bold">Profile</p>
             </a>
             <a 
-              className={`nav-link-custom ${(view === 'appointments' || view === 'appointmentDetail') ? 'nav-link-active' : ''}`} 
+              className={`nav-link-custom ${view === 'appointments' || view === 'appointmentDetail' ? 'nav-link-active' : ''}`} 
               href="#" 
               onClick={(e) => { e.preventDefault(); setView('appointments'); }}
             >
@@ -140,6 +138,13 @@ const DoctorProfile = () => {
               onClick={(e) => { e.preventDefault(); setView('reviews'); }}
             >
               <p className="mb-0 small fw-bold">Reviews</p>
+            </a>
+            <a 
+              className={`nav-link-custom ${view === 'sharedRecords' ? 'nav-link-active' : ''}`} 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); setView('sharedRecords'); }}
+            >
+              <p className="mb-0 small">Shared Records</p>
             </a>
           </div>
         </div>
@@ -162,11 +167,12 @@ const DoctorProfile = () => {
             {/* Page Heading */}
             <div className="mb-4">
               <h2 className="fs-3 fw-bold mb-1 text-dark">
-                {view === 'profile' ? 'Doctor Profile' : view === 'appointments' ? 'Appointments' : view === 'appointmentDetail' ? 'Appointment Details' : 'Reviews'}
+                {view === 'profile' ? 'Doctor Profile' : view === 'appointments' ? 'Appointments' : view === 'sharedRecords' ? 'Shared Health Records' : view === 'appointmentDetail' ? 'Appointment Details' : 'Reviews'}
               </h2>
               <p className="text-secondary mb-0">
                 {view === 'profile' ? 'Manage your personal information.' : 
                  view === 'appointments' ? 'List of your appointments with patients.' :
+                  view === 'sharedRecords' ? 'Health records shared with you by patients.' :
                  view === 'appointmentDetail' ? 'Detailed information about the selected appointment.' : 
                  'Patient reviews and ratings.'}
               </p>
@@ -182,6 +188,7 @@ const DoctorProfile = () => {
                 />
               )}
               {view === 'reviews' && <ReviewsView doctorId={doctorData?.doctorID} />}
+              {view === 'sharedRecords' && <SharedRecordsView />}
               {view === 'appointmentDetail' && (
                 <DoctorAppointmentDetail 
                   appointment={selectedAppointment}

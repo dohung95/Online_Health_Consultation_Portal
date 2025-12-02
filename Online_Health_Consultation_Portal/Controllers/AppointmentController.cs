@@ -30,20 +30,105 @@ namespace OHCP_BK.Controllers
 
         // GET: api/Appointment
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+        public async Task<ActionResult<IEnumerable<object>>> GetAppointments()
         {
             try
             {
-                var appointments = await _context.Appointments
-                    .Include(a => a.Patient)
-                    .Include(a => a.Doctor)
-                    .ToListAsync();
-                return Ok(appointments);
+                // 1. Lấy user ID từ JWT token
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogWarning("GetAppointments called without valid user ID in token");
+                    return Unauthorized(new { message = "User not authenticated" });
+                }
+
+                _logger.LogInformation($"GetAppointments called by user: {userId}");
+
+                // 2. Lấy role của user
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value?.ToLower();
+                _logger.LogInformation($"User role: {userRole}");
+
+                IEnumerable<Appointment> appointments;
+
+                // 3. Filter theo role
+                if (userRole == "patient")
+                {
+                    // Nếu là bệnh nhân → Lấy appointments mà họ là patient
+                    appointments = await _context.Appointments
+                        .Include(a => a.Patient)
+                        .Include(a => a.Doctor)
+                        .Where(a => a.PatientID == userId)
+                        .OrderByDescending(a => a.AppointmentTime)
+                        .ToListAsync();
+
+                    _logger.LogInformation($"Found {appointments.Count()} appointments for patient {userId}");
+                }
+                else if (userRole == "doctor")
+                {
+                    // Nếu là bác sĩ → Lấy appointments mà họ là doctor
+                    appointments = await _context.Appointments
+                        .Include(a => a.Patient)
+                        .Include(a => a.Doctor)
+                        .Where(a => a.DoctorID == userId)
+                        .OrderByDescending(a => a.AppointmentTime)
+                        .ToListAsync();
+
+                    _logger.LogInformation($"Found {appointments.Count()} appointments for doctor {userId}");
+                }
+                else if (userRole == "admin")
+                {
+                    // Nếu là admin → Lấy tất cả (optional, có thể bỏ nếu không cần)
+                    appointments = await _context.Appointments
+                        .Include(a => a.Patient)
+                        .Include(a => a.Doctor)
+                        .OrderByDescending(a => a.AppointmentTime)
+                        .ToListAsync();
+
+                    _logger.LogInformation($"Found {appointments.Count()} appointments for admin");
+                }
+                else
+                {
+                    _logger.LogWarning($"Unknown role: {userRole}");
+                    return Forbid();
+                }
+
+                // 4. Map sang anonymous object để tránh circular reference
+                var result = appointments.Select(a => new
+                {
+                    appointmentID = a.AppointmentID,
+                    patientID = a.PatientID,
+                    doctorID = a.DoctorID,
+                    appointmentTime = a.AppointmentTime,
+                    consultationType = a.ConsultationType,
+                    status = a.Status,
+                    doctor = a.Doctor != null ? new
+                    {
+                        doctorID = a.Doctor.DoctorID,
+                        fullName = a.Doctor.FullName,
+                        specialty = a.Doctor.Specialty,
+                        qualifications = a.Doctor.Qualifications,
+                        yearsOfExperience = a.Doctor.YearsOfExperience,
+                        languageSpoken = a.Doctor.LanguageSpoken,
+                        location = a.Doctor.Location
+                    } : null,
+                    patient = a.Patient != null ? new
+                    {
+                        patientID = a.Patient.PatientID,
+                        fullName = a.Patient.FullName,
+                        dateOfBirth = a.Patient.DateOfBirth,
+                        medicalHistorySummary = a.Patient.MedicalHistorySummary,
+                        insuranceProvider = a.Patient.InsuranceProvider,
+                        insurancePolicyNumber = a.Patient.InsurancePolicyNumber
+                    } : null
+                }).ToList();
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error getting appointments: {ex.Message}");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError(ex, $"Error getting appointments: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
             }
         }
 
@@ -75,41 +160,54 @@ namespace OHCP_BK.Controllers
         }
 
         // 1. API Get list of free hours (For Calendar Frontend)
-        [HttpGet("available-slots")]
-        public async Task<ActionResult<IEnumerable<TimeSlotDTO>>> GetAvailableSlots(string doctorId, DateTime date)
-        {
-            // Working hours: Morning 7am-11am, Afternoon 1pm-5pm
-            var startHours = new[] { 7, 8, 9, 10, 13, 14, 15, 16 };
-            var resultSlots = new List<TimeSlotDTO>();
-
-            // Get the doctor's BOOKED appointments for that day
-            var bookedTimes = await _context.Appointments
-                .Where(a => a.DoctorID == doctorId
-                            && a.AppointmentTime.Date == date.Date
-                            && a.Status != AppointmentConstants.StatusCancelled) // Ignore canceled appointments
-                .Select(a => a.AppointmentTime.Hour)
-                .ToListAsync();
-
-            foreach (var hour in startHours)
+            [HttpGet("available-slots")]
+            public async Task<ActionResult<IEnumerable<TimeSlotDTO>>> GetAvailableSlots(string doctorId, DateTime date)
             {
-                var slotTime = date.Date.AddHours(hour);
+                var startWork = new TimeSpan(8, 0, 0);
+                var endWork = new TimeSpan(20, 0, 0);
+                var slotDuration = TimeSpan.FromMinutes(30);
 
-                // Past test logic: If the selected date is today, only show future time
-                if (date.Date == DateTime.UtcNow.Date && slotTime <= DateTime.UtcNow.AddHours(7)) // +7 for VN timezone
+                var resultSlots = new List<TimeSlotDTO>();
+
+            // 2. Get BOOKED schedule
+            // IMPORTANT: Must get TimeOfDay (hour:minute) instead of Hour (only get hour) to compare 30p accurately
+            var bookedTimes = await _context.Appointments
+                    .Where(a => a.DoctorID == doctorId
+                                && a.AppointmentTime.Date == date.Date
+                                && a.Status != AppointmentConstants.StatusCancelled)
+                    .Select(a => a.AppointmentTime.TimeOfDay)
+                    .ToListAsync();
+
+            // 3. Loop to create slot (Replaces old int array foreach)
+            var currentSlot = startWork;
+                while (currentSlot < endWork)
                 {
-                    continue;
+                    var slotDateTime = date.Date.Add(currentSlot);
+
+                // Past check logic: Keep the same as the old code
+                // Note: DateTime.UtcNow.AddHours(7) is Vietnam time
+                if (date.Date == DateTime.UtcNow.Date && slotDateTime <= DateTime.UtcNow.AddHours(7))
+                    {
+                        currentSlot = currentSlot.Add(slotDuration);
+                        continue;
+                    }
+
+                // Create DTO that returns the correct format FE is using
+                resultSlots.Add(new TimeSlotDTO
+                    {
+                        StartTime = slotDateTime,
+                    // Ends in 30 minutes
+                    EndTime = slotDateTime.Add(slotDuration),
+                    // Duplicate check: compare exact TimeOfDay
+                    IsAvailable = !bookedTimes.Contains(currentSlot)
+                    });
+
+                // Add 30p to the next loop
+                currentSlot = currentSlot.Add(slotDuration);
                 }
 
-                resultSlots.Add(new TimeSlotDTO
-                {
-                    StartTime = slotTime,
-                    EndTime = slotTime.AddHours(1),
-                    IsAvailable = !bookedTimes.Contains(hour)
-                });
+                return Ok(resultSlots);
             }
-
-            return Ok(resultSlots);
-        }
 
         // POST: api/Appointment
         [HttpPost]
@@ -169,18 +267,12 @@ namespace OHCP_BK.Controllers
                     PatientID = userId,
                     DoctorID = dto.DoctorID,
                     AppointmentTime = dto.AppointmentTime,
-                    ConsultationType = dto.ConsultationType, // Video Call/Audio Call/Chat
+                    ConsultationType = dto.ConsultationType, // Video Call/Chat
                     Status = AppointmentConstants.StatusScheduled // Constant: "Scheduled"
                 };
 
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
-
-                // ---------------------------------------------------------
-                // TODO: Integration with calendar system (Y�u c?u ?? b�i)
-                // You can Notification ho?c send Email confirm
-                // Ex: _emailService.SendBookingConfirmation(userId, appointment);
-                // ---------------------------------------------------------
 
                 // Return result (call GetAppointment to return full details with join tables)
                 return CreatedAtAction(nameof(GetAppointment), new { id = appointment.AppointmentID }, new

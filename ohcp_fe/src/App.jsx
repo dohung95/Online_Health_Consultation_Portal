@@ -43,8 +43,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/Admin/AdminRoute';
 import HealthRecords from './components/HealthRecords';
 import ShareHealthRecords from './components/ShareHealthRecords';
-import PatientPrescriptionView from './components/PatientPrescriptionView';
-
+import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   return (
@@ -88,7 +87,11 @@ function AppContent() {
             <Route path="/health-records" element={<HealthRecords />} />
             <Route path="/share-records" element={<ShareHealthRecords />} />
             <Route path="/profile-patient" element={<ProfilePatient />} />
-            
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/book/:doctorId" element={<Schedule />} />
+            <Route path="/my-appointments" element={<MyAppointments />} />
+            <Route path="/doctors" element={<Doctors />} />
+            <Route path="/doctor/:id" element={<DoctorProfile />} />
             {/* Doctor only */}
             <Route path="/doctor-page" element={
               <ProtectedRoute allowedRoles={['Doctor']}>
@@ -97,7 +100,7 @@ function AppContent() {
             } />
             
             {/* Patient only routes */}
-            <Route path="/schedule" element={
+            {/* <Route path="/schedule" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <Schedule />
               </ProtectedRoute>
@@ -121,7 +124,7 @@ function AppContent() {
               <ProtectedRoute allowedRoles={['Patient']}>
                 <DoctorProfile />
               </ProtectedRoute>
-            } />
+            } /> */}
             <Route path="/records" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <Records />
