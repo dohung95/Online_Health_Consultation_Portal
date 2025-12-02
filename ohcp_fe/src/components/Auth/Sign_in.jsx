@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { decodeToken } from '../../utils/tokenUtils';
+import { Modal, Button } from 'react-bootstrap';
 import '../Css/Sign_in.css';
 export function Sign_in() {
     const navigate = useNavigate();
@@ -10,6 +11,8 @@ export function Sign_in() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [errorModalMessage, setErrorModalMessage] = useState('');
 
     const containerStyle = {
         maxWidth: '400px',
@@ -39,6 +42,12 @@ export function Sign_in() {
         marginTop: '10px'
     };
 
+    const handleCloseErrorModal = () => {
+        setShowErrorModal(false);
+        setErrorModalMessage('');
+        // Không navigate ngay, chỉ đóng modal
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -50,7 +59,7 @@ export function Sign_in() {
                 // Get token and decode to extract roles
                 const token = localStorage.getItem('token');
                 const decoded = decodeToken(token);
-                
+
                 // Extract roles from token
                 let userRoles = [];
                 const roleClaimType = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
@@ -61,7 +70,7 @@ export function Sign_in() {
                     const roleValue = decoded.role;
                     userRoles = Array.isArray(roleValue) ? roleValue : [roleValue];
                 }
-                
+
                 // Navigate based on role (priority: Admin > Doctor > Patient)
                 if (userRoles.some(r => r.toLowerCase() === 'admin')) {
                     navigate('/admin');
@@ -74,7 +83,30 @@ export function Sign_in() {
                 setError('Invalid email or password');
             }
         } catch (err) {
-            setError(err.message || 'Login failed');
+            const errorMessage = err.message || 'Login failed';
+
+            // Check if error is related to account status
+            const statusErrors = [
+                'inactive',
+                'suspended',
+                'banned',
+                'not active',
+                'admin approval',
+                'contact support'
+            ];
+
+            const isStatusError = statusErrors.some(keyword =>
+                errorMessage.toLowerCase().includes(keyword)
+            );
+
+            if (isStatusError) {
+                // Show modal for status errors - DO NOT navigate here
+                setErrorModalMessage(errorMessage);
+                setShowErrorModal(true);
+            } else {
+                // Show inline error for other errors
+                setError(errorMessage);
+            }
         } finally {
             setLoading(false);
         }
@@ -118,6 +150,102 @@ export function Sign_in() {
                     </p>
                 </div>
             </div>
+
+            {/* Error Modal */}
+            <Modal
+                show={showErrorModal}
+                onHide={handleCloseErrorModal}
+                backdrop="static"
+                keyboard={false}
+                centered
+                size="lg"
+            >
+                <Modal.Header
+                    closeButton
+                    style={{
+                        backgroundColor: '#e7f3ff',
+                        borderBottom: '2px solid #009cde',
+                        padding: '20px'
+                    }}
+                >
+                    <Modal.Title style={{
+                        color: '#0066a1',
+                        fontWeight: '600',
+                        fontSize: '22px',
+                        width: '100%',
+                        textAlign: 'center'
+                    }}>
+                        <i className="bi bi-info-circle-fill" style={{ fontSize: '35px', marginRight: '12px' }}></i>
+                        <div style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                            Account Access Notice
+                        </div>
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{
+                    padding: '40px',
+                    textAlign: 'center',
+                    backgroundColor: '#fff'
+                }}>
+                    <div style={{
+                        backgroundColor: '#f0f8ff',
+                        border: '2px solid #b3d9f2',
+                        borderRadius: '10px',
+                        padding: '30px',
+                        marginBottom: '20px'
+                    }}>
+                        <i className="bi bi-person-lock" style={{
+                            fontSize: '55px',
+                            color: '#009cde',
+                            marginBottom: '20px',
+                            display: 'block'
+                        }}></i>
+                        <h5 style={{
+                            color: '#0066a1',
+                            fontWeight: '600',
+                            marginBottom: '20px',
+                            fontSize: '18px'
+                        }}>
+                            Unable to Access Your Account
+                        </h5>
+                        <p style={{
+                            fontSize: '16px',
+                            color: '#555',
+                            lineHeight: '1.8',
+                            margin: '0'
+                        }}>
+                            {errorModalMessage}
+                        </p>
+                    </div>
+                    <div style={{
+                        fontSize: '14px',
+                        color: '#6c757d',
+                        marginTop: '15px'
+                    }}>
+                        <i className="bi bi-envelope"></i> Please contact our support team if you need assistance
+                    </div>
+                </Modal.Body>
+                <Modal.Footer style={{
+                    justifyContent: 'center',
+                    padding: '20px',
+                    backgroundColor: '#f8f9fa'
+                }}>
+                    <Button
+                        onClick={handleCloseErrorModal}
+                        size="lg"
+                        style={{
+                            minWidth: '150px',
+                            fontWeight: '600',
+                            fontSize: '16px',
+                            backgroundColor: '#009cde',
+                            border: 'none',
+                            color: 'white'
+                        }}
+                    >
+                        <i className="bi bi-check-circle me-2"></i>
+                        I Understand
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
 
     );

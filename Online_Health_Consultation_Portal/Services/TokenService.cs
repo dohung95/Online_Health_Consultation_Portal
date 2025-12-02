@@ -207,7 +207,7 @@ namespace OHCP_BK.Services
 
                 // Check user status for Patient and Doctor roles
                 var roles = await userManager.GetRolesAsync(user);
-                if (roles.Contains("Patient") || roles.Contains("Doctor"))
+                if (roles.Contains("patient") || roles.Contains("doctor"))
                 {
                     if (user.Status != UserStatusConstants.Active)
                     {

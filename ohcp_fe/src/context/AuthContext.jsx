@@ -158,7 +158,27 @@ export function AuthProvider({ children }) {
             return true;
         } catch (error) {
             console.error("Double login error:", error);
-            logout();
+
+            // Check if error is related to account status
+            const errorMessage = error.message || '';
+            const statusErrors = [
+                'inactive',
+                'suspended',
+                'banned',
+                'not active',
+                'admin approval',
+                'contact support'
+            ];
+
+            const isStatusError = statusErrors.some(keyword =>
+                errorMessage.toLowerCase().includes(keyword)
+            );
+
+            // Only call logout if it's NOT a status error
+            if (!isStatusError) {
+                logout();
+            }
+
             throw error;
         }
     };
