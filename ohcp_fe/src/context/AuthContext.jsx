@@ -212,7 +212,14 @@ export function AuthProvider({ children }) {
             return true;
         } catch (error) {
             console.error("Double register error:", error);
-            logout();
+            // Don't call logout() to avoid redirect, just clear any partial state
+            setToken(null);
+            setRefreshToken(null);
+            setUser(null);
+            setRoles([]);
+            setTokenExpiry(null);
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
             throw error;
         }
 
