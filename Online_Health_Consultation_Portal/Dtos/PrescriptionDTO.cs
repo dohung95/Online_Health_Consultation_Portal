@@ -21,6 +21,8 @@ namespace OHCP_BK.Dtos
         public int AppointmentID { get; set; }
         public string PatientID { get; set; } = null!;
         public DateTime IssueDate { get; set; }
+        public string? DoctorName { get; set; }
+        public string? Specialty { get; set; }
         public List<PrescriptionItemResponseDTO> Medications { get; set; } = new List<PrescriptionItemResponseDTO>();
     }
 

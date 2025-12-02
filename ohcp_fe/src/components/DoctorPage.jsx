@@ -130,14 +130,14 @@ const DoctorProfile = () => {
               href="#" 
               onClick={(e) => { e.preventDefault(); setView('appointments'); }}
             >
-              <p className="mb-0 small">Appointments</p>
+              <p className="mb-0 small fw-bold">Appointments</p>
             </a>
             <a 
               className={`nav-link-custom ${view === 'reviews' ? 'nav-link-active' : ''}`} 
               href="#" 
               onClick={(e) => { e.preventDefault(); setView('reviews'); }}
             >
-              <p className="mb-0 small">Reviews</p>
+              <p className="mb-0 small fw-bold">Reviews</p>
             </a>
             <a 
               className={`nav-link-custom ${view === 'sharedRecords' ? 'nav-link-active' : ''}`} 

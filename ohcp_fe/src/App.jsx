@@ -7,10 +7,10 @@ import MyAppointments from './components/MyAppointment';
 import Doctors from './components/Doctors';
 import Records from './components/Records';
 import Video from './components/Video';
-import Prescription from './components/Prescription';
+
 import Chat from './components/Chat';
 import Payment from './components/Payment';
-import Reminders from './components/Reminders';
+
 import ProfilePatient from './pages/profilePatient';
 
 import Admin from './components/Admin/Admin';
@@ -135,19 +135,15 @@ function AppContent() {
                 <Video />
               </ProtectedRoute>
             } />
-            <Route path="/prescription" element={
-              <ProtectedRoute allowedRoles={['Patient']}>
-                <Prescription />
-              </ProtectedRoute>
-            } />
             <Route path="/payment" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <Payment />
               </ProtectedRoute>
             } />
-            <Route path="/reminders" element={
+            
+            <Route path="/my-prescriptions" element={
               <ProtectedRoute allowedRoles={['Patient']}>
-                <Reminders />
+                <PatientPrescriptionView />
               </ProtectedRoute>
             } />
             
