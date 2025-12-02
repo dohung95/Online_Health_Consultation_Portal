@@ -19,14 +19,14 @@ namespace OHCP_BK.Services
         {
             try
             {
-                var smtpSettings = _configuration.GetSection("Smtp");
-                var smtpHost = smtpSettings["Host"] ?? "smtp.gmail.com";
-                var smtpPort = int.Parse(smtpSettings["Port"] ?? "587");
-                var smtpUser = smtpSettings["Username"];
-                var smtpPass = smtpSettings["Password"];
-                var fromEmail = smtpSettings["FromEmail"] ?? smtpUser;
-                var fromName = smtpSettings["FromName"] ?? "Online Health Consultation Portal";
-                var toEmail = smtpSettings["ToEmail"] ?? "hungtrum127@gmail.com";
+                // Read SMTP settings from environment variables
+                var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp.gmail.com";
+                var smtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
+                var smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME");
+                var smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
+                var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ?? smtpUser;
+                var fromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ?? "Online Health Consultation Portal";
+                var toEmail = Environment.GetEnvironmentVariable("SMTP_TO_EMAIL") ?? "hungtrum127@gmail.com";
 
                 if (string.IsNullOrEmpty(smtpUser) || string.IsNullOrEmpty(smtpPass))
                 {

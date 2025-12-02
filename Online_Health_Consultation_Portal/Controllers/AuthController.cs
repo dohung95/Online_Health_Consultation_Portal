@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using OHCP_BK.Exceptions;
 using OHCP_BK.Models;
 using OHCP_BK.Services;
+using OHCP_BK.Constants;
 
 using FirebaseAdmin.Auth;
 using System.Security.Claims;
@@ -62,6 +63,27 @@ namespace OHCP_BK.Controllers
                     logger.LogWarning($"Login failed: Invalid password for user '{model.Email}'");
                     throw new UnauthorizedException("Invalid email or password");
                 }
+
+                // Check user status for Patient and Doctor roles
+                var roles = await userManager.GetRolesAsync(user);
+                if (roles.Contains("Patient") || roles.Contains("Doctor"))
+                {
+                    if (user.Status != UserStatusConstants.Active)
+                    {
+                        logger.LogWarning($"Login failed: User '{model.Email}' has status '{user.Status}'");
+
+                        string message = user.Status switch
+                        {
+                            UserStatusConstants.Inactive => "Your account is inactive. Please wait for admin approval.",
+                            UserStatusConstants.Suspended => "Your account has been suspended. Please contact support.",
+                            UserStatusConstants.Banned => "Your account has been banned. Please contact support.",
+                            _ => "Your account is not active. Please contact support."
+                        };
+
+                        throw new UnauthorizedException(message);
+                    }
+                }
+                // Admin role: no status check (original logic)
 
                 var tokenResponse = await tokenService.GenerateTokenAsync(user);
                 logger.LogInformation($"User '{user.Email}' logged in successfully");

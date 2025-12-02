@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
-import { patientsApi, medicalRecordsApi } from "../../services/adminApi";
+import { doctorsApi } from "../../services/adminApi";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./Admin.css";
 
-export default function Patients() {
+export default function Doctors() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
@@ -18,7 +18,7 @@ export default function Patients() {
   });
   const [filters, setFilters] = useState({
     searchTerm: '',
-    status: '',
+    specialty: '',
     sortBy: 'newest'
   });
 
@@ -26,45 +26,32 @@ export default function Patients() {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState(null);
-  const [patientHealthRecords, setPatientHealthRecords] = useState([]);
-  const [loadingRecords, setLoadingRecords] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [newStatus, setNewStatus] = useState('');
 
   // Edit form state
   const [editForm, setEditForm] = useState({
     fullName: '',
     phoneNumber: '',
-    dateOfBirth: '',
-    gender: '',
-    email: '',
-    address: '',
-    city: '',
-    country: '',
-    bloodType: '',
-    occupation: '',
-    preferredLanguage: '',
-    preferredContactMethod: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    emergencyContactRelationship: '',
-    medicalHistorySummary: '',
-    insuranceProvider: '',
-    insurancePolicyNumber: ''
+    specialty: '',
+    qualifications: '',
+    yearsOfExperience: '',
+    languageSpoken: '',
+    location: ''
   });
 
-  // Fetch patients from API
-  const fetchPatients = async () => {
+  // Fetch doctors from API
+  const fetchDoctors = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await patientsApi.getAll({
+      const response = await doctorsApi.getAll({
         pageNumber: pagination.pageNumber,
         pageSize: pagination.pageSize,
         ...filters
       });
 
-      setPatients(response.patients);
+      setDoctors(response.doctors);
       setPagination({
         pageNumber: response.pageNumber,
         pageSize: response.pageSize,
@@ -72,8 +59,8 @@ export default function Patients() {
         totalPages: response.totalPages
       });
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch patients');
-      console.error('Error fetching patients:', err);
+      setError(err.response?.data?.error || 'Failed to fetch doctors');
+      console.error('Error fetching doctors:', err);
     } finally {
       setLoading(false);
     }
@@ -81,7 +68,7 @@ export default function Patients() {
 
   // Fetch data on component mount and when filters/pagination change
   useEffect(() => {
-    fetchPatients();
+    fetchDoctors();
   }, [pagination.pageNumber, filters]);
 
   // Handle search
@@ -90,9 +77,9 @@ export default function Patients() {
     setPagination({ ...pagination, pageNumber: 1 }); // Reset to page 1
   };
 
-  // Handle status filter
-  const handleStatusFilter = (e) => {
-    setFilters({ ...filters, status: e.target.value });
+  // Handle specialty filter
+  const handleSpecialtyFilter = (e) => {
+    setFilters({ ...filters, specialty: e.target.value });
     setPagination({ ...pagination, pageNumber: 1 });
   };
 
@@ -106,119 +93,87 @@ export default function Patients() {
     setPagination({ ...pagination, pageNumber: newPage });
   };
 
-  // Handle view patient details
-  const handleViewPatient = async (patient) => {
-    setSelectedPatient(patient);
+  // Handle view doctor details
+  const handleViewDoctor = async (doctor) => {
+    setSelectedDoctor(doctor);
     setShowViewModal(true);
-    setLoadingRecords(true);
-
-    try {
-      const records = await medicalRecordsApi.getByPatientId(patient.patientID);
-      setPatientHealthRecords(records);
-    } catch (err) {
-      console.error('Error fetching health records:', err);
-      setPatientHealthRecords([]);
-    } finally {
-      setLoadingRecords(false);
-    }
   };
 
-  // Handle edit patient
-  const handleEditPatient = (patient) => {
-    setSelectedPatient(patient);
+  // Handle edit doctor
+  const handleEditDoctor = (doctor) => {
+    setSelectedDoctor(doctor);
     setEditForm({
-      fullName: patient.fullName,
-      phoneNumber: patient.phone,
-      dateOfBirth: patient.dateOfBirth ? patient.dateOfBirth.split('T')[0] : '',
-      gender: patient.gender || '',
-      email: patient.email || '',
-      address: patient.address || '',
-      city: patient.city || '',
-      country: patient.country || '',
-      bloodType: patient.bloodType || '',
-      occupation: patient.occupation || '',
-      preferredLanguage: patient.preferredLanguage || '',
-      preferredContactMethod: patient.preferredContactMethod || '',
-      emergencyContactName: patient.emergencyContactName || '',
-      emergencyContactPhone: patient.emergencyContactPhone || '',
-      emergencyContactRelationship: patient.emergencyContactRelationship || '',
-      medicalHistorySummary: patient.medicalHistorySummary || '',
-      insuranceProvider: patient.insuranceProvider || '',
-      insurancePolicyNumber: patient.insurancePolicyNumber || ''
+      fullName: doctor.fullName,
+      phoneNumber: doctor.phoneNumber || '',
+      specialty: doctor.specialty || '',
+      qualifications: doctor.qualifications || '',
+      yearsOfExperience: doctor.yearsOfExperience || '',
+      languageSpoken: doctor.languageSpoken || '',
+      location: doctor.location || ''
     });
     setShowEditModal(true);
   };
 
-  // Handle update patient
-  const handleUpdatePatient = async (e) => {
+  // Handle update doctor
+  const handleUpdateDoctor = async (e) => {
     e.preventDefault();
 
     try {
-      // Prepare data according to UpdatePatientAdminDto (using PascalCase to match backend)
+      // Prepare data according to UpdateDoctorAdminDto (using PascalCase to match backend)
       const updateData = {
         FullName: editForm.fullName,
         PhoneNumber: editForm.phoneNumber,
-        DateOfBirth: editForm.dateOfBirth,
-        Gender: editForm.gender,
-        Address: editForm.address,
-        City: editForm.city,
-        Country: editForm.country,
-        BloodType: editForm.bloodType,
-        Occupation: editForm.occupation,
-        PreferredLanguage: editForm.preferredLanguage,
-        PreferredContactMethod: editForm.preferredContactMethod,
-        EmergencyContactName: editForm.emergencyContactName,
-        EmergencyContactPhone: editForm.emergencyContactPhone,
-        EmergencyContactRelationship: editForm.emergencyContactRelationship,
-        MedicalHistorySummary: editForm.medicalHistorySummary,
-        InsuranceProvider: editForm.insuranceProvider,
-        InsurancePolicyNumber: editForm.insurancePolicyNumber
+        Specialty: editForm.specialty,
+        Qualifications: editForm.qualifications,
+        YearsOfExperience: editForm.yearsOfExperience,
+        LanguageSpoken: editForm.languageSpoken,
+        Location: editForm.location
       };
 
       console.log('Sending update data:', updateData);
-      console.log('Patient ID:', selectedPatient.patientID);
+      console.log('Doctor ID:', selectedDoctor.doctorID);
 
-      const response = await patientsApi.update(selectedPatient.patientID, updateData);
+      const response = await doctorsApi.update(selectedDoctor.doctorID, updateData);
       console.log('Update response:', response);
 
-      alert('Patient updated successfully');
+      alert('Doctor updated successfully');
       setShowEditModal(false);
-      fetchPatients();
+      fetchDoctors();
     } catch (err) {
       console.error('Full error object:', err);
       console.error('Error response:', err.response);
       console.error('Error data:', err.response?.data);
 
-      const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update patient';
+      const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update doctor';
       alert(`Update failed: ${errorMessage}`);
     }
   };
 
   // Handle change status
-  const handleChangeStatus = (patient) => {
-    setSelectedPatient(patient);
-    setNewStatus(patient.status);
+  const handleChangeStatus = (doctor) => {
+    setSelectedDoctor(doctor);
+    setNewStatus(doctor.status);
     setShowStatusModal(true);
   };
 
   // Handle update status
   const handleUpdateStatus = async () => {
     try {
-      await patientsApi.updateStatus(selectedPatient.patientID, newStatus);
+      await doctorsApi.updateStatus(selectedDoctor.doctorID, newStatus);
 
-      // Update the patient list immediately without refetching
-      setPatients(prevPatients =>
-        prevPatients.map(patient =>
-          patient.patientID === selectedPatient.patientID
-            ? { ...patient, status: newStatus }
-            : patient
+      // Update the doctor list immediately without refetching
+      setDoctors(prevDoctors =>
+        prevDoctors.map(doctor =>
+          doctor.doctorID === selectedDoctor.doctorID
+            ? { ...doctor, status: newStatus }
+            : doctor
         )
       );
 
       setShowStatusModal(false);
 
       // Show success message
-      alert('Patient status updated successfully');
+      alert('Doctor status updated successfully');
     } catch (err) {
       const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update status';
       alert(`Update failed: ${errorMessage}`);
@@ -256,7 +211,7 @@ export default function Patients() {
     >
       <main className="admin-content p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="admin-page-title">Patients List</h2>
+            <h2 className="admin-page-title">Doctors List</h2>
           </div>
 
           {/* Error Message */}
@@ -279,7 +234,7 @@ export default function Patients() {
                   <button
                   className="btn btn-outline-secondary btn-sm"
                   onClick={() => {
-                    setFilters({ searchTerm: '', status: '', sortBy: 'newest' });
+                    setFilters({ searchTerm: '', specialty: '', sortBy: 'newest' });
                     setPagination({ ...pagination, pageNumber: 1 });
                   }}
                   style={{fontSize: '12px'}}
@@ -294,7 +249,7 @@ export default function Patients() {
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Search by name, email, phone..."
+                    placeholder="Search by name, email, specialty..."
                     value={filters.searchTerm}
                     onChange={handleSearch}
                   />
@@ -302,14 +257,16 @@ export default function Patients() {
                 <div className="col-md-3">
                   <select
                     className="form-select"
-                    value={filters.status}
-                    onChange={handleStatusFilter}
+                    value={filters.specialty}
+                    onChange={handleSpecialtyFilter}
                   >
-                    <option value="">All Status</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Suspended">Suspended</option>
-                    <option value="Banned">Banned</option>
+                    <option value="">All Specialties</option>
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="Dermatology">Dermatology</option>
+                    <option value="Neurology">Neurology</option>
+                    <option value="Pediatrics">Pediatrics</option>
+                    <option value="Psychiatry">Psychiatry</option>
+                    <option value="General Practice">General Practice</option>
                   </select>
                 </div>
                 <div className="col-md-3" style={{padding:"0 20px 0 0"}}>
@@ -328,7 +285,7 @@ export default function Patients() {
             </div>
           </div>
 
-          {/* Patients Table */}
+          {/* Doctors Table */}
           <div className="card border-0 shadow-sm">
             <div className="card-body p-0">
               {loading ? (
@@ -336,12 +293,12 @@ export default function Patients() {
                   <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Loading...</span>
                   </div>
-                  <p className="mt-2">Loading patients...</p>
+                  <p className="mt-2">Loading doctors...</p>
                 </div>
-              ) : patients.length === 0 ? (
+              ) : doctors.length === 0 ? (
                 <div className="admin-empty-state">
                   <i className="bi bi-inbox"></i>
-                  <p className="mt-2">No patients found</p>
+                  <p className="mt-2">No doctors found</p>
                 </div>
               ) : (
                 <div className="table-responsive">
@@ -350,57 +307,61 @@ export default function Patients() {
                       <tr>
                         <th>ID</th>
                         <th>Full Name</th>
-                        <th>Age</th>
-                        <th>Gender</th>
-                        <th>Phone</th>
+                        <th>Specialty</th>
+                        <th>Experience</th>
                         <th>Email</th>
                         <th>Status</th>
-                        <th>Last Visit</th>
+                        <th>Rating</th>
                         <th className="text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {patients.map((patient) => (
-                        <tr key={patient.patientID}>
-                          <td><strong>{patient.patientID.substring(0, 8)}</strong></td>
+                      {doctors.map((doctor) => (
+                        <tr key={doctor.doctorID}>
+                          <td><strong>{doctor.doctorID.substring(0, 8)}</strong></td>
                           <td>
                             <div className="d-flex align-items-center">
                               <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style={{width: "35px", height: "35px"}}>
-                                {patient.fullName.charAt(0)}
+                                {doctor.fullName.charAt(0)}
                               </div>
-                              {patient.fullName}
+                              {doctor.fullName}
                             </div>
                           </td>
-                          <td>{patient.age}</td>
-                          <td>{patient.gender}</td>
-                          <td>{patient.phone}</td>
-                          <td>{patient.email}</td>
+                          <td>{doctor.specialty}</td>
+                          <td>{doctor.yearsOfExperience ? `${doctor.yearsOfExperience} years` : 'N/A'}</td>
+                          <td>{doctor.email}</td>
                           <td>
-                            <span className={`badge ${getStatusBadgeClass(patient.status)}`}>
-                              {patient.status}
+                            <span className={`badge ${getStatusBadgeClass(doctor.status)}`}>
+                              {doctor.status}
                             </span>
                           </td>
-                          <td>{patient.lastVisit || 'N/A'}</td>
+                          <td>
+                            {doctor.rating ? (
+                              <span>
+                                <i className="bi bi-star-fill text-warning"></i> {doctor.rating.toFixed(1)}
+                              </span>
+                            ) : 'N/A'}
+                          </td>
                           <td className="text-center">
                             <div className="admin-btn-group">
                               <button
                                 className="btn btn-outline-slate btn-sm"
-                                title="View Details & Health Records"
-                                onClick={() => handleViewPatient(patient)}
+                                title="View Details"
+                                onClick={() => handleViewDoctor(doctor)}
                               >
                                 <i className="bi bi-eye"></i>
                               </button>
                               <button
                                 className="btn btn-outline-info btn-sm"
-                                title="Edit Patient Info"
-                                onClick={() => handleEditPatient(patient)}
+                                title="Edit Doctor Info"
+                                onClick={() => handleEditDoctor(doctor)}
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
                               <button
                                 className="btn btn-outline-warning btn-sm"
                                 title="Change Status"
-                                onClick={() => handleChangeStatus(patient)}
+                                onClick={() => handleChangeStatus(doctor)}
                               >
                                 <i className="bi bi-toggle-on"></i>
                               </button>
@@ -413,11 +374,11 @@ export default function Patients() {
                 </div>
               )}
             </div>
-            {!loading && patients.length > 0 && (
+            {!loading && doctors.length > 0 && (
               <div className="card-footer bg-white">
                 <div className="d-flex justify-content-between align-items-center">
                   <span className="text-muted" style={{fontSize: '13px'}}>
-                    Page <strong style={{color: 'var(--admin-text)'}}>{pagination.pageNumber}</strong> of <strong style={{color: 'var(--admin-text)'}}>{pagination.totalPages}</strong> • <strong style={{color: 'var(--admin-text)'}}>{pagination.totalCount}</strong> total patients
+                    Page <strong style={{color: 'var(--admin-text)'}}>{pagination.pageNumber}</strong> of <strong style={{color: 'var(--admin-text)'}}>{pagination.totalPages}</strong> • <strong style={{color: 'var(--admin-text)'}}>{pagination.totalCount}</strong> total doctors
                   </span>
                   <nav>
                     <ul className="pagination mb-0">
@@ -503,15 +464,15 @@ export default function Patients() {
             )}
           </div>
 
-          {/* View Patient Details Modal */}
-          {showViewModal && selectedPatient && (
+          {/* View Doctor Details Modal */}
+          {showViewModal && selectedDoctor && (
             <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
               <div className="modal-dialog modal-xl modal-dialog-scrollable">
                 <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
                   <div className="modal-header admin-modal-header primary" style={{borderBottom: 'none'}}>
                     <h5 className="modal-title">
-                      <i className="bi bi-person-circle me-2"></i>
-                      Patient Details
+                      <i className="bi bi-person-badge me-2"></i>
+                      Doctor Details
                     </h5>
                     <button
                       type="button"
@@ -520,7 +481,7 @@ export default function Patients() {
                     ></button>
                   </div>
                   <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
-                    {/* Patient Header Card - Highlighted */}
+                    {/* Doctor Header Card - Highlighted */}
                     <div className="admin-card mb-4" style={{
                       background: 'linear-gradient(135deg, var(--admin-primary-dark) 0%, var(--admin-primary) 100%)',
                       color: 'white',
@@ -540,25 +501,25 @@ export default function Patients() {
                             fontWeight: '700',
                             border: '3px solid rgba(255, 255, 255, 0.3)'
                           }}>
-                            {selectedPatient.fullName.charAt(0)}
+                            {selectedDoctor.fullName.charAt(0)}
                           </div>
                         </div>
                         <div className="col">
                           <h4 className="mb-1" style={{fontWeight: '700', fontSize: 'var(--font-size-2xl)'}}>
-                            {selectedPatient.fullName}
+                            Dr. {selectedDoctor.fullName}
                           </h4>
                           <div className="d-flex flex-wrap gap-3 mt-2" style={{fontSize: 'var(--font-size-sm)'}}>
                             <span style={{opacity: 0.9}}>
                               <i className="bi bi-person-badge me-1"></i>
-                              ID: {selectedPatient.patientID}
+                              ID: {selectedDoctor.doctorID}
                             </span>
                             <span style={{opacity: 0.9}}>
                               <i className="bi bi-telephone me-1"></i>
-                              {selectedPatient.phone}
+                              {selectedDoctor.phoneNumber}
                             </span>
                             <span style={{opacity: 0.9}}>
                               <i className="bi bi-envelope me-1"></i>
-                              {selectedPatient.email}
+                              {selectedDoctor.email}
                             </span>
                           </div>
                         </div>
@@ -571,10 +532,10 @@ export default function Patients() {
                               fontSize: 'var(--font-size-sm)',
                               fontWeight: '600'
                             }}>
-                              <i className="bi bi-cake me-1"></i>
-                              {selectedPatient.age} years old
+                              <i className="bi bi-star-fill me-1"></i>
+                              {selectedDoctor.rating ? `${selectedDoctor.rating.toFixed(1)} Rating` : 'No Rating'}
                             </div>
-                            {selectedPatient.gender && (
+                            {selectedDoctor.yearsOfExperience && (
                               <div style={{
                                 background: 'rgba(255, 255, 255, 0.2)',
                                 padding: '8px 16px',
@@ -582,8 +543,8 @@ export default function Patients() {
                                 fontSize: 'var(--font-size-sm)',
                                 fontWeight: '600'
                               }}>
-                                <i className="bi bi-gender-ambiguous me-1"></i>
-                                {selectedPatient.gender}
+                                <i className="bi bi-award me-1"></i>
+                                {selectedDoctor.yearsOfExperience} Years Exp.
                               </div>
                             )}
                           </div>
@@ -594,180 +555,127 @@ export default function Patients() {
                     <div className="row">
                       {/* Left Column */}
                       <div className="col-lg-6">
-                        {/* Personal Information */}
+                        {/* Professional Information */}
                         <div className="admin-modal-section">
                           <h6 className="admin-modal-section-title primary">
-                            <i className="bi bi-person-circle"></i>
-                            Additional Information
+                            <i className="bi bi-briefcase"></i>
+                            Professional Information
                           </h6>
-                          <div className="row">
-                            <div className="col-md-6">
-                              <div className="admin-info-row">
-                                <strong>Date of Birth:</strong>
-                                <span>{formatDate(selectedPatient.dateOfBirth)}</span>
-                              </div>
-                            </div>
-                            <div className="col-md-6">
-                              <div className="admin-info-row">
-                                <strong>Blood Type:</strong>
-                                <span>{selectedPatient.bloodType || 'N/A'}</span>
-                              </div>
-                            </div>
+                          <div className="admin-info-row">
+                            <strong>Specialty:</strong>
+                            <span>{selectedDoctor.specialty || 'N/A'}</span>
                           </div>
                           <div className="admin-info-row">
-                            <strong>Occupation:</strong>
-                            <span>{selectedPatient.occupation || 'N/A'}</span>
+                            <strong>Qualifications:</strong>
+                            <span>{selectedDoctor.qualifications || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Years of Experience:</strong>
+                            <span>{selectedDoctor.yearsOfExperience || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Languages Spoken:</strong>
+                            <span>{selectedDoctor.languageSpoken || 'N/A'}</span>
                           </div>
                         </div>
 
-                        {/* Address Information */}
+                        {/* Contact & Location Information */}
                         <div className="admin-modal-section">
                           <h6 className="admin-modal-section-title primary">
                             <i className="bi bi-geo-alt"></i>
-                            Address Information
+                            Contact & Location
                           </h6>
                           <div className="admin-info-row">
-                            <strong>Address:</strong>
-                            <span>{selectedPatient.address || 'N/A'}</span>
+                            <strong>Location:</strong>
+                            <span>{selectedDoctor.location || 'N/A'}</span>
                           </div>
-                          <div className="row">
-                            <div className="col-md-6">
-                              <div className="admin-info-row">
-                                <strong>City:</strong>
-                                <span>{selectedPatient.city || 'N/A'}</span>
-                              </div>
-                            </div>
-                            <div className="col-md-6">
-                              <div className="admin-info-row">
-                                <strong>Country:</strong>
-                                <span>{selectedPatient.country || 'N/A'}</span>
-                              </div>
-                            </div>
+                          <div className="admin-info-row">
+                            <strong>Phone Number:</strong>
+                            <span>{selectedDoctor.phoneNumber || 'N/A'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Email:</strong>
+                            <span>{selectedDoctor.email || 'N/A'}</span>
                           </div>
                         </div>
 
-                        {/* Emergency Contact */}
+                        {/* Account Information */}
                         <div className="admin-modal-section">
                           <h6 className="admin-modal-section-title primary">
-                            <i className="bi bi-telephone-fill"></i>
-                            Emergency Contact
+                            <i className="bi bi-shield-check"></i>
+                            Account Information
                           </h6>
                           <div className="admin-info-row">
-                            <strong>Contact Name:</strong>
-                            <span>{selectedPatient.emergencyContactName || 'N/A'}</span>
+                            <strong>Status:</strong>
+                            <span>
+                              <span className={`badge ${getStatusBadgeClass(selectedDoctor.status)}`}>
+                                {selectedDoctor.status}
+                              </span>
+                            </span>
                           </div>
                           <div className="admin-info-row">
-                            <strong>Contact Phone:</strong>
-                            <span>{selectedPatient.emergencyContactPhone || 'N/A'}</span>
-                          </div>
-                          <div className="admin-info-row">
-                            <strong>Relationship:</strong>
-                            <span>{selectedPatient.emergencyContactRelationship || 'N/A'}</span>
-                          </div>
-                        </div>
-
-                        {/* Preferences */}
-                        <div className="admin-modal-section">
-                          <h6 className="admin-modal-section-title primary">
-                            <i className="bi bi-gear"></i>
-                            Preferences
-                          </h6>
-                          <div className="admin-info-row">
-                            <strong>Preferred Language:</strong>
-                            <span>{selectedPatient.preferredLanguage || 'N/A'}</span>
-                          </div>
-                          <div className="admin-info-row">
-                            <strong>Contact Method:</strong>
-                            <span>{selectedPatient.preferredContactMethod || 'N/A'}</span>
+                            <strong>Registration Date:</strong>
+                            <span>{formatDate(selectedDoctor.createdAt)}</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Right Column */}
                       <div className="col-lg-6">
-                        {/* Medical Information */}
+                        {/* Performance Metrics */}
                         <div className="admin-modal-section">
                           <h6 className="admin-modal-section-title primary">
-                            <i className="bi bi-heart-pulse"></i>
-                            Medical Information
+                            <i className="bi bi-graph-up"></i>
+                            Performance Metrics
                           </h6>
                           <div className="admin-info-row">
-                            <strong>Medical History:</strong>
-                            <span style={{display: 'block', marginTop: 'var(--spacing-sm)'}}>
-                              {selectedPatient.medicalHistorySummary || 'No medical history recorded'}
+                            <strong>Overall Rating:</strong>
+                            <span>
+                              {selectedDoctor.rating ? (
+                                <>
+                                  <i className="bi bi-star-fill text-warning"></i> {selectedDoctor.rating.toFixed(1)} / 5.0
+                                </>
+                              ) : 'No ratings yet'}
                             </span>
                           </div>
-                        </div>
-
-                        {/* Insurance Information */}
-                        <div className="admin-modal-section">
-                          <h6 className="admin-modal-section-title primary">
-                            <i className="bi bi-shield-check"></i>
-                            Insurance Information
-                          </h6>
                           <div className="admin-info-row">
-                            <strong>Provider:</strong>
-                            <span>{selectedPatient.insuranceProvider || 'N/A'}</span>
+                            <strong>Total Consultations:</strong>
+                            <span>{selectedDoctor.totalConsultations || '0'}</span>
                           </div>
                           <div className="admin-info-row">
-                            <strong>Policy Number:</strong>
-                            <span>{selectedPatient.insurancePolicyNumber || 'N/A'}</span>
+                            <strong>Total Reviews:</strong>
+                            <span>{selectedDoctor.totalReviews || '0'}</span>
                           </div>
                         </div>
 
-                        {/* Health Records */}
+                        {/* Availability */}
                         <div className="admin-modal-section">
                           <h6 className="admin-modal-section-title primary">
-                            <i className="bi bi-file-medical"></i>
-                            Health Records
-                            <span className="admin-badge primary ms-2">{patientHealthRecords.length} records</span>
+                            <i className="bi bi-calendar-check"></i>
+                            Availability
                           </h6>
-                          {loadingRecords ? (
-                            <div className="admin-loading">
-                              <div className="spinner-border text-primary" role="status">
-                                <span className="visually-hidden">Loading...</span>
-                              </div>
-                              <p className="mt-2">Loading health records...</p>
-                            </div>
-                          ) : patientHealthRecords.length === 0 ? (
-                            <div className="admin-empty-state">
-                              <i className="bi bi-file-medical"></i>
-                              <p className="mt-2">No health records found</p>
-                            </div>
-                          ) : (
-                            <div className="table-responsive">
-                              <table className="admin-table table mb-0">
-                                <thead>
-                                  <tr>
-                                    <th>Record ID</th>
-                                    <th>Date</th>
-                                    <th>Category</th>
-                                    <th>Diagnosis</th>
-                                    <th>Status</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {patientHealthRecords.map((record) => (
-                                    <tr key={record.healthRecordID}>
-                                      <td><strong>{record.healthRecordID}</strong></td>
-                                      <td>{formatDate(record.date)}</td>
-                                      <td>
-                                        <span className="admin-badge primary">
-                                          {record.category}
-                                        </span>
-                                      </td>
-                                      <td>{record.diagnosis}</td>
-                                      <td>
-                                        <span className={`admin-badge ${record.status.toLowerCase() === 'active' ? 'success' : 'info'}`}>
-                                          {record.status}
-                                        </span>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
+                          <div className="admin-info-row">
+                            <strong>Consultation Hours:</strong>
+                            <span>{selectedDoctor.consultationHours || 'Not specified'}</span>
+                          </div>
+                          <div className="admin-info-row">
+                            <strong>Available Days:</strong>
+                            <span>{selectedDoctor.availableDays || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        {/* Additional Information */}
+                        <div className="admin-modal-section">
+                          <h6 className="admin-modal-section-title primary">
+                            <i className="bi bi-info-circle"></i>
+                            Additional Information
+                          </h6>
+                          <div className="admin-info-row">
+                            <strong>Biography:</strong>
+                            <span style={{display: 'block', marginTop: 'var(--spacing-sm)'}}>
+                              {selectedDoctor.bio || 'No biography provided'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -787,15 +695,15 @@ export default function Patients() {
             </div>
           )}
 
-          {/* Edit Patient Modal */}
-          {showEditModal && selectedPatient && (
+          {/* Edit Doctor Modal */}
+          {showEditModal && selectedDoctor && (
             <div className="modal show d-block admin-modal-backdrop" tabIndex="-1">
               <div className="modal-dialog modal-xl" style={{maxWidth: '95%'}}>
                 <div className="modal-content" style={{border: 'none', boxShadow: 'var(--shadow-lg)'}}>
                   <div className="modal-header admin-modal-header info" style={{borderBottom: 'none'}}>
                     <h5 className="modal-title">
                       <i className="bi bi-pencil-square me-2"></i>
-                      Edit Patient Information
+                      Edit Doctor Information
                     </h5>
                     <button
                       type="button"
@@ -803,7 +711,7 @@ export default function Patients() {
                       onClick={() => setShowEditModal(false)}
                     ></button>
                   </div>
-                  <form onSubmit={handleUpdatePatient}>
+                  <form onSubmit={handleUpdateDoctor}>
                     <div className="modal-body admin-modal-body" style={{backgroundColor: 'var(--admin-bg)'}}>
                       <div className="row">
                         {/* Left Column */}
@@ -824,237 +732,96 @@ export default function Patients() {
                                 required
                               />
                             </div>
-                            <div className="row">
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Email <span className="text-danger">*</span></label>
-                                <input
-                                  type="email"
-                                  className="form-control admin-form-control"
-                                  value={editForm.email}
-                                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                  required
-                                  readOnly
-                                />
-                              </div>
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Phone Number <span className="text-danger">*</span></label>
-                                <input
-                                  type="tel"
-                                  className="form-control admin-form-control"
-                                  value={editForm.phoneNumber}
-                                  onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                                  required
-                                />
-                              </div>
-                            </div>
-                            <div className="row">
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Date of Birth <span className="text-danger">*</span></label>
-                                <input
-                                  type="date"
-                                  className="form-control admin-form-control"
-                                  value={editForm.dateOfBirth}
-                                  onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
-                                  required
-                                />
-                              </div>
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Gender <span className="text-danger">*</span></label>
-                                <select
-                                  className="form-select admin-form-control"
-                                  value={editForm.gender}
-                                  onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                                  required
-                                >
-                                  <option value="">Select Gender</option>
-                                  <option value="Male">Male</option>
-                                  <option value="Female">Female</option>
-                                  <option value="Other">Other</option>
-                                </select>
-                              </div>
-                            </div>
-                            <div className="row">
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Blood Type</label>
-                                <select
-                                  className="form-select admin-form-control"
-                                  value={editForm.bloodType}
-                                  onChange={(e) => setEditForm({ ...editForm, bloodType: e.target.value })}
-                                >
-                                  <option value="">Select Blood Type</option>
-                                  <option value="A+">A+</option>
-                                  <option value="A-">A-</option>
-                                  <option value="B+">B+</option>
-                                  <option value="B-">B-</option>
-                                  <option value="AB+">AB+</option>
-                                  <option value="AB-">AB-</option>
-                                  <option value="O+">O+</option>
-                                  <option value="O-">O-</option>
-                                </select>
-                              </div>
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Occupation</label>
-                                <input
-                                  type="text"
-                                  className="form-control admin-form-control"
-                                  value={editForm.occupation}
-                                  onChange={(e) => setEditForm({ ...editForm, occupation: e.target.value })}
-                                  placeholder="Enter occupation"
-                                />
-                              </div>
+                            <div className="mb-3">
+                              <label className="admin-form-label">Phone Number <span className="text-danger">*</span></label>
+                              <input
+                                type="tel"
+                                className="form-control admin-form-control"
+                                value={editForm.phoneNumber}
+                                onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                                required
+                              />
                             </div>
                             <div className="mb-3">
-                              <label className="admin-form-label">Address</label>
+                              <label className="admin-form-label">Location</label>
                               <input
                                 type="text"
                                 className="form-control admin-form-control"
-                                value={editForm.address}
-                                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                                placeholder="Enter full address"
+                                value={editForm.location}
+                                onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                                placeholder="Enter location/city"
                               />
-                            </div>
-                            <div className="row">
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">City</label>
-                                <input
-                                  type="text"
-                                  className="form-control admin-form-control"
-                                  value={editForm.city}
-                                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                                  placeholder="Enter city"
-                                />
-                              </div>
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Country</label>
-                                <input
-                                  type="text"
-                                  className="form-control admin-form-control"
-                                  value={editForm.country}
-                                  onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
-                                  placeholder="Enter country"
-                                />
-                              </div>
                             </div>
                           </div>
 
-                          {/* Emergency Contact Section */}
+                          {/* Language Information */}
                           <div className="admin-modal-section">
                             <h6 className="admin-modal-section-title info">
-                              <i className="bi bi-telephone-fill"></i>
-                              Emergency Contact
+                              <i className="bi bi-chat-dots"></i>
+                              Language
                             </h6>
                             <div className="mb-3">
-                              <label className="admin-form-label">Contact Name</label>
+                              <label className="admin-form-label">Languages Spoken</label>
                               <input
                                 type="text"
                                 className="form-control admin-form-control"
-                                value={editForm.emergencyContactName}
-                                onChange={(e) => setEditForm({ ...editForm, emergencyContactName: e.target.value })}
-                                placeholder="Enter contact name"
+                                value={editForm.languageSpoken}
+                                onChange={(e) => setEditForm({ ...editForm, languageSpoken: e.target.value })}
+                                placeholder="e.g., English, Spanish, Vietnamese"
                               />
-                            </div>
-                            <div className="row">
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Contact Phone</label>
-                                <input
-                                  type="tel"
-                                  className="form-control admin-form-control"
-                                  value={editForm.emergencyContactPhone}
-                                  onChange={(e) => setEditForm({ ...editForm, emergencyContactPhone: e.target.value })}
-                                  placeholder="Enter phone"
-                                />
-                              </div>
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Relationship</label>
-                                <input
-                                  type="text"
-                                  className="form-control admin-form-control"
-                                  value={editForm.emergencyContactRelationship}
-                                  onChange={(e) => setEditForm({ ...editForm, emergencyContactRelationship: e.target.value })}
-                                  placeholder="e.g., Spouse, Parent"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Preferences Section */}
-                          <div className="admin-modal-section">
-                            <h6 className="admin-modal-section-title info">
-                              <i className="bi bi-gear"></i>
-                              Preferences
-                            </h6>
-                            <div className="row">
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Preferred Language</label>
-                                <input
-                                  type="text"
-                                  className="form-control admin-form-control"
-                                  value={editForm.preferredLanguage}
-                                  onChange={(e) => setEditForm({ ...editForm, preferredLanguage: e.target.value })}
-                                  placeholder="e.g., English"
-                                />
-                              </div>
-                              <div className="col-md-6 mb-3">
-                                <label className="admin-form-label">Contact Method</label>
-                                <select
-                                  className="form-select admin-form-control"
-                                  value={editForm.preferredContactMethod}
-                                  onChange={(e) => setEditForm({ ...editForm, preferredContactMethod: e.target.value })}
-                                >
-                                  <option value="">Select Method</option>
-                                  <option value="Email">Email</option>
-                                  <option value="Phone">Phone</option>
-                                  <option value="SMS">SMS</option>
-                                </select>
-                              </div>
                             </div>
                           </div>
                         </div>
 
                         {/* Right Column */}
                         <div className="col-lg-6">
-                          {/* Medical Information Section */}
+                          {/* Professional Information Section */}
                           <div className="admin-modal-section">
                             <h6 className="admin-modal-section-title info">
-                              <i className="bi bi-heart-pulse"></i>
-                              Medical Information
+                              <i className="bi bi-briefcase"></i>
+                              Professional Information
                             </h6>
                             <div className="mb-3">
-                              <label className="admin-form-label">Medical History Summary</label>
+                              <label className="admin-form-label">Specialty <span className="text-danger">*</span></label>
+                              <select
+                                className="form-select admin-form-control"
+                                value={editForm.specialty}
+                                onChange={(e) => setEditForm({ ...editForm, specialty: e.target.value })}
+                                required
+                              >
+                                <option value="">Select Specialty</option>
+                                <option value="Cardiology">Cardiology</option>
+                                <option value="Dermatology">Dermatology</option>
+                                <option value="Neurology">Neurology</option>
+                                <option value="Pediatrics">Pediatrics</option>
+                                <option value="Psychiatry">Psychiatry</option>
+                                <option value="General Practice">General Practice</option>
+                                <option value="Orthopedics">Orthopedics</option>
+                                <option value="Gynecology">Gynecology</option>
+                                <option value="Oncology">Oncology</option>
+                              </select>
+                            </div>
+                            <div className="mb-3">
+                              <label className="admin-form-label">Qualifications <span className="text-danger">*</span></label>
                               <textarea
                                 className="form-control admin-form-control"
-                                rows="12"
-                                value={editForm.medicalHistorySummary}
-                                onChange={(e) => setEditForm({ ...editForm, medicalHistorySummary: e.target.value })}
-                                placeholder="Enter medical history, allergies, chronic conditions..."
+                                rows="4"
+                                value={editForm.qualifications}
+                                onChange={(e) => setEditForm({ ...editForm, qualifications: e.target.value })}
+                                placeholder="e.g., MD, MBBS, Board Certified..."
+                                required
                               ></textarea>
                             </div>
-                          </div>
-
-                          {/* Insurance Information Section */}
-                          <div className="admin-modal-section">
-                            <h6 className="admin-modal-section-title info">
-                              <i className="bi bi-shield-check"></i>
-                              Insurance Information
-                            </h6>
                             <div className="mb-3">
-                              <label className="admin-form-label">Insurance Provider</label>
+                              <label className="admin-form-label">Years of Experience <span className="text-danger">*</span></label>
                               <input
-                                type="text"
+                                type="number"
                                 className="form-control admin-form-control"
-                                value={editForm.insuranceProvider}
-                                onChange={(e) => setEditForm({ ...editForm, insuranceProvider: e.target.value })}
-                                placeholder="e.g., Blue Cross, Aetna"
-                              />
-                            </div>
-                            <div className="mb-3">
-                              <label className="admin-form-label">Insurance Policy Number</label>
-                              <input
-                                type="text"
-                                className="form-control admin-form-control"
-                                value={editForm.insurancePolicyNumber}
-                                onChange={(e) => setEditForm({ ...editForm, insurancePolicyNumber: e.target.value })}
-                                placeholder="Enter policy number"
+                                value={editForm.yearsOfExperience}
+                                onChange={(e) => setEditForm({ ...editForm, yearsOfExperience: e.target.value })}
+                                placeholder="Enter years of experience"
+                                min="0"
+                                required
                               />
                             </div>
                           </div>
@@ -1082,7 +849,7 @@ export default function Patients() {
           )}
 
           {/* Change Status Modal - Enhanced Popup */}
-          {showStatusModal && selectedPatient && (
+          {showStatusModal && selectedDoctor && (
             <div className="admin-modal-overlay" onClick={() => setShowStatusModal(false)}>
               <div className="admin-modal-container" onClick={(e) => e.stopPropagation()} style={{maxWidth: '500px'}}>
                 <div className="admin-modal-content">
@@ -1090,7 +857,7 @@ export default function Patients() {
                   <div className="admin-modal-header primary">
                     <h5>
                       <i className="bi bi-shield-check me-2"></i>
-                      Update Patient Status
+                      Update Doctor Status
                     </h5>
                     <button
                       type="button"
@@ -1103,7 +870,7 @@ export default function Patients() {
 
                   {/* Body */}
                   <div className="admin-modal-body">
-                    {/* Patient Info Card */}
+                    {/* Doctor Info Card */}
                     <div style={{
                       background: 'linear-gradient(135deg, #ecfeff 0%, #f0fdfa 100%)',
                       padding: '16px',
@@ -1114,15 +881,15 @@ export default function Patients() {
                       <div className="d-flex align-items-center gap-3">
                         <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
                              style={{width: "50px", height: "50px", fontSize: "20px", fontWeight: "600"}}>
-                          {selectedPatient.fullName.charAt(0)}
+                          {selectedDoctor.fullName.charAt(0)}
                         </div>
                         <div>
                           <h6 className="mb-1" style={{color: '#0f172a', fontWeight: '600'}}>
-                            {selectedPatient.fullName}
+                            Dr. {selectedDoctor.fullName}
                           </h6>
                           <p className="mb-0" style={{fontSize: '13px', color: '#64748b'}}>
                             <i className="bi bi-envelope me-1"></i>
-                            {selectedPatient.email}
+                            {selectedDoctor.email}
                           </p>
                         </div>
                       </div>
@@ -1141,10 +908,10 @@ export default function Patients() {
                         borderRadius: '8px',
                         display: 'inline-block'
                       }}>
-                        <span className={`badge ${getStatusBadgeClass(selectedPatient.status)}`}
+                        <span className={`badge ${getStatusBadgeClass(selectedDoctor.status)}`}
                               style={{fontSize: '14px', padding: '8px 16px'}}>
                           <i className="bi bi-circle-fill me-2" style={{fontSize: '8px'}}></i>
-                          {selectedPatient.status}
+                          {selectedDoctor.status}
                         </span>
                       </div>
                     </div>
@@ -1200,10 +967,10 @@ export default function Patients() {
                         }`} style={{fontSize: '16px', marginTop: '2px'}}></i>
                         <div>
                           <p className="mb-1" style={{fontSize: '13px', fontWeight: '600', color: '#0f172a'}}>
-                            {newStatus === 'Active' && 'Patient will have full system access'}
-                            {newStatus === 'Inactive' && 'Patient will have limited system access'}
-                            {newStatus === 'Suspended' && 'Patient will be temporarily blocked from the system'}
-                            {newStatus === 'Banned' && 'Patient will be permanently banned from the system'}
+                            {newStatus === 'Active' && 'Doctor will have full system access'}
+                            {newStatus === 'Inactive' && 'Doctor will have limited system access'}
+                            {newStatus === 'Suspended' && 'Doctor will be temporarily blocked from the system'}
+                            {newStatus === 'Banned' && 'Doctor will be permanently banned from the system'}
                           </p>
                           <p className="mb-0" style={{fontSize: '12px', color: '#64748b'}}>
                             This change will take effect immediately after confirmation.
