@@ -234,9 +234,9 @@ function ContactUs() {
                   marginTop: '20px',
                   padding: '10px',
                   borderRadius: '5px',
-                  backgroundColor: submitMessage.includes('Thank you!') ? '#d4edda' : '#f8d7da',
-                  border: `1px solid ${submitMessage.includes('Thank you!') ? '#c3e6cb' : '#f5c6cb'}`,
-                  color: submitMessage.includes('Thank you!') ? '#155724' : '#721c24'
+                  backgroundColor: submitMessage.includes('Thank you') ? '#e6f4f9' : '#f8d7da',
+                  border: `1px solid ${submitMessage.includes('Thank you') ? '#006492' : '#f5c6cb'}`,
+                  color: submitMessage.includes('Thank you') ? '#006492' : '#721c24'
                 }}>
                   {submitMessage}
                 </div>

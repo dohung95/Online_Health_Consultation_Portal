@@ -10,7 +10,7 @@ namespace OHCP_BK.DTOs.Admin
         public string Email { get; set; } = string.Empty;
         public DateTime? DateOfBirth { get; set; }
         public string? LastVisit { get; set; }
-        public string Status { get; set; } = "Active";
+        public string Status { get; set; } = "Inactive";
         public string? MedicalHistorySummary { get; set; }
         public string? InsuranceProvider { get; set; }
         public string? InsurancePolicyNumber { get; set; }
@@ -55,5 +55,10 @@ namespace OHCP_BK.DTOs.Admin
         public string? PreferredLanguage { get; set; }
         public string? PreferredContactMethod { get; set; }
         public string? Occupation { get; set; }
+    }
+
+    public class UpdatePatientStatusDto
+    {
+        public string Status { get; set; } = string.Empty;
     }
 }

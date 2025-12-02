@@ -403,14 +403,17 @@ export default function Chat() {
 
     return (
         <>
-            <div
-                className="chat-icon bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg"
-                style={styles.chatIcon}
-                onClick={() => setIsChatBoxOpen(!isChatBoxOpen)}
-                title="Open Message"
-            >
-                <i className="bi bi-chat-fill text-white" style={{ fontSize: '1.5rem' }}></i>
-            </div>
+            {/* 1. Chat Icon - Only show when chat box is closed */}
+            {!isChatBoxOpen && (
+                <div
+                    className="chat-icon bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg"
+                    style={styles.chatIcon}
+                    onClick={() => setIsChatBoxOpen(true)}
+                    title="Open Message"
+                >
+                    <i className="bi bi-chat-fill text-white" style={{ fontSize: '1.5rem' }}></i>
+                </div>
+            )}
 
             {/* 2. Chat Box (popup) */}
             {isChatBoxOpen && (

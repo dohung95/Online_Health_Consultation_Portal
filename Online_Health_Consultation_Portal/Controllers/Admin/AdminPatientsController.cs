@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OHCP_BK.Constants;
 using OHCP_BK.Data;
 using OHCP_BK.DTOs.Admin;
 using OHCP_BK.Models;
@@ -49,17 +50,10 @@ namespace OHCP_BK.Controllers.Admin
                     );
                 }
 
-                // Status filter (assuming active means has recent appointments)
+                // Status filter - using real Status field from User table
                 if (!string.IsNullOrWhiteSpace(status))
                 {
-                    if (status.ToLower() == "active")
-                    {
-                        query = query.Where(p => p.Appointments.Any(a => a.AppointmentTime > DateTime.Now.AddMonths(-3)));
-                    }
-                    else if (status.ToLower() == "inactive")
-                    {
-                        query = query.Where(p => !p.Appointments.Any(a => a.AppointmentTime > DateTime.Now.AddMonths(-3)));
-                    }
+                    query = query.Where(p => p.User.Status == status);
                 }
 
                 // Sorting
@@ -93,9 +87,7 @@ namespace OHCP_BK.Controllers.Admin
                             .OrderByDescending(a => a.AppointmentTime)
                             .Select(a => a.AppointmentTime.ToString("yyyy-MM-dd"))
                             .FirstOrDefault(),
-                        Status = p.Appointments.Any(a => a.AppointmentTime > DateTime.Now.AddMonths(-3))
-                            ? "Active"
-                            : "Inactive",
+                        Status = p.User.Status,
                         MedicalHistorySummary = p.MedicalHistorySummary,
                         InsuranceProvider = p.InsuranceProvider,
                         InsurancePolicyNumber = p.InsurancePolicyNumber,
@@ -160,9 +152,7 @@ namespace OHCP_BK.Controllers.Admin
                         .OrderByDescending(a => a.AppointmentTime)
                         .Select(a => a.AppointmentTime.ToString("yyyy-MM-dd"))
                         .FirstOrDefault(),
-                    Status = patient.Appointments.Any(a => a.AppointmentTime > DateTime.Now.AddMonths(-3))
-                        ? "Active"
-                        : "Inactive",
+                    Status = patient.User.Status,
                     MedicalHistorySummary = patient.MedicalHistorySummary,
                     InsuranceProvider = patient.InsuranceProvider,
                     InsurancePolicyNumber = patient.InsurancePolicyNumber,
@@ -360,6 +350,47 @@ namespace OHCP_BK.Controllers.Admin
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "An error occurred while updating patient", details = ex.Message });
+            }
+        }
+
+        // PUT: api/admin/adminpatients/{id}/status
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdatePatientStatus(string id, [FromBody] UpdatePatientStatusDto dto)
+        {
+            try
+            {
+                // Validate status value
+                if (!UserStatusConstants.IsValidStatus(dto.Status))
+                {
+                    return BadRequest(new
+                    {
+                        error = "Invalid status value",
+                        details = $"Status must be one of: {string.Join(", ", UserStatusConstants.AllStatuses)}"
+                    });
+                }
+
+                var patient = await _context.Patients
+                    .Include(p => p.User)
+                    .FirstOrDefaultAsync(p => p.PatientID == id);
+
+                if (patient == null)
+                {
+                    return NotFound(new { error = "Patient not found" });
+                }
+
+                // Update status
+                patient.User.Status = dto.Status;
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Patient status updated successfully",
+                    status = dto.Status
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while updating patient status", details = ex.Message });
             }
         }
 

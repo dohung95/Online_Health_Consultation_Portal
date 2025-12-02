@@ -27,6 +27,7 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
   const menuItems = [
     { icon: "bi-speedometer2", label: "Dashboard", path: "/admin" },
     { icon: "bi-people", label: "Patients", path: "/admin/patients" },
+    { icon: "bi-heart-pulse", label: "Doctors", path: "/admin/doctors" },
     { icon: "bi-calendar-check", label: "Appointments", path: "/admin/appointments" },
     { icon: "bi-file-medical", label: "Medical Records", path: "/admin/medical-records" },
     { icon: "bi-receipt", label: "Invoices", path: "/admin/invoices" },

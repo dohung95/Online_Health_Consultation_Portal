@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using OHCP_BK.Constants;
 using OHCP_BK.Data;
 using OHCP_BK.Dtos;
 using OHCP_BK.Models;
@@ -49,7 +50,8 @@ namespace OHCP_BK.Services
                     Email = dto.Email,
                     EmailConfirmed = isAdminCreated, // Admin-created accounts are auto-confirmed
                     CreatedDate = DateTime.UtcNow,
-                    PhoneNumber = dto.PhoneNumber
+                    PhoneNumber = dto.PhoneNumber,
+                    Status = UserStatusConstants.Inactive
                 };
 
                 var createResult = await _userManager.CreateAsync(user, dto.Password);
@@ -136,7 +138,8 @@ namespace OHCP_BK.Services
                     UserName = dto.Email,
                     Email = dto.Email,
                     EmailConfirmed = true, // Doctors are admin-created and auto-confirmed
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = DateTime.UtcNow,
+                    Status = UserStatusConstants.Inactive
                 };
 
                 var createResult = await _userManager.CreateAsync(user, dto.Password);

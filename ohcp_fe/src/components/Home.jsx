@@ -19,23 +19,14 @@ function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Handle Chat with AI click - Check authentication and open chat with "Hello!"
+  // Handle Chat with AI click - Open chat with "Hello!"
   const handleChatClick = (e) => {
     e.preventDefault();
 
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    if (isUser) {
-      // Dispatch custom event to open chat with pre-filled message
-      window.dispatchEvent(new CustomEvent('openChatWithMessage', {
-        detail: { message: 'Hello!' }
-      }));
-    } else {
-      navigate('/');
-    }
+    // Dispatch custom event to open chat with pre-filled message
+    window.dispatchEvent(new CustomEvent('openChatWithMessage', {
+      detail: { message: 'Hello!' }
+    }));
   };
 
   // Handle Appointment click - Check authentication and role

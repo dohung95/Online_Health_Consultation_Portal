@@ -56,6 +56,43 @@ export const patientsApi = {
   update: async (id, data) => {
     const response = await adminApi.put(`/adminpatients/${id}`, data);
     return response.data;
+  },
+
+  updateStatus: async (id, status) => {
+    const response = await adminApi.put(`/adminpatients/${id}/status`, { status });
+    return response.data;
+  }
+};
+
+// ==================== DOCTORS API ====================
+
+export const doctorsApi = {
+  getAll: async (params = {}) => {
+    const { pageNumber = 1, pageSize = 10, searchTerm = '', status = '', specialty = '', sortBy = 'newest' } = params;
+    const response = await adminApi.get('/admindoctors', {
+      params: { pageNumber, pageSize, searchTerm, status, specialty, sortBy }
+    });
+    return response.data;
+  },
+
+  getById: async (id) => {
+    const response = await adminApi.get(`/admindoctors/${id}`);
+    return response.data;
+  },
+
+  update: async (id, data) => {
+    const response = await adminApi.put(`/admindoctors/${id}`, data);
+    return response.data;
+  },
+
+  updateStatus: async (id, status) => {
+    const response = await adminApi.put(`/admindoctors/${id}/status`, { status });
+    return response.data;
+  },
+
+  delete: async (id) => {
+    const response = await adminApi.delete(`/admindoctors/${id}`);
+    return response.data;
   }
 };
 

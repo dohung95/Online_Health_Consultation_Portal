@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.Numerics;
 
 namespace OHCP_BK.Models
@@ -6,6 +7,10 @@ namespace OHCP_BK.Models
     public class AppUser : IdentityUser
     {
         public DateTime? CreatedDate { get; set; }
+
+        [Required]
+        [MaxLength(20)]
+        public string Status { get; set; } = "Inactive";
 
         // Navigation properties to domain entities (nullable vì user có thể không phải doctor/patient)
         public virtual Patient? Patient { get; set; }

@@ -15,6 +15,7 @@ import ProfilePatient from './pages/profilePatient';
 
 import Admin from './components/Admin/Admin';
 import Patients from './components/Admin/Patients';
+import AdminDoctors from './components/Admin/Doctors';
 import Appointments from './components/Admin/Appointments';
 import MedicalRecords from './components/Admin/MedicalRecords';
 import Invoices from './components/Admin/Invoices';
@@ -153,6 +154,7 @@ function AppContent() {
             
             <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>} />
             <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>}/>
+            <Route path="/admin/doctors" element={<AdminRoute> <AdminDoctors /> </AdminRoute>}/>
             <Route path="/admin/appointments" element={<AdminRoute> <Appointments /> </AdminRoute>}/>
             <Route path="/admin/medical-records" element={<AdminRoute> <MedicalRecords /> </AdminRoute>}/>
             <Route path="/admin/invoices" element={<AdminRoute> <Invoices /> </AdminRoute>}/>
