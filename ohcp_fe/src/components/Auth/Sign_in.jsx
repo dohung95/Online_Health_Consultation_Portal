@@ -14,32 +14,59 @@ export function Sign_in() {
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorModalMessage, setErrorModalMessage] = useState('');
 
-    const containerStyle = {
-        maxWidth: '400px',
-        padding: '20px',
-        border: '1px solid #000000ff',
-        borderRadius: '4px',
-        backgroundColor: '#eeeeee',
+    // Custom validation states
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+    const [emailTouched, setEmailTouched] = useState(false);
+    const [passwordTouched, setPasswordTouched] = useState(false);
+
+
+    // Custom validation functions
+    const validateEmail = (value) => {
+        if (!value) {
+            return 'Email is required';
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+            return 'Please enter a valid email address';
+        }
+        return '';
     };
 
-    const inputStyle = {
-        width: '100%',
-        padding: '8px',
-        margin: '10px 0',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        boxSizing: 'border-box'
+    const validatePassword = (value) => {
+        if (!value) {
+            return 'Password is required';
+        }
+        if (value.length < 6) {
+            return 'Password must be at least 6 characters';
+        }
+        return '';
     };
 
-    const buttonStyle = {
-        width: '100%',
-        padding: '10px',
-        backgroundColor: '#009cde',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        marginTop: '10px'
+    const handleEmailChange = (e) => {
+        const value = e.target.value;
+        setEmail(value);
+        if (emailTouched) {
+            setEmailError(validateEmail(value));
+        }
+    };
+
+    const handlePasswordChange = (e) => {
+        const value = e.target.value;
+        setPassword(value);
+        if (passwordTouched) {
+            setPasswordError(validatePassword(value));
+        }
+    };
+
+    const handleEmailBlur = () => {
+        setEmailTouched(true);
+        setEmailError(validateEmail(email));
+    };
+
+    const handlePasswordBlur = () => {
+        setPasswordTouched(true);
+        setPasswordError(validatePassword(password));
     };
 
     const handleCloseErrorModal = () => {
@@ -51,6 +78,21 @@ export function Sign_in() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        // Trigger validation
+        const emailErr = validateEmail(email);
+        const passwordErr = validatePassword(password);
+
+        setEmailError(emailErr);
+        setPasswordError(passwordErr);
+        setEmailTouched(true);
+        setPasswordTouched(true);
+
+        // Stop if validation fails
+        if (emailErr || passwordErr) {
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -133,38 +175,50 @@ export function Sign_in() {
 
     return (
         <>
-            <div className='Background_Sign_In '>
-                <div style={containerStyle} className='container' >
+            <div className='Background_Sign_In'>
+                <div className='signin-container container'>
                     <h2>Login</h2>
-                    {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
-                    <form onSubmit={handleSubmit} >
+                    {error && <div className='error-message'><i className="bi bi-exclamation-circle"></i>{error}</div>}
+                    <form onSubmit={handleSubmit} noValidate>
                         <div>
                             <label>Email:</label>
                             <input
                                 type="email"
-                                required
+                                className={`signin-input ${emailTouched ? (emailError ? 'invalid' : 'valid') : ''}`}
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={handleEmailChange}
+                                onBlur={handleEmailBlur}
                                 disabled={loading}
-                                style={inputStyle}
                             />
+                            {emailTouched && emailError && (
+                                <div className='validation-message error'>
+                                    <i className="bi bi-x-circle"></i>
+                                    {emailError}
+                                </div>
+                            )}
                         </div>
                         <div>
                             <label>Password:</label>
                             <input
                                 type="password"
-                                required
+                                className={`signin-input ${passwordTouched ? (passwordError ? 'invalid' : 'valid') : ''}`}
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={handlePasswordChange}
+                                onBlur={handlePasswordBlur}
                                 disabled={loading}
-                                style={inputStyle}
                             />
+                            {passwordTouched && passwordError && (
+                                <div className='validation-message error'>
+                                    <i className="bi bi-x-circle"></i>
+                                    {passwordError}
+                                </div>
+                            )}
                         </div>
-                        <button type="submit" disabled={loading} style={buttonStyle}>
+                        <button type="submit" disabled={loading} className='signin-button'>
                             {loading ? 'Loading...' : 'Login'}
                         </button>
                     </form>
-                    <p style={{ marginTop: '10px' }}>
+                    <p>
                         Don't have an account? <Link to="/register">Register</Link>
                     </p>
                 </div>
@@ -179,86 +233,33 @@ export function Sign_in() {
                 centered
                 size="lg"
             >
-                <Modal.Header
-                    closeButton
-                    style={{
-                        backgroundColor: '#e7f3ff',
-                        borderBottom: '2px solid #009cde',
-                        padding: '20px'
-                    }}
-                >
-                    <Modal.Title style={{
-                        color: '#0066a1',
-                        fontWeight: '600',
-                        fontSize: '22px',
-                        width: '100%',
-                        textAlign: 'center'
-                    }}>
-                        <i className="bi bi-info-circle-fill" style={{ fontSize: '35px', marginRight: '12px' }}></i>
-                        <div style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                <Modal.Header closeButton className='modal-error-header'>
+                    <Modal.Title className='modal-error-title'>
+                        <i className="bi bi-info-circle-fill"></i>
+                        <div className='modal-title-text'>
                             Account Access Notice
                         </div>
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body style={{
-                    padding: '40px',
-                    textAlign: 'center',
-                    backgroundColor: '#fff'
-                }}>
-                    <div style={{
-                        backgroundColor: '#f0f8ff',
-                        border: '2px solid #b3d9f2',
-                        borderRadius: '10px',
-                        padding: '30px',
-                        marginBottom: '20px'
-                    }}>
-                        <i className="bi bi-person-lock" style={{
-                            fontSize: '55px',
-                            color: '#009cde',
-                            marginBottom: '20px',
-                            display: 'block'
-                        }}></i>
-                        <h5 style={{
-                            color: '#0066a1',
-                            fontWeight: '600',
-                            marginBottom: '20px',
-                            fontSize: '18px'
-                        }}>
+                <Modal.Body className='modal-error-body'>
+                    <div className='modal-error-content'>
+                        <i className="bi bi-person-lock modal-error-icon"></i>
+                        <h5 className='modal-error-heading'>
                             Unable to Access Your Account
                         </h5>
-                        <p style={{
-                            fontSize: '16px',
-                            color: '#555',
-                            lineHeight: '1.8',
-                            margin: '0'
-                        }}>
+                        <p className='modal-error-message'>
                             {errorModalMessage}
                         </p>
                     </div>
-                    <div style={{
-                        fontSize: '14px',
-                        color: '#6c757d',
-                        marginTop: '15px'
-                    }}>
+                    <div className='modal-support-text'>
                         <i className="bi bi-envelope"></i> Please contact our support team if you need assistance
                     </div>
                 </Modal.Body>
-                <Modal.Footer style={{
-                    justifyContent: 'center',
-                    padding: '20px',
-                    backgroundColor: '#f8f9fa'
-                }}>
+                <Modal.Footer className='modal-error-footer'>
                     <Button
                         onClick={handleCloseErrorModal}
                         size="lg"
-                        style={{
-                            minWidth: '150px',
-                            fontWeight: '600',
-                            fontSize: '16px',
-                            backgroundColor: '#009cde',
-                            border: 'none',
-                            color: 'white'
-                        }}
+                        className='modal-error-button'
                     >
                         <i className="bi bi-check-circle me-2"></i>
                         I Understand

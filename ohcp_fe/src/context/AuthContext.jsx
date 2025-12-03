@@ -174,10 +174,12 @@ export function AuthProvider({ children }) {
                 errorMessage.toLowerCase().includes(keyword)
             );
 
-            // Only call logout if it's NOT a status error
-            if (!isStatusError) {
-                logout();
-            }
+            // REMOVED: Don't call logout() on login failure - it causes page reload
+            // Just throw the error to let Sign_in component handle it
+            // if (!isStatusError) {
+            //     logout();
+            // }
+
 
             throw error;
         }
