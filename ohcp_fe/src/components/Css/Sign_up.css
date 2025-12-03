@@ -153,33 +153,70 @@
 /* Tooltip Container */
 .tooltip-container {
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 6px;
+    display: inline-block;
     cursor: help;
-    transition: transform 0.2s ease;
 }
 
-.tooltip-container:hover {
-    transform: scale(1.1);
+.tooltip-container:hover .tooltip {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
 }
 
-/* Tooltip */
+/* Tooltip chính */
 .tooltip {
+    display: none;
     position: absolute;
+    top: 100%;
+    left: -30px;  
+    margin-top: 10px;
+    z-index: 9999;
+    width: 380px;
+    max-width: 92vw;
+    
     background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
     color: white;
     padding: 16px 20px;
     border-radius: 10px;
-    font-size: 13px;
-    width: 380px;
-    z-index: 1000;
-    top: 30px;
-    left: 0;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     line-height: 1.6;
-    animation: tooltipFadeIn 0.2s ease-out;
+    font-size: 13px;
+    
+    pointer-events: none;
+    
+    /* Animation trượt xuống */
+    opacity: 0;
+    transform: translateY(-12px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Khoảng nối vô hình (kẻo chuột bị rơi khi di chuyển từ * vào tooltip) */
+.tooltip::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 0;
+    width: 100%;
+    height: 16px;
+    background: transparent;
+}
+
+/* Mũi tên */
+.tooltip-arrow {
+    position: absolute;
+    top: -6px;
+    left: 33px;
+    margin-left: -7px;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid #2d3748;
+}
+
+/* Khi hover */
+.tooltip-wrapper:hover .tooltip {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 @keyframes tooltipFadeIn {
@@ -192,18 +229,6 @@
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* Tooltip Arrow */
-.tooltip-arrow {
-    position: absolute;
-    top: -7px;
-    left: 12px;
-    width: 0;
-    height: 0;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-bottom: 7px solid #2d3748;
 }
 
 /* Requirement Item */
@@ -270,8 +295,17 @@
     }
 
     .tooltip {
-        width: 300px;
-        font-size: 12px;
+        width: 320px;
+        font-size: 13px;
+        left: -40px;
+        transform: translateX(-50%) translateY(-12px);
+    }
+
+    .tooltip-arrow {
+        margin-left: 22px;
+    }
+    .tooltip-wrapper:hover .tooltip {
+        transform: translateX(-50%) translateY(0);
     }
 
     .signup-button {
@@ -287,7 +321,11 @@
 
     .tooltip {
         width: 260px;
-        left: -120px;
+        left: -60px;
+    }
+
+    .tooltip-arrow {
+        margin-left: 42px;
     }
 
     .form-row {

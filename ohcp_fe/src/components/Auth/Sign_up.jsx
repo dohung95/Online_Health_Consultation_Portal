@@ -14,11 +14,11 @@ export function Sign_up() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
-    const [showUsernameTooltip, setShowUsernameTooltip] = useState(false);
-    const [showEmailTooltip, setShowEmailTooltip] = useState(false);
-    const [showPhoneTooltip, setShowPhoneTooltip] = useState(false);
-    const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] = useState(false);
+    // const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
+    // const [showUsernameTooltip, setShowUsernameTooltip] = useState(false);
+    // const [showEmailTooltip, setShowEmailTooltip] = useState(false);
+    // const [showPhoneTooltip, setShowPhoneTooltip] = useState(false);
+    // const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const role = "patient";
 
@@ -118,36 +118,30 @@ export function Sign_up() {
                             <div>
                                 <label>
                                     User Name:
-                                    <span
-                                        className='tooltip-container'
-                                        onMouseEnter={() => setShowUsernameTooltip(true)}
-                                        onMouseLeave={() => setShowUsernameTooltip(false)}
-                                    >
+                                    <span className='tooltip-container'>
                                         <span style={{ color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>*</span>
-                                        {showUsernameTooltip && (
-                                            <div className='tooltip'>
-                                                <div className='tooltip-arrow'></div>
-                                                <div>
-                                                    <strong style={{ display: 'block', marginBottom: '6px' }}>Username Rules:</strong>
-                                                    <div className='requirement-item'>
-                                                        <i className="bi bi-check-circle" style={{ color: '#3cb1e6' }}></i>
-                                                        <span>Letters (A-Z, a-z)</span>
-                                                    </div>
-                                                    <div className='requirement-item'>
-                                                        <i className="bi bi-check-circle" style={{ color: '#3cb1e6' }}></i>
-                                                        <span>Numbers (0-9)</span>
-                                                    </div>
-                                                    <div className='requirement-item'>
-                                                        <i className="bi bi-check-circle" style={{ color: '#3cb1e6' }}></i>
-                                                        <span>Spaces allowed</span>
-                                                    </div>
-                                                    <div className='requirement-item'>
-                                                        <i className="bi bi-x-circle" style={{ color: '#dc3545' }}></i>
-                                                        <span>No special characters</span>
-                                                    </div>
+                                        <div className='tooltip'>
+                                            <div className='tooltip-arrow'></div>
+                                            <div>
+                                                <strong style={{ display: 'block', marginBottom: '6px' }}>Username Rules:</strong>
+                                                <div className='requirement-item'>
+                                                    <i className="bi bi-check-circle" style={{ color: '#3cb1e6' }}></i>
+                                                    <span>Letters (A-Z, a-z)</span>
+                                                </div>
+                                                <div className='requirement-item'>
+                                                    <i className="bi bi-check-circle" style={{ color: '#3cb1e6' }}></i>
+                                                    <span>Numbers (0-9)</span>
+                                                </div>
+                                                <div className='requirement-item'>
+                                                    <i className="bi bi-check-circle" style={{ color: '#3cb1e6' }}></i>
+                                                    <span>Spaces allowed</span>
+                                                </div>
+                                                <div className='requirement-item'>
+                                                    <i className="bi bi-x-circle" style={{ color: '#dc3545' }}></i>
+                                                    <span>No special characters</span>
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
                                     </span>
                                 </label>
                                 <input
@@ -189,13 +183,8 @@ export function Sign_up() {
                             <div>
                                 <label>
                                     Email:
-                                    <span
-                                        className='tooltip-container'
-                                        onMouseEnter={() => setShowEmailTooltip(true)}
-                                        onMouseLeave={() => setShowEmailTooltip(false)}
-                                    >
+                                    <span className='tooltip-container'>
                                         <span style={{ color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>*</span>
-                                        {showEmailTooltip && (
                                             <div className='tooltip'>
                                                 <div className='tooltip-arrow'></div>
                                                 <div>
@@ -220,7 +209,6 @@ export function Sign_up() {
                                                     </span>
                                                 </div>
                                             </div>
-                                        )}
                                     </span>
                                 </label>
                                 <input
@@ -266,41 +254,35 @@ export function Sign_up() {
                             <div>
                                 <label>
                                     Phone Number:
-                                    <span
-                                        className='tooltip-container'
-                                        onMouseEnter={() => setShowPhoneTooltip(true)}
-                                        onMouseLeave={() => setShowPhoneTooltip(false)}
-                                    >
+                                    <span className='tooltip-container'>
                                         <span style={{ color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>*</span>
-                                        {showPhoneTooltip && (
-                                            <div className='tooltip'>
-                                                <div className='tooltip-arrow'></div>
-                                                <div>
-                                                    <strong style={{ display: 'block', marginBottom: '6px', color: '#ffc107' }}>⚠️ Important:</strong>
-                                                    <span style={{ fontSize: '12px', lineHeight: '1.6' }}>
-                                                        Please provide a real, active phone number.
-                                                        <div className='form-row'>
-                                                            <div>• <strong>Length:</strong> 6-20 digits</div>
-                                                            <div>• Appointment reminders</div>
-                                                            <div>• <strong>Format:</strong> Numbers only</div>
-                                                            <div>• Emergency contact</div>
-                                                            <div></div>
-                                                            <div>• Account verification</div>
+                                        <div className='tooltip'>
+                                            <div className='tooltip-arrow'></div>
+                                            <div>
+                                                <strong style={{ display: 'block', marginBottom: '6px', color: '#ffc107' }}>⚠️ Important:</strong>
+                                                <span style={{ fontSize: '12px', lineHeight: '1.6' }}>
+                                                    Please provide a real, active phone number.
+                                                    <div className='form-row'>
+                                                        <div>• <strong>Length:</strong> 6-20 digits</div>
+                                                        <div>• Appointment reminders</div>
+                                                        <div>• <strong>Format:</strong> Numbers only</div>
+                                                        <div>• Emergency contact</div>
+                                                        <div></div>
+                                                        <div>• Account verification</div>
+                                                    </div>
+                                                    {phonenumber.length > 0 && (
+                                                        <div style={{
+                                                            marginTop: '8px',
+                                                            fontSize: '11px',
+                                                            color: phonenumber.length >= 8 && phonenumber.length <= 15 ? '#4caf50' : '#dc3545'
+                                                        }}>
+                                                            Current: {phonenumber.length} digits
+                                                            {phonenumber.length >= 8 && phonenumber.length <= 15 ? ' ✓' : ' ✗'}
                                                         </div>
-                                                        {phonenumber.length > 0 && (
-                                                            <div style={{
-                                                                marginTop: '8px',
-                                                                fontSize: '11px',
-                                                                color: phonenumber.length >= 8 && phonenumber.length <= 15 ? '#4caf50' : '#dc3545'
-                                                            }}>
-                                                                Current: {phonenumber.length} digits
-                                                                {phonenumber.length >= 8 && phonenumber.length <= 15 ? ' ✓' : ' ✗'}
-                                                            </div>
-                                                        )}
-                                                    </span>
-                                                </div>
+                                                    )}
+                                                </span>
                                             </div>
-                                        )}
+                                        </div>
                                     </span>
                                 </label>
                                 <input
@@ -345,54 +327,48 @@ export function Sign_up() {
                             <div>
                                 <label>
                                     Password:
-                                    <span
-                                        className='tooltip-container'
-                                        onMouseEnter={() => setShowPasswordTooltip(true)}
-                                        onMouseLeave={() => setShowPasswordTooltip(false)}
-                                    >
+                                    <span className='tooltip-container'>
                                         <span style={{ color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>*</span>
-                                        {showPasswordTooltip && (
-                                            <div className='tooltip'>
-                                                <div className='tooltip-arrow'></div>
-                                                <strong style={{ display: 'block', marginBottom: '8px' }}>Password Requirements:</strong>
+                                        <div className='tooltip'>
+                                            <div className='tooltip-arrow'></div>
+                                            <strong style={{ display: 'block', marginBottom: '8px' }}>Password Requirements:</strong>
 
-                                                <div className='requirement-item'>
-                                                    <i className={`bi bi-${passwordRequirements.minLength ? 'check-circle-fill' : 'circle'}`}
-                                                        style={{ color: passwordRequirements.minLength ? '#4caf50' : '#ccc' }}></i>
-                                                    <span>At least 6 characters</span>
-                                                </div>
-
-                                                <div className='requirement-item'>
-                                                    <i className={`bi bi-${passwordRequirements.hasUppercase ? 'check-circle-fill' : 'circle'}`}
-                                                        style={{ color: passwordRequirements.hasUppercase ? '#4caf50' : '#ccc' }}></i>
-                                                    <span>Uppercase letter (A-Z)</span>
-                                                </div>
-
-                                                <div className='requirement-item'>
-                                                    <i className={`bi bi-${passwordRequirements.hasLowercase ? 'check-circle-fill' : 'circle'}`}
-                                                        style={{ color: passwordRequirements.hasLowercase ? '#4caf50' : '#ccc' }}></i>
-                                                    <span>Lowercase letter (a-z)</span>
-                                                </div>
-
-                                                <div className='requirement-item'>
-                                                    <i className={`bi bi-${passwordRequirements.hasNumber ? 'check-circle-fill' : 'circle'}`}
-                                                        style={{ color: passwordRequirements.hasNumber ? '#4caf50' : '#ccc' }}></i>
-                                                    <span>Number (0-9)</span>
-                                                </div>
-
-                                                <div className='requirement-item'>
-                                                    <i className={`bi bi-${passwordRequirements.hasSpecialChar ? 'check-circle-fill' : 'circle'}`}
-                                                        style={{ color: passwordRequirements.hasSpecialChar ? '#4caf50' : '#ccc' }}></i>
-                                                    <span>Special character (!@#$%...)</span>
-                                                </div>
-
-                                                <div className='requirement-item'>
-                                                    <i className={`bi bi-${passwordRequirements.hasMatch ? 'check-circle-fill' : 'circle'}`}
-                                                        style={{ color: passwordRequirements.hasMatch ? '#4caf50' : '#ccc' }}></i>
-                                                    <span>Passwords match</span>
-                                                </div>
+                                            <div className='requirement-item'>
+                                                <i className={`bi bi-${passwordRequirements.minLength ? 'check-circle-fill' : 'circle'}`}
+                                                    style={{ color: passwordRequirements.minLength ? '#4caf50' : '#ccc' }}></i>
+                                                <span>At least 6 characters</span>
                                             </div>
-                                        )}
+
+                                            <div className='requirement-item'>
+                                                <i className={`bi bi-${passwordRequirements.hasUppercase ? 'check-circle-fill' : 'circle'}`}
+                                                    style={{ color: passwordRequirements.hasUppercase ? '#4caf50' : '#ccc' }}></i>
+                                                <span>Uppercase letter (A-Z)</span>
+                                            </div>
+
+                                            <div className='requirement-item'>
+                                                <i className={`bi bi-${passwordRequirements.hasLowercase ? 'check-circle-fill' : 'circle'}`}
+                                                    style={{ color: passwordRequirements.hasLowercase ? '#4caf50' : '#ccc' }}></i>
+                                                <span>Lowercase letter (a-z)</span>
+                                            </div>
+
+                                            <div className='requirement-item'>
+                                                <i className={`bi bi-${passwordRequirements.hasNumber ? 'check-circle-fill' : 'circle'}`}
+                                                    style={{ color: passwordRequirements.hasNumber ? '#4caf50' : '#ccc' }}></i>
+                                                <span>Number (0-9)</span>
+                                            </div>
+
+                                            <div className='requirement-item'>
+                                                <i className={`bi bi-${passwordRequirements.hasSpecialChar ? 'check-circle-fill' : 'circle'}`}
+                                                    style={{ color: passwordRequirements.hasSpecialChar ? '#4caf50' : '#ccc' }}></i>
+                                                <span>Special character (!@#$%...)</span>
+                                            </div>
+
+                                            <div className='requirement-item'>
+                                                <i className={`bi bi-${passwordRequirements.hasMatch ? 'check-circle-fill' : 'circle'}`}
+                                                    style={{ color: passwordRequirements.hasMatch ? '#4caf50' : '#ccc' }}></i>
+                                                <span>Passwords match</span>
+                                            </div>
+                                        </div>
                                     </span>
                                 </label>
                                 <input
@@ -454,13 +430,8 @@ export function Sign_up() {
                             <div>
                                 <label>
                                     Confirm Password:
-                                    <span
-                                        className='tooltip-container'
-                                        onMouseEnter={() => setShowConfirmPasswordTooltip(true)}
-                                        onMouseLeave={() => setShowConfirmPasswordTooltip(false)}
-                                    >
+                                    <span className='tooltip-container'>
                                         <span style={{ color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>*</span>
-                                        {showConfirmPasswordTooltip && (
                                             <div className='tooltip'>
                                                 <div className='tooltip-arrow'></div>
                                                 <strong style={{ display: 'block', marginBottom: '8px' }}>Confirm Password:</strong>
@@ -481,7 +452,6 @@ export function Sign_up() {
                                                     </span>
                                                 )}
                                             </div>
-                                        )}
                                     </span>
                                 </label>
                                 <input
