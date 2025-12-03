@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using OHCP_BK.Models;
+using OHCP_BK.Constants;
 
 namespace OHCP_BK.Data
 {
@@ -30,7 +31,10 @@ namespace OHCP_BK.Data
                 var user = new AppUser
                 {
                     UserName = "Administrator",
-                    Email = "admin@gmail.com"
+                    Email = "admin@gmail.com",
+                    EmailConfirmed = true,
+                    Status = UserStatusConstants.Active,
+                    CreatedDate = DateTime.UtcNow
                 };
                 var createdUser = await userManager.CreateAsync(user, "Admin@123!#");
 
@@ -47,7 +51,10 @@ namespace OHCP_BK.Data
                 var user = new AppUser
                 {
                     UserName = "Doctor",
-                    Email = "doctor@gmail.com"
+                    Email = "doctor@gmail.com",
+                    EmailConfirmed = true,
+                    Status = UserStatusConstants.Active,
+                    CreatedDate = DateTime.UtcNow
                 };
                 var createdUser = await userManager.CreateAsync(user, "Doctor@123!#");
 
@@ -79,7 +86,10 @@ namespace OHCP_BK.Data
                 var user = new AppUser
                 {
                     UserName = "Patient",
-                    Email = "patient@gmail.com"
+                    Email = "patient@gmail.com",
+                    EmailConfirmed = true,
+                    Status = UserStatusConstants.Active,
+                    CreatedDate = DateTime.UtcNow
                 };
                 var createdUser = await userManager.CreateAsync(user, "Patient@123!#");
 

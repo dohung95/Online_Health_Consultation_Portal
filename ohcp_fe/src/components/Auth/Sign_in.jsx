@@ -85,14 +85,16 @@ export function Sign_in() {
         } catch (err) {
             const errorMessage = err.message || 'Login failed';
 
-            // Check if error is related to account status
+            // Check if error is related to account status or email confirmation
             const statusErrors = [
                 'inactive',
                 'suspended',
                 'banned',
                 'not active',
                 'admin approval',
-                'contact support'
+                'contact support',
+                'confirm your email',
+                'email address before logging in'
             ];
 
             const isStatusError = statusErrors.some(keyword =>
@@ -100,7 +102,7 @@ export function Sign_in() {
             );
 
             if (isStatusError) {
-                // Show modal for status errors - DO NOT navigate here
+                // Show modal for status errors and email confirmation - DO NOT navigate here
                 setErrorModalMessage(errorMessage);
                 setShowErrorModal(true);
             } else {
