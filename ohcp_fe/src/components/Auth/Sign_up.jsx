@@ -542,121 +542,36 @@ export function Sign_up() {
             >
                 <Modal.Header
                     closeButton
-                    style={{
-                        backgroundColor: '#e7f3ff',
-                        borderBottom: '2px solid #009cde',
-                        padding: '20px'
-                    }}
+                    className="modal-success-header"
                 >
-                    <Modal.Title style={{
-                        color: '#0066a1',
-                        fontWeight: '600',
-                        fontSize: '22px',
-                        width: '100%',
-                        textAlign: 'center'
-                    }}>
-                        <i className="bi bi-info-circle-fill" style={{ fontSize: '35px', marginRight: '12px' }}></i>
-                        <div style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                    <Modal.Title className="modal-success-title">
+                        <i className="bi bi-info-circle-fill"></i>
+                        <div className="modal-title-text">
                             Registration Successful
                         </div>
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body style={{
-                    padding: '40px',
-                    textAlign: 'center',
-                    backgroundColor: '#fff'
-                }}>
-                    <div style={{
-                        backgroundColor: '#f0fff4',
-                        border: '2px solid #9ae6b4',
-                        borderRadius: '10px',
-                        padding: '30px',
-                        marginBottom: '20px'
-                    }}>
-                        <i className="bi bi-person-check" style={{
-                            fontSize: '55px',
-                            color: '#38a169',
-                            marginBottom: '20px',
-                            display: 'block'
-                        }}></i>
-                        <h5 style={{
-                            color: '#2d3748',
-                            fontWeight: '600',
-                            marginBottom: '20px',
-                            fontSize: '18px'
-                        }}>
+                <Modal.Body className="modal-success-body">
+                    <div className="modal-success-content">
+                        <i className="bi bi-person-check modal-success-icon"></i>
+                        <h5 className="modal-success-heading">
                             Account Created Successfully
                         </h5>
-                        <p style={{
-                            fontSize: '16px',
-                            color: '#555',
-                            lineHeight: '1.8',
-                            margin: '0'
-                        }}>
-                            Your account has been created successfully!
+                        <p className="modal-success-message">
+                            Your account has been created. Please wait for admin approval to activate your account.
                         </p>
                     </div>
-
-                    <div style={{
-                        backgroundColor: '#fff3cd',
-                        border: '2px solid #ffc107',
-                        borderRadius: '10px',
-                        padding: '20px',
-                        marginTop: '20px',
-                        textAlign: 'left'
-                    }}>
-                        <h6 style={{
-                            color: '#856404',
-                            fontWeight: '600',
-                            marginBottom: '15px',
-                            fontSize: '16px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px'
-                        }}>
-                            <i className="bi bi-exclamation-triangle-fill" style={{ fontSize: '24px' }}></i>
-                            Important: Email Verification Required
-                        </h6>
-                        <ul style={{
-                            fontSize: '14px',
-                            color: '#856404',
-                            lineHeight: '1.8',
-                            marginBottom: '0',
-                            paddingLeft: '20px'
-                        }}>
-                            <li>A confirmation email has been sent to <strong>{email}</strong></li>
-                            <li>Please check your inbox and click the verification link</li>
-                            <li>You must verify your email before you can log in</li>
-                            <li>If you don't see the email, check your spam folder</li>
-                        </ul>
-                    </div>
-
-                    <div style={{
-                        fontSize: '14px',
-                        color: '#6c757d',
-                        marginTop: '20px'
-                    }}>
-                        <i className="bi bi-envelope"></i> Need help? Please contact our support team
+                    <div className="modal-support-text">
+                        <i className="bi bi-envelope"></i> Please contact our support team if you need assistance
                     </div>
                 </Modal.Body>
-                <Modal.Footer style={{
-                    justifyContent: 'center',
-                    padding: '20px',
-                    backgroundColor: '#f8f9fa'
-                }}>
+                <Modal.Footer className="modal-success-footer">
                     <Button
                         onClick={handleCloseSuccessModal}
                         size="lg"
-                        style={{
-                            minWidth: '150px',
-                            fontWeight: '600',
-                            fontSize: '16px',
-                            backgroundColor: '#009cde',
-                            border: 'none',
-                            color: 'white'
-                        }}
+                        className="modal-success-button"
                     >
-                        <i className="bi bi-check-circle me-2"></i>
+                        <i className="bi bi-check-circle"></i>
                         I Understand
                     </Button>
                 </Modal.Footer>

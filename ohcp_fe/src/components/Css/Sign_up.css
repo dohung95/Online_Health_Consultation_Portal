@@ -294,3 +294,98 @@
         gap: 12px;
     }
 }
+
+/* ============================================
+   Success Modal Styles
+   ============================================ */
+
+/* Modal Header */
+.modal-success-header {
+    background-color: #e7f3ff;
+    border-bottom: 2px solid #009cde;
+    padding: 20px;
+}
+
+.modal-success-title {
+    color: #0066a1;
+    font-weight: 600;
+    font-size: 22px;
+    width: 100%;
+    text-align: center;
+}
+
+.modal-success-title i {
+    font-size: 35px;
+    margin-right: 12px;
+}
+
+.modal-title-text {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Modal Body */
+.modal-success-body {
+    padding: 40px;
+    text-align: center;
+    background-color: #fff;
+}
+
+.modal-success-content {
+    background-color: #f0fff4;
+    border: 2px solid #9ae6b4;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 20px;
+}
+
+.modal-success-icon {
+    font-size: 55px;
+    color: #38a169;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.modal-success-heading {
+    color: #2d3748;
+    font-weight: 600;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.modal-success-message {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.8;
+    margin: 0;
+}
+
+.modal-support-text {
+    font-size: 14px;
+    color: #6c757d;
+    margin-top: 15px;
+}
+
+/* Modal Footer */
+.modal-success-footer {
+    justify-content: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.modal-success-button {
+    min-width: 150px;
+    font-weight: 600;
+    font-size: 16px;
+    background-color: #009cde;
+    border: none;
+    color: white;
+}
+
+.modal-success-button:hover {
+    background-color: #0088c7;
+}
+
+.modal-success-button i {
+    margin-right: 8px;
+}
