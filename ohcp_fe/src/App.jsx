@@ -22,6 +22,7 @@ import Invoices from './components/Admin/Invoices';
 
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
+import EmailConfirmation from './components/Auth/EmailConfirmation';
 
 import Footer from './components/Footer';
 
@@ -85,6 +86,7 @@ function AppContent() {
             <Route path="/about_us" element={<AboutUs />} />
             <Route path="/login" element={<Sign_in />} />
             <Route path="/register" element={<Sign_up />} />
+            <Route path="/confirm-email" element={<EmailConfirmation />} />
             <Route path="/video-calling" element={<VideocallPage />} />
             <Route path="/health-records" element={<HealthRecords />} />
             <Route path="/share-records" element={<ShareHealthRecords />} />

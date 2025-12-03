@@ -593,15 +593,50 @@ export function Sign_up() {
                             lineHeight: '1.8',
                             margin: '0'
                         }}>
-                            Your account has been created. Please wait for admin approval to activate your account.
+                            Your account has been created successfully!
                         </p>
                     </div>
+
+                    <div style={{
+                        backgroundColor: '#fff3cd',
+                        border: '2px solid #ffc107',
+                        borderRadius: '10px',
+                        padding: '20px',
+                        marginTop: '20px',
+                        textAlign: 'left'
+                    }}>
+                        <h6 style={{
+                            color: '#856404',
+                            fontWeight: '600',
+                            marginBottom: '15px',
+                            fontSize: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px'
+                        }}>
+                            <i className="bi bi-exclamation-triangle-fill" style={{ fontSize: '24px' }}></i>
+                            Important: Email Verification Required
+                        </h6>
+                        <ul style={{
+                            fontSize: '14px',
+                            color: '#856404',
+                            lineHeight: '1.8',
+                            marginBottom: '0',
+                            paddingLeft: '20px'
+                        }}>
+                            <li>A confirmation email has been sent to <strong>{email}</strong></li>
+                            <li>Please check your inbox and click the verification link</li>
+                            <li>You must verify your email before you can log in</li>
+                            <li>If you don't see the email, check your spam folder</li>
+                        </ul>
+                    </div>
+
                     <div style={{
                         fontSize: '14px',
                         color: '#6c757d',
-                        marginTop: '15px'
+                        marginTop: '20px'
                     }}>
-                        <i className="bi bi-envelope"></i> Please contact our support team if you need assistance
+                        <i className="bi bi-envelope"></i> Need help? Please contact our support team
                     </div>
                 </Modal.Body>
                 <Modal.Footer style={{

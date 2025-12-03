@@ -12,17 +12,23 @@ namespace OHCP_BK.Services
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly OHCPContext _context;
         private readonly ILogger<AccountService> _logger;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
         public AccountService(
             UserManager<AppUser> userManager,
             RoleManager<IdentityRole> roleManager,
             OHCPContext context,
-            ILogger<AccountService> logger)
+            ILogger<AccountService> logger,
+            IEmailService emailService,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
             _logger = logger;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         public async Task<UserCreationResult> CreatePatientAsync(PatientDTO dto, bool isAdminCreated = false)
@@ -97,6 +103,25 @@ namespace OHCP_BK.Services
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation($"Patient account created successfully: {dto.Email} (Admin: {isAdminCreated})");
+
+                    // Send email confirmation if not admin created
+                    if (!isAdminCreated)
+                    {
+                        try
+                        {
+                            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                            var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:63527";
+                            var confirmationLink = $"{frontendUrl}/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+
+                            await _emailService.SendEmailConfirmationAsync(user.Email!, user.UserName!, confirmationLink);
+                            _logger.LogInformation($"Email confirmation sent to {dto.Email}");
+                        }
+                        catch (Exception emailEx)
+                        {
+                            _logger.LogError(emailEx, $"Failed to send confirmation email to {dto.Email}, but account was created");
+                            // Don't fail the registration if email fails
+                        }
+                    }
 
                     return UserCreationResult.Success(user.Id, patient.PatientID, user.Email!);
                 }
