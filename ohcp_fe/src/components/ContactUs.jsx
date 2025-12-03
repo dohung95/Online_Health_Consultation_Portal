@@ -8,6 +8,7 @@ function ContactUs() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -60,12 +61,18 @@ function ContactUs() {
     }
   }, [userProfile]);
 
+  // Check authentication when user tries to interact with form
+  const handleInputFocus = (e) => {
+    if (!isAuthenticated) {
+      e.target.blur(); // Remove focus from input
+      setShowLoginModal(true);
+    }
+  };
+
   // Check authentication before submitting
   const checkAuthAndRedirect = () => {
     if (!isAuthenticated) {
-      // Show alert and redirect to login
-      alert('Please login to submit contact!');
-      window.location.href = '/login';
+      setShowLoginModal(true);
       return false;
     }
     return true;
@@ -166,6 +173,7 @@ function ContactUs() {
                     className='contactus-input'
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onFocus={handleInputFocus}
                     readOnly={!!userProfile}
                   />
                 </div>
@@ -178,6 +186,7 @@ function ContactUs() {
                     className='contactus-input'
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    onFocus={handleInputFocus}
                     readOnly={!!userProfile}
                   />
                 </div>
@@ -192,6 +201,7 @@ function ContactUs() {
                   className='contactus-input'
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  onFocus={handleInputFocus}
                   readOnly={!!userProfile}
                 />
               </div>
@@ -205,6 +215,7 @@ function ContactUs() {
                   className='contactus-input'
                   value={formData.subject}
                   onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                  onFocus={handleInputFocus}
                 />
               </div>
 
@@ -216,6 +227,7 @@ function ContactUs() {
                   className='contactus-textarea'
                   value={formData.message}
                   onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                  onFocus={handleInputFocus}
                 ></textarea>
               </div>
 
@@ -320,6 +332,129 @@ function ContactUs() {
           </div>
         </div>
       </div>
+
+      {/* Login Required Modal - Lightweight */}
+      {showLoginModal && (
+        <div
+          onClick={() => setShowLoginModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            animation: 'fadeIn 0.2s ease-in-out'
+          }}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '28px',
+              maxWidth: '380px',
+              width: '90%',
+              boxShadow: '0 4px 20px rgba(0, 100, 146, 0.12)',
+              animation: 'slideUp 0.25s ease-out'
+            }}>
+            {/* Icon - Smaller and lighter */}
+            <div style={{
+              textAlign: 'center',
+              marginBottom: '16px'
+            }}>
+            <img src="/logo_footer.png" alt="Logo" style={{width:"15vw"}}/>
+            </div>
+
+            {/* Title - Softer */}
+            <h4 style={{
+              textAlign: 'center',
+              color: '#006492',
+              marginBottom: '10px',
+              fontSize: '20px',
+              fontWeight: '600'
+            }}>
+              Please Login First
+            </h4>
+
+            {/* Message - Lighter and shorter */}
+            <p style={{
+              textAlign: 'center',
+              color: '#666',
+              marginBottom: '24px',
+              fontSize: '14px',
+              lineHeight: '1.5'
+            }}>
+              You need to login to contact us
+            </p>
+
+            {/* Buttons - Simplified */}
+            <div style={{
+              display: 'flex',
+              gap: '10px'
+            }}>
+              <button
+                onClick={() => setShowLoginModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '10px 20px',
+                  backgroundColor: '#f5f5f5',
+                  color: '#666',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#e5e5e5'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => window.location.href = '/login'}
+                style={{
+                  flex: 1,
+                  padding: '10px 20px',
+                  backgroundColor: '#006492',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#005075'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#006492'}
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
     </>
   );
 }

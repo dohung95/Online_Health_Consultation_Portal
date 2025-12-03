@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
 import { appointmentsApi } from "../../services/adminApi";
+import Toast from "./Toast";
+import useToast from "./useToast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./Admin.css";
@@ -8,6 +10,7 @@ import "./Admin.css";
 export default function Appointments() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [appointments, setAppointments] = useState([]);
+  const { toast, showToast, hideToast } = useToast();
   const [stats, setStats] = useState({
     todayAppointments: 0,
     pendingApproval: 0,
@@ -148,12 +151,21 @@ export default function Appointments() {
       };
 
       await appointmentsApi.update(selectedAppointment.appointmentID, updateData);
-      alert('Appointment updated successfully');
+      showToast({
+        title: 'Success!',
+        message: 'Appointment has been updated successfully',
+        type: 'success'
+      });
       setShowEditModal(false);
       fetchAppointments();
       fetchStats();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update appointment');
+      showToast({
+        title: 'Update Failed',
+        message: err.response?.data?.error || 'Failed to update appointment',
+        type: 'error',
+        duration: 5000
+      });
       console.error('Error updating appointment:', err);
     }
   };
@@ -695,6 +707,14 @@ export default function Appointments() {
             </div>
           )}
         </main>
+        <Toast
+          show={toast.show}
+          onClose={hideToast}
+          title={toast.title}
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
+        />
     </NavbarAdmin>
   );
 }

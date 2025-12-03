@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
 import { invoicesApi } from "../../services/adminApi";
+import Toast from "./Toast";
+import useToast from "./useToast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./Admin.css";
@@ -8,6 +10,7 @@ import "./Admin.css";
 export default function Invoices() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [invoices, setInvoices] = useState([]);
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -118,12 +121,21 @@ export default function Invoices() {
 
     try {
       await invoicesApi.updateStatus(selectedInvoice.invoiceID, newStatus);
-      alert('Invoice status updated successfully');
+      showToast({
+        title: 'Success!',
+        message: 'Invoice status has been updated successfully',
+        type: 'success'
+      });
       setShowStatusModal(false);
       fetchInvoices();
       fetchStats();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update invoice status');
+      showToast({
+        title: 'Update Failed',
+        message: err.response?.data?.error || 'Failed to update invoice status',
+        type: 'error',
+        duration: 5000
+      });
       console.error('Error updating invoice status:', err);
     }
   };
@@ -806,6 +818,14 @@ export default function Invoices() {
           </div>
         )}
       </main>
+      <Toast
+        show={toast.show}
+        onClose={hideToast}
+        title={toast.title}
+        message={toast.message}
+        type={toast.type}
+        duration={toast.duration}
+      />
     </NavbarAdmin>
   );
 }

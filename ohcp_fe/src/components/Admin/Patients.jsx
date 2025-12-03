@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
 import { patientsApi, medicalRecordsApi } from "../../services/adminApi";
+import Toast from "./Toast";
+import useToast from "./useToast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./Admin.css";
@@ -8,6 +10,7 @@ import "./Admin.css";
 export default function Patients() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [patients, setPatients] = useState([]);
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
@@ -181,7 +184,11 @@ export default function Patients() {
       const response = await patientsApi.update(selectedPatient.patientID, updateData);
       console.log('Update response:', response);
 
-      alert('Patient updated successfully');
+      showToast({
+        title: 'Success!',
+        message: 'Patient information has been updated successfully',
+        type: 'success'
+      });
       setShowEditModal(false);
       fetchPatients();
     } catch (err) {
@@ -190,7 +197,12 @@ export default function Patients() {
       console.error('Error data:', err.response?.data);
 
       const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update patient';
-      alert(`Update failed: ${errorMessage}`);
+      showToast({
+        title: 'Update Failed',
+        message: errorMessage,
+        type: 'error',
+        duration: 5000
+      });
     }
   };
 
@@ -218,10 +230,19 @@ export default function Patients() {
       setShowStatusModal(false);
 
       // Show success message
-      alert('Patient status updated successfully');
+      showToast({
+        title: 'Status Updated',
+        message: 'Patient status has been updated successfully',
+        type: 'success'
+      });
     } catch (err) {
       const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update status';
-      alert(`Update failed: ${errorMessage}`);
+      showToast({
+        title: 'Update Failed',
+        message: errorMessage,
+        type: 'error',
+        duration: 5000
+      });
     }
   };
 
@@ -1238,6 +1259,14 @@ export default function Patients() {
             </div>
           )}
         </main>
+        <Toast
+          show={toast.show}
+          onClose={hideToast}
+          title={toast.title}
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
+        />
     </NavbarAdmin>
   );
 }
