@@ -382,11 +382,11 @@ export default function Doctors() {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2 className="admin-page-title">Doctors List</h2>
             <button
-              className="btn btn-primary"
+              className="admin-btn-add"
               onClick={() => setShowCreateModal(true)}
             >
-              <i className="bi bi-plus-circle me-2"></i>
-              Add New Doctor
+              <i className="bi bi-plus-circle-fill"></i>
+              <span>Add New Doctor</span>
             </button>
           </div>
 
@@ -1207,29 +1207,24 @@ export default function Doctors() {
 
                   {/* Body */}
                   <form onSubmit={handleCreateDoctor}>
-                    <div className="admin-modal-body">
+                    <div className="admin-modal-body" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
                       <div className="row g-3">
                         {/* Account Information Section */}
                         <div className="col-12">
-                          <div style={{
-                            padding: '12px',
-                            background: '#f1f5f9',
-                            borderRadius: '8px',
-                            marginBottom: '16px'
+                          <h6 style={{
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            color: '#0891b2',
+                            margin: '0 0 12px 0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            paddingBottom: '8px',
+                            borderBottom: '1px solid #e2e8f0'
                           }}>
-                            <h6 style={{
-                              fontSize: '13px',
-                              fontWeight: '600',
-                              color: '#334155',
-                              margin: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px'
-                            }}>
-                              <i className="bi bi-shield-lock-fill"></i>
-                              Account Information
-                            </h6>
-                          </div>
+                            <i className="bi bi-shield-lock-fill"></i>
+                            Account Information
+                          </h6>
                         </div>
 
                         <div className="col-md-6">
@@ -1239,7 +1234,7 @@ export default function Doctors() {
                             className="admin-form-input"
                             value={createForm.email}
                             onChange={(e) => setCreateForm({...createForm, email: e.target.value})}
-                            placeholder="doctor@example.com"
+                            placeholder="Enter doctor's email (e.g., john.doe@hospital.com)"
                             required
                           />
                         </div>
@@ -1251,35 +1246,28 @@ export default function Doctors() {
                             className="admin-form-input"
                             value={createForm.password}
                             onChange={(e) => setCreateForm({...createForm, password: e.target.value})}
-                            placeholder="Enter password"
+                            placeholder="Min 6 chars (uppercase, number & symbol)"
                             minLength="6"
                             required
                           />
-                          <small className="text-muted">Minimum 6 characters</small>
                         </div>
 
                         {/* Personal Information Section */}
-                        <div className="col-12">
-                          <div style={{
-                            padding: '12px',
-                            background: '#f1f5f9',
-                            borderRadius: '8px',
-                            marginBottom: '16px',
-                            marginTop: '8px'
+                        <div className="col-12" style={{ marginTop: '20px' }}>
+                          <h6 style={{
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            color: '#0891b2',
+                            margin: '0 0 12px 0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            paddingBottom: '8px',
+                            borderBottom: '1px solid #e2e8f0'
                           }}>
-                            <h6 style={{
-                              fontSize: '13px',
-                              fontWeight: '600',
-                              color: '#334155',
-                              margin: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px'
-                            }}>
-                              <i className="bi bi-person-fill"></i>
-                              Personal Information
-                            </h6>
-                          </div>
+                            <i className="bi bi-person-fill"></i>
+                            Personal Information
+                          </h6>
                         </div>
 
                         <div className="col-md-6">
@@ -1289,7 +1277,7 @@ export default function Doctors() {
                             className="admin-form-input"
                             value={createForm.fullName}
                             onChange={(e) => setCreateForm({...createForm, fullName: e.target.value})}
-                            placeholder="Dr. John Smith"
+                            placeholder="Enter full name (e.g., Dr. John Smith)"
                             required
                           />
                         </div>
@@ -1301,32 +1289,26 @@ export default function Doctors() {
                             className="admin-form-input"
                             value={createForm.phoneNumber}
                             onChange={(e) => setCreateForm({...createForm, phoneNumber: e.target.value})}
-                            placeholder="+84 123 456 789"
+                            placeholder="Enter phone (e.g., +84 123 456 789)"
                           />
                         </div>
 
                         {/* Professional Information Section */}
-                        <div className="col-12">
-                          <div style={{
-                            padding: '12px',
-                            background: '#f1f5f9',
-                            borderRadius: '8px',
-                            marginBottom: '16px',
-                            marginTop: '8px'
+                        <div className="col-12" style={{ marginTop: '20px' }}>
+                          <h6 style={{
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            color: '#0891b2',
+                            margin: '0 0 12px 0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            paddingBottom: '8px',
+                            borderBottom: '1px solid #e2e8f0'
                           }}>
-                            <h6 style={{
-                              fontSize: '13px',
-                              fontWeight: '600',
-                              color: '#334155',
-                              margin: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px'
-                            }}>
-                              <i className="bi bi-briefcase-fill"></i>
-                              Professional Information
-                            </h6>
-                          </div>
+                            <i className="bi bi-briefcase-fill"></i>
+                            Professional Information
+                          </h6>
                         </div>
 
                         <div className="col-md-6">
@@ -1336,7 +1318,7 @@ export default function Doctors() {
                             className="admin-form-input"
                             value={createForm.specialty}
                             onChange={(e) => setCreateForm({...createForm, specialty: e.target.value})}
-                            placeholder="Cardiology"
+                            placeholder="e.g., Cardiology, Neurology, Pediatrics"
                             required
                           />
                         </div>
@@ -1348,43 +1330,43 @@ export default function Doctors() {
                             className="admin-form-input"
                             value={createForm.qualifications}
                             onChange={(e) => setCreateForm({...createForm, qualifications: e.target.value})}
-                            placeholder="MD, PhD in Cardiology"
+                            placeholder="e.g., MD, PhD in Cardiology, MBBS"
                             required
                           />
                         </div>
 
-                        <div className="col-md-4">
+                        <div className="col-md-12">
                           <label className="admin-form-label">Years of Experience</label>
                           <input
                             type="number"
                             className="admin-form-input"
                             value={createForm.yearsOfExperience}
                             onChange={(e) => setCreateForm({...createForm, yearsOfExperience: e.target.value})}
-                            placeholder="10"
+                            placeholder="Enter years of experience (e.g., 10)"
                             min="0"
                             max="100"
                           />
                         </div>
 
-                        <div className="col-md-4">
+                        <div className="col-md-6">
                           <label className="admin-form-label">Languages Spoken</label>
                           <input
                             type="text"
                             className="admin-form-input"
                             value={createForm.languageSpoken}
                             onChange={(e) => setCreateForm({...createForm, languageSpoken: e.target.value})}
-                            placeholder="English, Vietnamese"
+                            placeholder="e.g., English, Vietnamese"
                           />
                         </div>
 
-                        <div className="col-md-4">
+                        <div className="col-md-6">
                           <label className="admin-form-label">Location</label>
                           <input
                             type="text"
                             className="admin-form-input"
                             value={createForm.location}
                             onChange={(e) => setCreateForm({...createForm, location: e.target.value})}
-                            placeholder="Ho Chi Minh City"
+                            placeholder="e.g., Ho Chi Minh City"
                           />
                         </div>
                       </div>
