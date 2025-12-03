@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Models;
 using OHCP_BK.Data;
+using OHCP_BK.Constants;
 
 namespace OHCP_BK.Data
 {
@@ -137,6 +138,7 @@ namespace OHCP_BK.Data
                     UserName = username,
                     Email = email,
                     EmailConfirmed = true,
+                    Status = UserStatusConstants.Active,
                     PhoneNumber = GeneratePhoneNumber(),
                     PhoneNumberConfirmed = true,
                     CreatedDate = DateTime.Now.AddDays(-new Random().Next(30, 365))
@@ -287,6 +289,7 @@ namespace OHCP_BK.Data
                     UserName = username,
                     Email = email,
                     EmailConfirmed = true,
+                    Status = UserStatusConstants.Active,
                     PhoneNumber = GeneratePhoneNumber(),
                     PhoneNumberConfirmed = true,
                     CreatedDate = DateTime.Now.AddDays(-random.Next(30, 730)) // Created within last 2 years
