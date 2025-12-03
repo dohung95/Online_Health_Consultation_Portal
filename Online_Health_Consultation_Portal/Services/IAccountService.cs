@@ -17,7 +17,8 @@ namespace OHCP_BK.Services
         /// Create a new doctor account with Identity user and profile (admin-only)
         /// </summary>
         /// <param name="dto">Doctor creation data</param>
+        /// <param name="isAdminCreated">Whether the account is created by admin</param>
         /// <returns>User creation result with success status and details</returns>
-        Task<UserCreationResult> CreateDoctorAsync(DoctorCreateDTO dto);
+        Task<UserCreationResult> CreateDoctorAsync(DoctorCreateDTO dto, bool isAdminCreated = false);
     }
 }

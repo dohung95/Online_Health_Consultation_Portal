@@ -25,12 +25,28 @@ export default function Doctors() {
   // Modal states
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [newStatus, setNewStatus] = useState('');
+  const [successMessage, setSuccessMessage] = useState({ title: '', message: '', email: '' });
 
   // Edit form state
   const [editForm, setEditForm] = useState({
+    fullName: '',
+    phoneNumber: '',
+    specialty: '',
+    qualifications: '',
+    yearsOfExperience: '',
+    languageSpoken: '',
+    location: ''
+  });
+
+  // Create form state
+  const [createForm, setCreateForm] = useState({
+    email: '',
+    password: '',
     fullName: '',
     phoneNumber: '',
     specialty: '',
@@ -149,6 +165,118 @@ export default function Doctors() {
     }
   };
 
+  // Validate password strength
+  const validatePassword = (password) => {
+    const minLength = password.length >= 6;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[@$!%*?&]/.test(password);
+
+    return {
+      isValid: minLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar,
+      errors: {
+        minLength,
+        hasUpperCase,
+        hasLowerCase,
+        hasNumber,
+        hasSpecialChar
+      }
+    };
+  };
+
+  // Handle create doctor
+  const handleCreateDoctor = async (e) => {
+    e.preventDefault();
+
+    // Client-side validation
+    const passwordValidation = validatePassword(createForm.password);
+    if (!passwordValidation.isValid) {
+      alert('Password must contain at least:\n- 6 characters\n- One uppercase letter\n- One lowercase letter\n- One number\n- One special character (@$!%*?&)');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(createForm.email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    try {
+      // Prepare data according to CreateDoctorAdminDto (using PascalCase to match backend)
+      const createData = {
+        Email: createForm.email,
+        Password: createForm.password,
+        FullName: createForm.fullName,
+        PhoneNumber: createForm.phoneNumber,
+        Specialty: createForm.specialty,
+        Qualifications: createForm.qualifications,
+        YearsOfExperience: createForm.yearsOfExperience ? parseInt(createForm.yearsOfExperience) : null,
+        LanguageSpoken: createForm.languageSpoken,
+        Location: createForm.location
+      };
+
+      console.log('Sending create data:', createData);
+
+      const response = await doctorsApi.create(createData);
+      console.log('Create response:', response);
+
+      // Show success modal with email confirmation info
+      setSuccessMessage({
+        title: 'Doctor Account Created Successfully!',
+        message: response.message || 'A confirmation email has been sent to the doctor\'s email address.',
+        email: createForm.email
+      });
+
+      setShowCreateModal(false);
+      setShowSuccessModal(true);
+
+      // Reset form
+      setCreateForm({
+        email: '',
+        password: '',
+        fullName: '',
+        phoneNumber: '',
+        specialty: '',
+        qualifications: '',
+        yearsOfExperience: '',
+        languageSpoken: '',
+        location: ''
+      });
+      fetchDoctors();
+    } catch (err) {
+      console.error('Full error object:', err);
+      console.error('Error response:', err.response);
+      console.error('Error data:', err.response?.data);
+
+      // Handle validation errors
+      if (err.response?.data?.details) {
+        const details = err.response.data.details;
+        let errorMessage = 'Validation failed:\n\n';
+
+        if (typeof details === 'object') {
+          Object.keys(details).forEach(key => {
+            if (Array.isArray(details[key])) {
+              details[key].forEach(msg => {
+                errorMessage += `- ${msg}\n`;
+              });
+            } else {
+              errorMessage += `- ${details[key]}\n`;
+            }
+          });
+        } else {
+          errorMessage = details;
+        }
+
+        alert(errorMessage);
+      } else {
+        const errorMessage = err.response?.data?.error || err.message || 'Failed to create doctor';
+        alert(`Create failed: ${errorMessage}`);
+      }
+    }
+  };
+
   // Handle change status
   const handleChangeStatus = (doctor) => {
     setSelectedDoctor(doctor);
@@ -212,6 +340,13 @@ export default function Doctors() {
       <main className="admin-content p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2 className="admin-page-title">Doctors List</h2>
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <i className="bi bi-plus-circle me-2"></i>
+              Add New Doctor
+            </button>
           </div>
 
           {/* Error Message */}
@@ -998,6 +1133,402 @@ export default function Doctors() {
                     >
                       <i className="bi bi-check-circle"></i>
                       Confirm Update
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Create Doctor Modal */}
+          {showCreateModal && (
+            <div className="admin-modal-overlay" onClick={() => setShowCreateModal(false)}>
+              <div className="admin-modal-container" onClick={(e) => e.stopPropagation()}>
+                <div className="admin-modal-content">
+                  {/* Header */}
+                  <div className="admin-modal-header">
+                    <div className="admin-modal-title-group">
+                      <div className="admin-modal-icon-wrapper" style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
+                        <i className="bi bi-person-plus-fill"></i>
+                      </div>
+                      <div>
+                        <h3 className="admin-modal-title">Create New Doctor</h3>
+                        <p className="admin-modal-subtitle">Add a new doctor to the system</p>
+                      </div>
+                    </div>
+                    <button
+                      className="admin-modal-close"
+                      onClick={() => setShowCreateModal(false)}
+                    >
+                      <i className="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+
+                  {/* Body */}
+                  <form onSubmit={handleCreateDoctor}>
+                    <div className="admin-modal-body">
+                      <div className="row g-3">
+                        {/* Account Information Section */}
+                        <div className="col-12">
+                          <div style={{
+                            padding: '12px',
+                            background: '#f1f5f9',
+                            borderRadius: '8px',
+                            marginBottom: '16px'
+                          }}>
+                            <h6 style={{
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              color: '#334155',
+                              margin: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}>
+                              <i className="bi bi-shield-lock-fill"></i>
+                              Account Information
+                            </h6>
+                          </div>
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="admin-form-label required">Email Address</label>
+                          <input
+                            type="email"
+                            className="admin-form-input"
+                            value={createForm.email}
+                            onChange={(e) => setCreateForm({...createForm, email: e.target.value})}
+                            placeholder="doctor@example.com"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="admin-form-label required">Password</label>
+                          <input
+                            type="password"
+                            className="admin-form-input"
+                            value={createForm.password}
+                            onChange={(e) => setCreateForm({...createForm, password: e.target.value})}
+                            placeholder="Enter password"
+                            minLength="6"
+                            required
+                          />
+                          <small className="text-muted">Minimum 6 characters</small>
+                        </div>
+
+                        {/* Personal Information Section */}
+                        <div className="col-12">
+                          <div style={{
+                            padding: '12px',
+                            background: '#f1f5f9',
+                            borderRadius: '8px',
+                            marginBottom: '16px',
+                            marginTop: '8px'
+                          }}>
+                            <h6 style={{
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              color: '#334155',
+                              margin: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}>
+                              <i className="bi bi-person-fill"></i>
+                              Personal Information
+                            </h6>
+                          </div>
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="admin-form-label required">Full Name</label>
+                          <input
+                            type="text"
+                            className="admin-form-input"
+                            value={createForm.fullName}
+                            onChange={(e) => setCreateForm({...createForm, fullName: e.target.value})}
+                            placeholder="Dr. John Smith"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="admin-form-label">Phone Number</label>
+                          <input
+                            type="tel"
+                            className="admin-form-input"
+                            value={createForm.phoneNumber}
+                            onChange={(e) => setCreateForm({...createForm, phoneNumber: e.target.value})}
+                            placeholder="+84 123 456 789"
+                          />
+                        </div>
+
+                        {/* Professional Information Section */}
+                        <div className="col-12">
+                          <div style={{
+                            padding: '12px',
+                            background: '#f1f5f9',
+                            borderRadius: '8px',
+                            marginBottom: '16px',
+                            marginTop: '8px'
+                          }}>
+                            <h6 style={{
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              color: '#334155',
+                              margin: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}>
+                              <i className="bi bi-briefcase-fill"></i>
+                              Professional Information
+                            </h6>
+                          </div>
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="admin-form-label required">Specialty</label>
+                          <input
+                            type="text"
+                            className="admin-form-input"
+                            value={createForm.specialty}
+                            onChange={(e) => setCreateForm({...createForm, specialty: e.target.value})}
+                            placeholder="Cardiology"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="admin-form-label required">Qualifications</label>
+                          <input
+                            type="text"
+                            className="admin-form-input"
+                            value={createForm.qualifications}
+                            onChange={(e) => setCreateForm({...createForm, qualifications: e.target.value})}
+                            placeholder="MD, PhD in Cardiology"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-md-4">
+                          <label className="admin-form-label">Years of Experience</label>
+                          <input
+                            type="number"
+                            className="admin-form-input"
+                            value={createForm.yearsOfExperience}
+                            onChange={(e) => setCreateForm({...createForm, yearsOfExperience: e.target.value})}
+                            placeholder="10"
+                            min="0"
+                            max="100"
+                          />
+                        </div>
+
+                        <div className="col-md-4">
+                          <label className="admin-form-label">Languages Spoken</label>
+                          <input
+                            type="text"
+                            className="admin-form-input"
+                            value={createForm.languageSpoken}
+                            onChange={(e) => setCreateForm({...createForm, languageSpoken: e.target.value})}
+                            placeholder="English, Vietnamese"
+                          />
+                        </div>
+
+                        <div className="col-md-4">
+                          <label className="admin-form-label">Location</label>
+                          <input
+                            type="text"
+                            className="admin-form-input"
+                            value={createForm.location}
+                            onChange={(e) => setCreateForm({...createForm, location: e.target.value})}
+                            placeholder="Ho Chi Minh City"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="admin-modal-footer">
+                      <button
+                        type="button"
+                        className="admin-btn-modal secondary"
+                        onClick={() => setShowCreateModal(false)}
+                      >
+                        <i className="bi bi-x-circle"></i>
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="admin-btn-modal primary"
+                        style={{minWidth: '140px'}}
+                      >
+                        <i className="bi bi-check-circle"></i>
+                        Create Doctor
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success Modal */}
+          {showSuccessModal && (
+            <div className="admin-modal-overlay" onClick={() => setShowSuccessModal(false)}>
+              <div className="admin-modal-container" onClick={(e) => e.stopPropagation()} style={{maxWidth: '550px'}}>
+                <div className="admin-modal-content">
+                  {/* Header */}
+                  <div className="admin-modal-header" style={{borderBottom: 'none', paddingBottom: '0'}}>
+                    <button
+                      className="admin-modal-close"
+                      onClick={() => setShowSuccessModal(false)}
+                      style={{position: 'absolute', right: '20px', top: '20px'}}
+                    >
+                      <i className="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+
+                  {/* Body */}
+                  <div className="admin-modal-body" style={{textAlign: 'center', padding: '20px 40px 40px'}}>
+                    {/* Success Icon */}
+                    <div style={{
+                      width: '80px',
+                      height: '80px',
+                      margin: '0 auto 24px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
+                    }}>
+                      <i className="bi bi-check-circle-fill" style={{
+                        fontSize: '40px',
+                        color: 'white'
+                      }}></i>
+                    </div>
+
+                    {/* Title */}
+                    <h3 style={{
+                      fontSize: '24px',
+                      fontWeight: '700',
+                      color: '#0f172a',
+                      marginBottom: '12px'
+                    }}>
+                      {successMessage.title}
+                    </h3>
+
+                    {/* Message */}
+                    <p style={{
+                      fontSize: '15px',
+                      color: '#64748b',
+                      lineHeight: '1.6',
+                      marginBottom: '24px'
+                    }}>
+                      {successMessage.message}
+                    </p>
+
+                    {/* Email Badge */}
+                    <div style={{
+                      background: '#f1f5f9',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      marginBottom: '24px',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px'
+                      }}>
+                        <i className="bi bi-envelope-check-fill" style={{
+                          fontSize: '20px',
+                          color: '#667eea'
+                        }}></i>
+                        <span style={{
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#334155'
+                        }}>
+                          {successMessage.email}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Info Box */}
+                    <div style={{
+                      background: '#eff6ff',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      border: '1px solid #bfdbfe',
+                      marginBottom: '24px'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'start',
+                        gap: '12px',
+                        textAlign: 'left'
+                      }}>
+                        <i className="bi bi-info-circle-fill" style={{
+                          fontSize: '18px',
+                          color: '#3b82f6',
+                          marginTop: '2px'
+                        }}></i>
+                        <div>
+                          <p style={{
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            color: '#1e40af',
+                            marginBottom: '6px'
+                          }}>
+                            What happens next?
+                          </p>
+                          <ul style={{
+                            fontSize: '13px',
+                            color: '#1e40af',
+                            margin: '0',
+                            paddingLeft: '20px',
+                            lineHeight: '1.8'
+                          }}>
+                            <li>The doctor will receive a confirmation email</li>
+                            <li>Status will remain <strong>"Inactive"</strong> until email is confirmed</li>
+                            <li>After confirmation, status will change to <strong>"Active"</strong></li>
+                            <li>Doctor can then log in and access the system</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Close Button */}
+                    <button
+                      onClick={() => setShowSuccessModal(false)}
+                      style={{
+                        width: '100%',
+                        padding: '14px',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
+                      }}
+                      onMouseOver={(e) => {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.5)';
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+                      }}
+                    >
+                      <i className="bi bi-check-circle me-2"></i>
+                      Got it, Thanks!
                     </button>
                   </div>
                 </div>

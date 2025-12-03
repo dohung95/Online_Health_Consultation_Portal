@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Constants;
 using OHCP_BK.Data;
+using OHCP_BK.Dtos;
 using OHCP_BK.DTOs.Admin;
 using OHCP_BK.Models;
+using OHCP_BK.Services;
 
 namespace OHCP_BK.Controllers.Admin
 {
@@ -16,11 +18,13 @@ namespace OHCP_BK.Controllers.Admin
     {
         private readonly OHCPContext _context;
         private readonly UserManager<AppUser> _userManager;
+        private readonly IAccountService _accountService;
 
-        public AdminDoctorsController(OHCPContext context, UserManager<AppUser> userManager)
+        public AdminDoctorsController(OHCPContext context, UserManager<AppUser> userManager, IAccountService accountService)
         {
             _context = context;
             _userManager = userManager;
+            _accountService = accountService;
         }
 
         // GET: api/admin/admindoctors
@@ -112,6 +116,85 @@ namespace OHCP_BK.Controllers.Admin
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "An error occurred while fetching doctors", details = ex.Message });
+            }
+        }
+
+        // POST: api/admin/admindoctors
+        [HttpPost]
+        public async Task<ActionResult<DoctorAdminDto>> CreateDoctor([FromBody] CreateDoctorAdminDto dto)
+        {
+            try
+            {
+                // Validate ModelState (checks Data Annotations)
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { error = "Validation failed", details = ModelState });
+                }
+
+                // Convert to DoctorCreateDTO
+                var doctorCreateDto = new DoctorCreateDTO
+                {
+                    Email = dto.Email,
+                    Password = dto.Password,
+                    FullName = dto.FullName,
+                    Specialty = dto.Specialty,
+                    Qualifications = dto.Qualifications,
+                    YearsOfExperience = dto.YearsOfExperience,
+                    LanguageSpoken = dto.LanguageSpoken,
+                    Location = dto.Location
+                };
+
+                // Use AccountService to create doctor (includes validation, email sending, etc.)
+                var result = await _accountService.CreateDoctorAsync(doctorCreateDto, isAdminCreated: true);
+
+                if (!result.Succeeded)
+                {
+                    if (result.ErrorCode == "USER_EXISTS")
+                    {
+                        return Conflict(new { error = "Email already exists", details = result.Errors });
+                    }
+
+                    return BadRequest(new { error = "Failed to create doctor", details = result.Errors, errorCode = result.ErrorCode });
+                }
+
+                // Fetch the created doctor with details
+                var doctor = await _context.Doctors
+                    .Include(d => d.User)
+                    .FirstOrDefaultAsync(d => d.DoctorID == result.UserId);
+
+                if (doctor == null)
+                {
+                    return StatusCode(500, new { error = "Doctor created but could not be retrieved" });
+                }
+
+                // Return created doctor
+                var doctorDto = new DoctorAdminDto
+                {
+                    DoctorID = doctor.DoctorID,
+                    FullName = doctor.FullName,
+                    Specialty = doctor.Specialty,
+                    Qualifications = doctor.Qualifications,
+                    YearsOfExperience = doctor.YearsOfExperience,
+                    LanguageSpoken = doctor.LanguageSpoken,
+                    Location = doctor.Location,
+                    Phone = doctor.User.PhoneNumber ?? "N/A",
+                    Email = doctor.User.Email ?? "N/A",
+                    Status = doctor.User.Status,
+                    TotalAppointments = 0,
+                    AverageRating = null,
+                    TotalReviews = 0,
+                    CreatedDate = doctor.User.CreatedDate
+                };
+
+                return CreatedAtAction(nameof(GetDoctor), new { id = doctor.DoctorID }, new
+                {
+                    message = "Doctor created successfully. A confirmation email has been sent to the doctor's email address.",
+                    doctor = doctorDto
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while creating doctor", details = ex.Message });
             }
         }
 
