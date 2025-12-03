@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
 import { doctorsApi } from "../../services/adminApi";
+import Toast from "./Toast";
+import useToast from "./useToast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./Admin.css";
@@ -10,6 +12,7 @@ export default function Doctors() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { toast, showToast, hideToast } = useToast();
   const [pagination, setPagination] = useState({
     pageNumber: 1,
     pageSize: 10,
@@ -152,7 +155,11 @@ export default function Doctors() {
       const response = await doctorsApi.update(selectedDoctor.doctorID, updateData);
       console.log('Update response:', response);
 
-      alert('Doctor updated successfully');
+      showToast({
+        title: 'Success!',
+        message: 'Doctor information has been updated successfully',
+        type: 'success'
+      });
       setShowEditModal(false);
       fetchDoctors();
     } catch (err) {
@@ -161,7 +168,12 @@ export default function Doctors() {
       console.error('Error data:', err.response?.data);
 
       const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update doctor';
-      alert(`Update failed: ${errorMessage}`);
+      showToast({
+        title: 'Update Failed',
+        message: errorMessage,
+        type: 'error',
+        duration: 5000
+      });
     }
   };
 
@@ -192,14 +204,24 @@ export default function Doctors() {
     // Client-side validation
     const passwordValidation = validatePassword(createForm.password);
     if (!passwordValidation.isValid) {
-      alert('Password must contain at least:\n- 6 characters\n- One uppercase letter\n- One lowercase letter\n- One number\n- One special character (@$!%*?&)');
+      showToast({
+        title: 'Invalid Password',
+        message: 'Password must contain at least:\n- 6 characters\n- One uppercase letter\n- One lowercase letter\n- One number\n- One special character (@$!%*?&)',
+        type: 'warning',
+        duration: 6000
+      });
       return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(createForm.email)) {
-      alert('Please enter a valid email address');
+      showToast({
+        title: 'Invalid Email',
+        message: 'Please enter a valid email address',
+        type: 'warning',
+        duration: 4000
+      });
       return;
     }
 
@@ -269,10 +291,20 @@ export default function Doctors() {
           errorMessage = details;
         }
 
-        alert(errorMessage);
+        showToast({
+          title: 'Validation Error',
+          message: errorMessage,
+          type: 'error',
+          duration: 6000
+        });
       } else {
         const errorMessage = err.response?.data?.error || err.message || 'Failed to create doctor';
-        alert(`Create failed: ${errorMessage}`);
+        showToast({
+          title: 'Create Failed',
+          message: errorMessage,
+          type: 'error',
+          duration: 5000
+        });
       }
     }
   };
@@ -301,10 +333,19 @@ export default function Doctors() {
       setShowStatusModal(false);
 
       // Show success message
-      alert('Doctor status updated successfully');
+      showToast({
+        title: 'Status Updated',
+        message: 'Doctor status has been updated successfully',
+        type: 'success'
+      });
     } catch (err) {
       const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to update status';
-      alert(`Update failed: ${errorMessage}`);
+      showToast({
+        title: 'Update Failed',
+        message: errorMessage,
+        type: 'error',
+        duration: 5000
+      });
     }
   };
 
@@ -1536,6 +1577,14 @@ export default function Doctors() {
             </div>
           )}
         </main>
+        <Toast
+          show={toast.show}
+          onClose={hideToast}
+          title={toast.title}
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
+        />
     </NavbarAdmin>
   );
 }

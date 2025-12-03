@@ -58,11 +58,6 @@ var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "OHCP_DB";
 var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
 var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "123";
 var connectionString = $"Server={dbServer};Database={dbName};User Id={dbUser};Password={dbPassword};TrustServerCertificate=True;MultipleActiveResultSets=true";
-builder.Services.AddDbContext<OHCPContext>(options =>
-    options.UseSqlServer(connectionString)
-);
-
-// Builder Services
 
 //  FIREBASE
 builder.Services.AddDbContext<OHCPContext>(options => // <-- Khối này phải ở dưới FirebaseApp.Create
