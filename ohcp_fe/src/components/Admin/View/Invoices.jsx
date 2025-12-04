@@ -18,6 +18,16 @@ export default function Invoices() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState('');
 
+  // View mode state (timeline or table)
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem('invoicesViewMode') || 'timeline';
+  });
+
+  // Grouping mode state (date, status, or none)
+  const [groupMode, setGroupMode] = useState(() => {
+    return localStorage.getItem('invoicesGroupMode') || 'none';
+  });
+
   const [stats, setStats] = useState({
     totalInvoices: 0,
     totalRevenue: 0,
@@ -330,6 +340,103 @@ export default function Invoices() {
     }
   };
 
+  // Toggle view mode
+  const toggleViewMode = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('invoicesViewMode', mode);
+  };
+
+  // Toggle group mode
+  const toggleGroupMode = (mode) => {
+    setGroupMode(mode);
+    localStorage.setItem('invoicesGroupMode', mode);
+  };
+
+  // Get status color for timeline view
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return '#10b981'; // Green
+      case 'pending':
+        return '#f59e0b'; // Amber
+      case 'generated':
+        return '#06b6d4'; // Cyan
+      case 'cancelled':
+        return '#ef4444'; // Red
+      default:
+        return '#6b7280'; // Gray
+    }
+  };
+
+  // Group invoices by date
+  const groupByDate = (invoicesList) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(thisWeekStart.getDate() - 7);
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const groups = {
+      'Today': [],
+      'Yesterday': [],
+      'This Week': [],
+      'This Month': [],
+      'Older': []
+    };
+
+    invoicesList.forEach(invoice => {
+      const invoiceDate = new Date(invoice.issueDate);
+      const invoiceDateOnly = new Date(invoiceDate.getFullYear(), invoiceDate.getMonth(), invoiceDate.getDate());
+
+      if (invoiceDateOnly.getTime() === today.getTime()) {
+        groups['Today'].push(invoice);
+      } else if (invoiceDateOnly.getTime() === yesterday.getTime()) {
+        groups['Yesterday'].push(invoice);
+      } else if (invoiceDate >= thisWeekStart) {
+        groups['This Week'].push(invoice);
+      } else if (invoiceDate >= thisMonthStart) {
+        groups['This Month'].push(invoice);
+      } else {
+        groups['Older'].push(invoice);
+      }
+    });
+
+    // Filter out empty groups
+    return Object.entries(groups).filter(([_, items]) => items.length > 0);
+  };
+
+  // Group invoices by status
+  const groupByStatus = (invoicesList) => {
+    const groups = {
+      'Paid': [],
+      'Pending': [],
+      'Generated': [],
+      'Cancelled': []
+    };
+
+    invoicesList.forEach(invoice => {
+      const status = invoice.status;
+      if (groups[status]) {
+        groups[status].push(invoice);
+      }
+    });
+
+    // Filter out empty groups and return with counts
+    return Object.entries(groups).filter(([_, items]) => items.length > 0);
+  };
+
+  // Get grouped invoices
+  const getGroupedInvoices = () => {
+    if (groupMode === 'date') {
+      return groupByDate(invoices);
+    } else if (groupMode === 'status') {
+      return groupByStatus(invoices);
+    }
+    return [['All Invoices', invoices]];
+  };
+
   return (
     <NavbarAdmin
       sidebarCollapsed={sidebarCollapsed}
@@ -338,7 +445,58 @@ export default function Invoices() {
       <main className="admin-content p-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h2 className="admin-page-title">Invoices Management</h2>
+          <div className="d-flex gap-2">
+            {/* View Mode Toggle */}
+            <button
+              className={`view-toggle-btn ${viewMode === 'timeline' ? 'active' : ''}`}
+              onClick={() => toggleViewMode('timeline')}
+              title="Timeline View"
+            >
+              <i className="bi bi-list-ul"></i>
+              Timeline
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => toggleViewMode('table')}
+              title="Table View"
+            >
+              <i className="bi bi-table"></i>
+              Table
+            </button>
+          </div>
         </div>
+
+        {/* Grouping Toggle (only show in timeline view) */}
+        {viewMode === 'timeline' && (
+          <div className="mb-4">
+            <div className="d-flex gap-2 align-items-center">
+              <span className="text-muted" style={{ fontSize: '13px', fontWeight: 600 }}>
+                <i className="bi bi-collection me-1"></i>
+                GROUP BY:
+              </span>
+              <button
+                className={`group-toggle-btn ${groupMode === 'none' ? 'active' : ''}`}
+                onClick={() => toggleGroupMode('none')}
+              >
+                No Grouping
+              </button>
+              <button
+                className={`group-toggle-btn ${groupMode === 'date' ? 'active' : ''}`}
+                onClick={() => toggleGroupMode('date')}
+              >
+                <i className="bi bi-calendar3 me-1"></i>
+                Date
+              </button>
+              <button
+                className={`group-toggle-btn ${groupMode === 'status' ? 'active' : ''}`}
+                onClick={() => toggleGroupMode('status')}
+              >
+                <i className="bi bi-tag me-1"></i>
+                Status
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="alert alert-danger admin-alert" role="alert">
@@ -432,24 +590,185 @@ export default function Invoices() {
           </div>
         </div>
 
-        {/* Invoices Table */}
-        <div className="admin-card">
-          <div className="card-body p-0">
-            {loading ? (
+        {/* Invoices Display - Timeline or Table */}
+        {viewMode === 'timeline' ? (
+          /* Timeline View */
+          loading ? (
+            <div className="admin-card">
               <div className="admin-loading">
                 <div className="spinner-border" style={{ color: 'var(--admin-primary)' }} role="status">
                   <span className="visually-hidden">Loading...</span>
                 </div>
                 <p className="mt-2">Loading invoices...</p>
               </div>
-            ) : invoices.length === 0 ? (
+            </div>
+          ) : invoices.length === 0 ? (
+            <div className="admin-card">
               <div className="admin-empty-state">
                 <i className="bi bi-inbox"></i>
                 <p className="mt-2">No invoices found</p>
               </div>
-            ) : (
-              <div className="table-responsive">
-                <table className="admin-table table mb-0 align-middle">
+            </div>
+          ) : (
+            <div className="invoice-timeline-container">
+              {getGroupedInvoices().map(([groupName, groupInvoices], groupIndex) => (
+                <div key={groupIndex} className="invoice-timeline-group">
+                  {/* Group Header */}
+                  {groupMode !== 'none' && (
+                    <div className="invoice-timeline-group-header">
+                      <div className="d-flex align-items-center justify-content-between">
+                        <h5 className="mb-0">
+                          <i className={`bi ${groupMode === 'date' ? 'bi-calendar3' : 'bi-tag'} me-2`}></i>
+                          {groupName}
+                        </h5>
+                        <span className="badge bg-secondary">
+                          {groupInvoices.length} invoice{groupInvoices.length !== 1 ? 's' : ''}
+                          {' • '}
+                          {formatCurrency(groupInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount), 0))}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Timeline Items */}
+                  {groupInvoices.map((invoice) => (
+                    <div
+                      key={invoice.invoiceID}
+                      className="invoice-timeline-item"
+                      style={{ borderLeftColor: getStatusColor(invoice.status) }}
+                    >
+                      {/* Status Indicator */}
+                      <div
+                        className="invoice-status-indicator"
+                        style={{
+                          backgroundColor: getStatusColor(invoice.status),
+                          animation: invoice.status.toLowerCase() === 'pending' || invoice.status.toLowerCase() === 'paid' ? 'pulse-dot 2s infinite' : 'none'
+                        }}
+                      ></div>
+
+                      {/* Invoice Content */}
+                      <div className="invoice-timeline-content">
+                        <div className="d-flex justify-content-between align-items-start">
+                          {/* Left Section - Info */}
+                          <div className="flex-grow-1">
+                            <div className="d-flex align-items-center mb-2">
+                              <span
+                                className={`invoice-status-badge badge bg-${getStatusBadgeClass(invoice.status)}`}
+                                style={{ marginRight: '12px' }}
+                              >
+                                {invoice.status}
+                              </span>
+                              <div className="d-flex align-items-center">
+                                <div
+                                  className="rounded-circle text-white d-flex align-items-center justify-content-center"
+                                  style={{
+                                    width: "32px",
+                                    height: "32px",
+                                    backgroundColor: getStatusColor(invoice.status),
+                                    marginRight: '10px',
+                                    fontSize: '14px',
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  {invoice.patientName?.charAt(0) || 'P'}
+                                </div>
+                                <strong style={{ fontSize: '16px', color: 'var(--admin-text)' }}>
+                                  {invoice.patientName || 'N/A'}
+                                </strong>
+                              </div>
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'var(--admin-text-light)', marginLeft: '0px' }}>
+                              <span className="me-3">
+                                <i className="bi bi-receipt me-1"></i>
+                                Invoice #{invoice.invoiceID}
+                              </span>
+                              <span className="me-3">
+                                <i className="bi bi-calendar-check me-1"></i>
+                                Appt #{invoice.appointmentID}
+                              </span>
+                              <span>
+                                <i className="bi bi-clock me-1"></i>
+                                {formatDate(invoice.issueDate)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Right Section - Amount */}
+                          <div className="invoice-amount-display text-end">
+                            <div style={{ fontSize: '12px', color: 'var(--admin-text-light)', marginBottom: '4px' }}>
+                              Amount
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '28px',
+                                fontWeight: '700',
+                                color: getStatusColor(invoice.status),
+                                lineHeight: '1'
+                              }}
+                            >
+                              <i className="bi bi-currency-dollar" style={{ fontSize: '20px' }}></i>
+                              {formatCurrency(invoice.amount)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons - Hidden by default, shown on hover */}
+                        <div className="invoice-timeline-actions">
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleViewInvoice(invoice)}
+                            title="View Details"
+                          >
+                            <i className="bi bi-eye me-1"></i>
+                            View Details
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-info"
+                            onClick={() => handleUpdateStatus(invoice)}
+                            title="Update Status"
+                          >
+                            <i className="bi bi-pencil me-1"></i>
+                            Update Status
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => {
+                              setSelectedInvoice(invoice);
+                              setShowViewModal(true);
+                              setTimeout(handlePrintInvoice, 100);
+                            }}
+                            title="Print Invoice"
+                          >
+                            <i className="bi bi-printer me-1"></i>
+                            Print
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )
+        ) : (
+          /* Table View */
+          <div className="admin-card">
+            <div className="card-body p-0">
+              {loading ? (
+                <div className="admin-loading">
+                  <div className="spinner-border" style={{ color: 'var(--admin-primary)' }} role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <p className="mt-2">Loading invoices...</p>
+                </div>
+              ) : invoices.length === 0 ? (
+                <div className="admin-empty-state">
+                  <i className="bi bi-inbox"></i>
+                  <p className="mt-2">No invoices found</p>
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="admin-table table mb-0 align-middle">
                   <thead className="table-light">
                     <tr>
                       <th>Invoice ID</th>
@@ -503,11 +822,104 @@ export default function Invoices() {
                     ))}
                   </tbody>
                 </table>
+                </div>
+              )}
+            </div>
+            {!loading && invoices.length > 0 && (
+              <div className="card-footer bg-white">
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-muted" style={{ fontSize: '13px' }}>
+                    Page <strong style={{ color: 'var(--admin-text)' }}>{pagination.pageNumber}</strong> of <strong style={{ color: 'var(--admin-text)' }}>{pagination.totalPages}</strong> • <strong style={{ color: 'var(--admin-text)' }}>{pagination.totalCount}</strong> total invoices
+                  </span>
+                <nav>
+                  <ul className="pagination mb-0">
+                    <li className={`page-item ${pagination.pageNumber === 1 ? 'disabled' : ''}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(pagination.pageNumber - 1)}
+                        disabled={pagination.pageNumber === 1}
+                      >
+                        Previous
+                      </button>
+                    </li>
+                    {(() => {
+                      const pageNumbers = [];
+                      const totalPages = pagination.totalPages;
+                      const currentPage = pagination.pageNumber;
+
+                      if (totalPages <= 7) {
+                        for (let i = 1; i <= totalPages; i++) {
+                          pageNumbers.push(i);
+                        }
+                      } else {
+                        pageNumbers.push(1);
+
+                        if (currentPage > 3) {
+                          pageNumbers.push('...');
+                        }
+
+                        const start = Math.max(2, currentPage - 1);
+                        const end = Math.min(totalPages - 1, currentPage + 1);
+
+                        for (let i = start; i <= end; i++) {
+                          if (!pageNumbers.includes(i)) {
+                            pageNumbers.push(i);
+                          }
+                        }
+
+                        if (currentPage < totalPages - 2) {
+                          pageNumbers.push('...');
+                        }
+
+                        if (!pageNumbers.includes(totalPages)) {
+                          pageNumbers.push(totalPages);
+                        }
+                      }
+
+                      return pageNumbers.map((page, index) => {
+                        if (page === '...') {
+                          return (
+                            <li key={`ellipsis-${index}`} className="page-item disabled">
+                              <span className="page-link">...</span>
+                            </li>
+                          );
+                        }
+                        return (
+                          <li
+                            key={page}
+                            className={`page-item ${pagination.pageNumber === page ? 'active' : ''}`}
+                          >
+                            <button
+                              className="page-link"
+                              onClick={() => handlePageChange(page)}
+                            >
+                              {page}
+                            </button>
+                          </li>
+                        );
+                      });
+                    })()}
+                    <li className={`page-item ${pagination.pageNumber === pagination.totalPages ? 'disabled' : ''}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(pagination.pageNumber + 1)}
+                        disabled={pagination.pageNumber === pagination.totalPages}
+                      >
+                        Next
+                      </button>
+                    </li>
+                    </ul>
+                  </nav>
+                </div>
               </div>
             )}
           </div>
-          {!loading && invoices.length > 0 && (
-            <div className="card-footer bg-white">
+        )}
+
+        {/* Pagination for Timeline View */}
+        {viewMode === 'timeline' && !loading && invoices.length > 0 && (
+          <div className="admin-card mt-3">
+            <div className="card-body">
               <div className="d-flex justify-content-between align-items-center">
                 <span className="text-muted" style={{ fontSize: '13px' }}>
                   Page <strong style={{ color: 'var(--admin-text)' }}>{pagination.pageNumber}</strong> of <strong style={{ color: 'var(--admin-text)' }}>{pagination.totalPages}</strong> • <strong style={{ color: 'var(--admin-text)' }}>{pagination.totalCount}</strong> total invoices
@@ -593,8 +1005,8 @@ export default function Invoices() {
                 </nav>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* View Invoice Details Modal */}
         {showViewModal && selectedInvoice && (

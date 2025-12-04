@@ -1580,3 +1580,263 @@
     transform: translateY(0);
   }
 }
+
+/* ============================================
+   INVOICES TIMELINE VIEW STYLES
+   ============================================ */
+
+/* Timeline Container */
+.invoice-timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Timeline Group */
+.invoice-timeline-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Group Header */
+.invoice-timeline-group-header {
+  background: linear-gradient(135deg, var(--admin-primary-dark) 0%, var(--admin-primary) 100%);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  color: white;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.invoice-timeline-group-header h5 {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  margin: 0;
+}
+
+.invoice-timeline-group-header .badge {
+  font-size: var(--font-size-sm);
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.25);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Timeline Item */
+.invoice-timeline-item {
+  background: var(--admin-card-bg);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  border-left: 4px solid var(--admin-primary);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.invoice-timeline-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(8, 145, 178, 0.03) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.invoice-timeline-item:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateX(4px);
+}
+
+.invoice-timeline-item:hover::before {
+  opacity: 1;
+}
+
+/* Status Indicator (Animated Dot) */
+.invoice-status-indicator {
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2);
+  z-index: 2;
+}
+
+/* Pulse Animation for Active Statuses */
+@keyframes pulse-dot {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2), 0 0 0 0 rgba(8, 145, 178, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2), 0 0 0 8px rgba(8, 145, 178, 0);
+  }
+}
+
+/* Timeline Content */
+.invoice-timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-left: 4px;
+}
+
+/* Status Badge in Timeline */
+.invoice-status-badge {
+  font-size: var(--font-size-xs);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Amount Display */
+.invoice-amount-display {
+  min-width: 180px;
+}
+
+/* Timeline Actions */
+.invoice-timeline-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--admin-border);
+  margin-top: var(--spacing-sm);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 0;
+  overflow: hidden;
+}
+
+.invoice-timeline-item:hover .invoice-timeline-actions {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 100px;
+}
+
+.invoice-timeline-actions .btn {
+  font-size: var(--font-size-sm);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.invoice-timeline-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* View Toggle Buttons */
+.view-toggle-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--admin-border-dark);
+  background: white;
+  color: var(--admin-text-light);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  display: flex;
+  align-items-center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+  border-color: var(--admin-primary);
+  color: var(--admin-primary);
+  background: var(--admin-medical-light);
+}
+
+.view-toggle-btn.active {
+  background: var(--admin-primary);
+  color: white;
+  border-color: var(--admin-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.view-toggle-btn i {
+  font-size: 16px;
+}
+
+/* Group Toggle Buttons */
+.group-toggle-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--admin-border-dark);
+  background: white;
+  color: var(--admin-text-light);
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  display: flex;
+  align-items-center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.group-toggle-btn:hover {
+  border-color: var(--admin-primary);
+  color: var(--admin-primary);
+  background: var(--admin-medical-light);
+}
+
+.group-toggle-btn.active {
+  background: var(--admin-primary);
+  color: white;
+  border-color: var(--admin-primary);
+}
+
+/* Responsive Design for Timeline */
+@media (max-width: 768px) {
+  .invoice-timeline-item {
+    padding: var(--spacing-md);
+  }
+
+  .invoice-timeline-content {
+    flex-direction: column;
+  }
+
+  .invoice-amount-display {
+    text-align: left !important;
+    margin-top: var(--spacing-sm);
+  }
+
+  .invoice-amount-display > div:last-child {
+    font-size: 24px;
+  }
+
+  .invoice-timeline-actions {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 100px;
+    flex-wrap: wrap;
+  }
+
+  .invoice-timeline-actions .btn {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .view-toggle-btn {
+    padding: 6px 12px;
+    font-size: var(--font-size-xs);
+  }
+
+  .view-toggle-btn i {
+    font-size: 14px;
+  }
+}
