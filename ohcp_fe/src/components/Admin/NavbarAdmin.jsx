@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import AdminNotificationDropdown from "./AdminNotificationDropdown";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./Admin.css";
@@ -37,9 +38,8 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
     <div className="admin-dashboard-wrapper">
       {/* Sidebar */}
       <aside
-        className={`admin-sidebar vh-100 position-fixed top-0 start-0 d-flex flex-column ${
-          sidebarCollapsed ? "collapsed" : ""
-        }`}
+        className={`admin-sidebar vh-100 position-fixed top-0 start-0 d-flex flex-column ${sidebarCollapsed ? "collapsed" : ""
+          }`}
       >
         {/* Logo */}
         <div className="admin-logo p-4">
@@ -49,10 +49,10 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
             </div>
             {!sidebarCollapsed && (
               <div className="admin-logo-text ms-3">
-                <h5 className="mb-0" style={{fontWeight: '700', letterSpacing: '-0.5px'}}>
+                <h5 className="mb-0" style={{ fontWeight: '700', letterSpacing: '-0.5px' }}>
                   Health Portal
                 </h5>
-                <small style={{fontSize: '11px', opacity: 0.8}}>Admin Dashboard</small>
+                <small style={{ fontSize: '11px', opacity: 0.8 }}>Admin Dashboard</small>
               </div>
             )}
           </div>
@@ -66,14 +66,13 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
                 <a
                   href="#"
                   onClick={(e) => { e.preventDefault(); navigate(item.path); }}
-                  className={`admin-nav-link d-flex align-items-center py-3 px-3 rounded-3 ${
-                    location.pathname === item.path ? "admin-active" : "admin-nav-hover"
-                  }`}
+                  className={`admin-nav-link d-flex align-items-center py-3 px-3 rounded-3 ${location.pathname === item.path ? "admin-active" : "admin-nav-hover"
+                    }`}
                 >
-                  <i className={`bi ${item.icon} ${sidebarCollapsed ? "" : "me-3"}`} style={{fontSize: '18px'}}></i>
-                  <span className="admin-menu-label" style={{fontSize: '14px', fontWeight: '500'}}>{item.label}</span>
+                  <i className={`bi ${item.icon} ${sidebarCollapsed ? "" : "me-3"}`} style={{ fontSize: '18px' }}></i>
+                  <span className="admin-menu-label" style={{ fontSize: '14px', fontWeight: '500' }}>{item.label}</span>
                   {location.pathname === item.path && !sidebarCollapsed && (
-                    <i className="bi bi-chevron-right ms-auto" style={{fontSize: '12px'}}></i>
+                    <i className="bi bi-chevron-right ms-auto" style={{ fontSize: '12px' }}></i>
                   )}
                 </a>
               </li>
@@ -87,7 +86,7 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
             className="admin-logout-btn w-100 d-flex align-items-center justify-content-center gap-2"
             onClick={handleLogout}
           >
-            <i className="bi bi-box-arrow-right" style={{fontSize: '14px'}}></i>
+            <i className="bi bi-box-arrow-right" style={{ fontSize: '14px' }}></i>
             {!sidebarCollapsed && (
               <span className="admin-menu-label">Logout</span>
             )}
@@ -107,10 +106,10 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
               <i className="bi bi-list"></i>
             </button>
             <div className="d-none d-md-block">
-              <h6 className="mb-0" style={{fontSize: '15px', fontWeight: '600', color: 'var(--admin-text)'}}>
+              <h6 className="mb-0" style={{ fontSize: '15px', fontWeight: '600', color: 'var(--admin-text)' }}>
                 Welcome back, Admin
               </h6>
-              <small style={{fontSize: '12px', color: 'var(--admin-text-light)'}}>
+              <small style={{ fontSize: '12px', color: 'var(--admin-text-light)' }}>
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </small>
             </div>
@@ -118,10 +117,7 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
 
           <div className="d-flex align-items-center gap-2">
             {/* Notifications */}
-            <button className="admin-icon-btn position-relative">
-              <i className="bi bi-bell"></i>
-              <span className="admin-notification-badge">3</span>
-            </button>
+            <AdminNotificationDropdown />
 
             {/* User Avatar */}
             <div className="admin-user-display d-flex align-items-center gap-2">
@@ -131,7 +127,7 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
                   alt="Admin"
                 />
               </div>
-              <span className="d-none d-md-inline" style={{fontSize: '14px', fontWeight: '600', color: 'var(--admin-text)'}}>
+              <span className="d-none d-md-inline" style={{ fontSize: '14px', fontWeight: '600', color: 'var(--admin-text)' }}>
                 Admin
               </span>
             </div>

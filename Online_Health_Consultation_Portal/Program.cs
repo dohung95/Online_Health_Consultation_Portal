@@ -164,6 +164,9 @@ builder.Services.AddLogging(logging => logging.AddConsole().SetMinimumLevel(LogL
 // Thêm SignalR
 builder.Services.AddSignalR();
 
+// Register HttpClient for making HTTP calls
+builder.Services.AddHttpClient();
+
 // Register notification service
 builder.Services.AddScoped<INotificationService, NotificationService>();
 

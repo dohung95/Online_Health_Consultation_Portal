@@ -20,19 +20,22 @@ namespace OHCP_BK.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly ILogger<AccountController> _logger;
         private readonly OHCPContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         public AccountController(
             IAccountService accountService,
             ITokenService tokenService,
             UserManager<AppUser> userManager,
             ILogger<AccountController> logger,
-            OHCPContext context)
+            OHCPContext context,
+            IHttpClientFactory httpClientFactory)
         {
             _accountService = accountService;
             _tokenService = tokenService;
             _userManager = userManager;
             _logger = logger;
             _context = context;
+            _httpClientFactory = httpClientFactory;
         }
 
         /// <summary>
@@ -69,6 +72,33 @@ namespace OHCP_BK.Controllers
             }
 
             var tokenResponse = await _tokenService.GenerateTokenAsync(user);
+
+            // Notify admins about new patient registration
+            try
+            {
+                using var httpClient = _httpClientFactory.CreateClient();
+                var notificationDto = new
+                {
+                    userId = user.Id,
+                    userName = dto.FullName,
+                    userRole = "Patient",
+                    email = user.Email
+                };
+
+                var response = await httpClient.PostAsJsonAsync(
+                    "https://localhost:7267/api/admin/notifications/user-registered",
+                    notificationDto);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to send admin notification for new patient registration");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending admin notification for patient registration");
+                // Don't fail the registration if notification fails
+            }
 
             return Ok(new
             {
