@@ -215,15 +215,412 @@
   margin-left: auto;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* ============ RESPONSIVE STYLES ============ */
+
+/* Desktop Large (< 1400px) */
+@media (max-width: 1399.98px) {
+  .notification-bell-btn .material-symbols-outlined {
+    font-size: 1.4rem;
+  }
+
+  .notification-badge {
+    min-width: 17px;
+    height: 17px;
+    font-size: 0.6rem;
+  }
+
   .notification-dropdown {
-    right: -10px;
-    min-width: 300px;
-    max-width: 90vw;
+    min-width: 310px;
+    max-width: 390px;
+    max-height: 480px;
+  }
+
+  .notification-dropdown-header h6 {
+    font-size: 0.95rem;
+  }
+
+  .notification-tab-item {
+    padding: 0.7rem 0.95rem;
+  }
+
+  .notification-tab-item .material-symbols-outlined {
+    font-size: 1.2rem;
+  }
+
+  .notification-tab-item span:not(.material-symbols-outlined):not(.notification-item-badge) {
+    font-size: 0.875rem;
   }
 
   .notification-list {
-    max-height: 250px;
+    max-height: 280px;
+  }
+
+  .notification-message {
+    font-size: 0.85rem;
+  }
+
+  .notification-time {
+    font-size: 0.7rem;
+  }
+}
+
+/* Desktop Medium (< 1200px) */
+@media (max-width: 1199.98px) {
+  .notification-bell-btn .material-symbols-outlined {
+    font-size: 1.35rem;
+  }
+
+  .notification-badge {
+    min-width: 16px;
+    height: 16px;
+    font-size: 0.58rem;
+  }
+
+  .notification-dropdown {
+    min-width: 300px;
+    max-width: 380px;
+    max-height: 460px;
+  }
+
+  .notification-dropdown-header {
+    padding: 0.9rem;
+  }
+
+  .notification-dropdown-header h6 {
+    font-size: 0.9rem;
+  }
+
+  .notification-tab-item {
+    padding: 0.65rem 0.9rem;
+  }
+
+  .notification-tab-item .material-symbols-outlined {
+    font-size: 1.15rem;
+    margin-right: 0.7rem;
+  }
+
+  .notification-tab-item span:not(.material-symbols-outlined):not(.notification-item-badge) {
+    font-size: 0.85rem;
+  }
+
+  .notification-list {
+    max-height: 260px;
+  }
+
+  .notification-list-item {
+    padding: 0.7rem 0.9rem;
+  }
+
+  .notification-message {
+    font-size: 0.825rem;
+  }
+
+  .notification-time {
+    font-size: 0.68rem;
+  }
+
+  .notification-item-badge {
+    padding: 2px 7px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Tablet Large (< 992px) */
+@media (max-width: 991.98px) {
+  .notification-bell-btn .material-symbols-outlined {
+    font-size: 1.3rem;
+  }
+
+  .notification-badge {
+    min-width: 16px;
+    height: 16px;
+    font-size: 0.55rem;
+    border: 1.5px solid #0066ff;
+  }
+
+  .notification-dropdown {
+    min-width: 290px;
+    max-width: 370px;
+    max-height: 440px;
+  }
+
+  .notification-dropdown-header {
+    padding: 0.85rem;
+  }
+
+  .notification-dropdown-header h6 {
+    font-size: 0.875rem;
+  }
+
+  .notification-tab-item {
+    padding: 0.6rem 0.85rem;
+  }
+
+  .notification-tab-item .material-symbols-outlined {
+    font-size: 1.1rem;
+    margin-right: 0.65rem;
+  }
+
+  .notification-tab-item span:not(.material-symbols-outlined):not(.notification-item-badge) {
+    font-size: 0.825rem;
+  }
+
+  .notification-list {
+    max-height: 240px;
+  }
+
+  .notification-list-item {
+    padding: 0.65rem 0.85rem;
+  }
+
+  .notification-message {
+    font-size: 0.8rem;
+  }
+
+  .notification-time {
+    font-size: 0.65rem;
+  }
+
+  .notification-item-badge {
+    padding: 2px 6px;
+    font-size: 0.68rem;
+  }
+}
+
+/* Tablet Small (< 768px) */
+@media (max-width: 767.98px) {
+  .notification-bell-btn {
+    padding: 0.4rem;
+  }
+
+  .notification-bell-btn .material-symbols-outlined {
+    font-size: 1.25rem;
+  }
+
+  .notification-badge {
+    min-width: 15px;
+    height: 15px;
+    font-size: 0.52rem;
+    padding: 1px 3px;
+  }
+
+  .notification-dropdown {
+    right: -10px;
+    min-width: 280px;
+    max-width: 90vw;
+    max-height: 420px;
+  }
+
+  .notification-dropdown-header {
+    padding: 0.8rem;
+  }
+
+  .notification-dropdown-header h6 {
+    font-size: 0.85rem;
+  }
+
+  .notification-dropdown-body {
+    padding: 0.4rem 0;
+  }
+
+  .notification-tab-item {
+    padding: 0.6rem 0.8rem;
+    border-left: 2px solid transparent;
+  }
+
+  .notification-tab-item .material-symbols-outlined {
+    font-size: 1.05rem;
+    margin-right: 0.6rem;
+  }
+
+  .notification-tab-item span:not(.material-symbols-outlined):not(.notification-item-badge) {
+    font-size: 0.8rem;
+  }
+
+  .notification-list {
+    max-height: 220px;
+  }
+
+  .notification-list-item {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .notification-message {
+    font-size: 0.775rem;
+    line-height: 1.35;
+  }
+
+  .notification-time {
+    font-size: 0.63rem;
+  }
+
+  .notification-item-badge {
+    padding: 2px 6px;
+    font-size: 0.65rem;
+    min-width: 18px;
+  }
+
+  .notification-loading,
+  .notification-empty {
+    padding: 0.85rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Mobile (< 576px) */
+@media (max-width: 575.98px) {
+  .notification-bell-btn {
+    padding: 0.35rem;
+  }
+
+  .notification-bell-btn .material-symbols-outlined {
+    font-size: 1.2rem;
+  }
+
+  .notification-badge {
+    min-width: 14px;
+    height: 14px;
+    font-size: 0.5rem;
+    padding: 1px 2px;
+  }
+
+  .notification-dropdown {
+    right: -15px;
+    min-width: 260px;
+    max-width: 95vw;
+    max-height: 400px;
+  }
+
+  .notification-dropdown-header {
+    padding: 0.75rem;
+  }
+
+  .notification-dropdown-header h6 {
+    font-size: 0.825rem;
+  }
+
+  .notification-dropdown-body {
+    padding: 0.35rem 0;
+  }
+
+  .notification-tab-item {
+    padding: 0.55rem 0.75rem;
+  }
+
+  .notification-tab-item .material-symbols-outlined {
+    font-size: 1rem;
+    margin-right: 0.55rem;
+  }
+
+  .notification-tab-item span:not(.material-symbols-outlined):not(.notification-item-badge) {
+    font-size: 0.775rem;
+  }
+
+  .notification-list {
+    max-height: 200px;
+  }
+
+  .notification-list-item {
+    padding: 0.55rem 0.75rem;
+  }
+
+  .notification-message {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+
+  .notification-time {
+    font-size: 0.6rem;
+  }
+
+  .notification-item-badge {
+    padding: 1px 5px;
+    font-size: 0.63rem;
+    min-width: 16px;
+  }
+
+  .notification-loading,
+  .notification-empty {
+    padding: 0.8rem;
+    font-size: 0.775rem;
+  }
+}
+
+/* Mobile Small (< 400px) */
+@media (max-width: 399.98px) {
+  .notification-bell-btn {
+    padding: 0.3rem;
+  }
+
+  .notification-bell-btn .material-symbols-outlined {
+    font-size: 1.1rem;
+  }
+
+  .notification-badge {
+    min-width: 13px;
+    height: 13px;
+    font-size: 0.48rem;
+    padding: 1px 2px;
+  }
+
+  .notification-dropdown {
+    right: -20px;
+    min-width: 240px;
+    max-width: 98vw;
+    max-height: 380px;
+  }
+
+  .notification-dropdown-header {
+    padding: 0.7rem;
+  }
+
+  .notification-dropdown-header h6 {
+    font-size: 0.8rem;
+  }
+
+  .notification-dropdown-body {
+    padding: 0.3rem 0;
+  }
+
+  .notification-tab-item {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .notification-tab-item .material-symbols-outlined {
+    font-size: 0.95rem;
+    margin-right: 0.5rem;
+  }
+
+  .notification-tab-item span:not(.material-symbols-outlined):not(.notification-item-badge) {
+    font-size: 0.75rem;
+  }
+
+  .notification-list {
+    max-height: 180px;
+  }
+
+  .notification-list-item {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .notification-message {
+    font-size: 0.725rem;
+    line-height: 1.25;
+  }
+
+  .notification-time {
+    font-size: 0.58rem;
+  }
+
+  .notification-item-badge {
+    padding: 1px 4px;
+    font-size: 0.6rem;
+    min-width: 15px;
+  }
+
+  .notification-loading,
+  .notification-empty {
+    padding: 0.75rem;
+    font-size: 0.75rem;
   }
 }
