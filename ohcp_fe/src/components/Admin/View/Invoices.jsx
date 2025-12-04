@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
-import { invoicesApi } from "../../services/adminApi";
+import { invoicesApi } from "../../../services/adminApi";
 import Toast from "./Toast";
-import useToast from "./useToast";
+import useToast from "../useToast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "./Admin.css";
+import "../Css/Admin.css";
 
 export default function Invoices() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

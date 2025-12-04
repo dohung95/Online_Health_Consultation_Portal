@@ -13,12 +13,12 @@ import Payment from './components/Payment';
 
 import ProfilePatient from './pages/profilePatient';
 
-import Admin from './components/Admin/Admin';
-import Patients from './components/Admin/Patients';
-import AdminDoctors from './components/Admin/Doctors';
-import Appointments from './components/Admin/Appointments';
-import MedicalRecords from './components/Admin/MedicalRecords';
-import Invoices from './components/Admin/Invoices';
+import Admin from './components/Admin/View/Admin';
+import Patients from './components/Admin/View/Patients';
+import AdminDoctors from './components/Admin/View/Doctors';
+import Appointments from './components/Admin/View/Appointments';
+import MedicalRecords from './components/Admin/View/MedicalRecords';
+import Invoices from './components/Admin/View/Invoices';
 
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
