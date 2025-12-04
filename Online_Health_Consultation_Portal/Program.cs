@@ -243,6 +243,8 @@ using (var scope = app.Services.CreateScope())
     Console.WriteLine("Starting invoice data seeding process...");
     await OHCP_BK.Data.SeedInvoiceData.SeedAsync(services);
     Console.WriteLine("Invoice data seeding completed!");
+
+    await OHCP_BK.Data.SeedConsultationData.SeedAsync(services);
 }
 
 app.Run();
