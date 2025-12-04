@@ -1,25 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getProfile, updateProfile, changePassword, changeEmail } from '../api/account';
-import { healthRecordApi } from '../api/healthRecordApi';
-import DocumentViewerModal from '../components/DocumentViewerModal';
-
-<style>{`
-    .card-body::-webkit-scrollbar {
-        width: 8px;
-    }
-    .card-body::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    .card-body::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 10px;
-    }
-    .card-body::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-`}</style>
 
 export default function PatientProfile() {
     const { token, logout } = useAuth();
@@ -43,21 +24,11 @@ export default function PatientProfile() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('info'); // 'info' hoặc 'security'
 
-    // Health Records states
-    const [healthRecords, setHealthRecords] = useState([]);
-    const [loadingRecords, setLoadingRecords] = useState(false);
-    const [selectedDocument, setSelectedDocument] = useState(null);
-    const [showViewer, setShowViewer] = useState(false);
-    const [filterCategory, setFilterCategory] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState('newest');
-    const API_BASE_URL = 'https://localhost:7267';
-
     // --- 1. TẢI DỮ LIỆU KHI MỞ TRANG ---
     useEffect(() => {
         if (token) {
             loadProfile();
-            loadHealthRecords();
+            // loadHealthRecords();
         }
     }, [token]);
 
@@ -76,77 +47,6 @@ export default function PatientProfile() {
         } finally {
             setLoading(false);
         }
-    };
-
-    const loadHealthRecords = async () => {
-        setLoadingRecords(true);
-        try {
-            const data = await healthRecordApi.getMyRecords();
-            console.log('🔍 Health Records Data:', data);
-            if (data && data.length > 0) {
-                console.log('📄 First Document:', data[0].documents?.[0]);
-            }
-            setHealthRecords(data);
-        } catch (error) {
-            console.error("Error loading health records:", error);
-        }
-        setLoadingRecords(false);
-    };
-
-    const getFilteredAndSortedRecords = () => {
-        let filtered = [...healthRecords];
-
-        // Apply category filter
-        if (filterCategory !== 'all') {
-            filtered = filtered.map(record => ({
-                ...record,
-                documents: record.documents?.filter(doc => doc.category === filterCategory)
-            })).filter(record => record.documents && record.documents.length > 0);
-        }
-
-        // Apply search
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            filtered = filtered.map(record => ({
-                ...record,
-                documents: record.documents?.filter(doc =>
-                    doc.documentName?.toLowerCase().includes(query) ||
-                    doc.description?.toLowerCase().includes(query) ||
-                    doc.category?.toLowerCase().includes(query)
-                )
-            })).filter(record => record.documents && record.documents.length > 0);
-        }
-
-        // Apply sorting
-        if (sortBy === 'newest') {
-            filtered.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
-            filtered = filtered.map(record => ({
-                ...record,
-                documents: record.documents?.sort((a, b) =>
-                    new Date(b.uploadedAt) - new Date(a.uploadedAt)
-                )
-            }));
-        } else if (sortBy === 'oldest') {
-            filtered.sort((a, b) => new Date(a.lastUpdated) - new Date(b.lastUpdated));
-            filtered = filtered.map(record => ({
-                ...record,
-                documents: record.documents?.sort((a, b) =>
-                    new Date(a.uploadedAt) - new Date(b.uploadedAt)
-                )
-            }));
-        }
-
-        return filtered;
-    };
-
-    const handleViewDocument = (document) => {
-        setSelectedDocument(document);
-        setShowViewer(true);
-    };
-
-    const handleCloseViewer = () => {
-        setShowViewer(false);
-        setSelectedDocument(null);
     };
 
     // Load profile data from API
@@ -238,229 +138,6 @@ export default function PatientProfile() {
                             )}
                         </div>
                     </div>
-
-                    {/* thông tin y tế */}
-                    {/* ======================================== */}
-                    {/* HEALTH RECORDS SECTION - SINGLE CARD */}
-                    {/* ======================================== */}
-                    <div className="mt-5">
-                        <div className="card border-0 shadow-sm">
-                            {/* Header */}
-                            <div className="card-header bg-primary text-white py-3">
-                                <h4 className="mb-0">
-                                    <i className="bi bi-file-earmark-medical me-2"></i>
-                                    Medical Documents & Health Records
-                                </h4>
-                            </div>
-
-                            {/* Filters & Search */}
-                            <div className="card-body border-bottom">
-                                <div className="row g-3">
-                                    {/* Search */}
-                                    <div className="col-md-6">
-                                        <label className="form-label fw-bold">
-                                            <i className="bi bi-search me-2"></i>Search
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Search by name, description..."
-                                            value={searchQuery}
-                                            onChange={e => setSearchQuery(e.target.value)}
-                                        />
-                                    </div>
-
-                                    {/* Category Filter */}
-                                    <div className="col-md-3">
-                                        <label className="form-label fw-bold">
-                                            <i className="bi bi-funnel me-2"></i>Category
-                                        </label>
-                                        <select
-                                            className="form-select"
-                                            value={filterCategory}
-                                            onChange={e => setFilterCategory(e.target.value)}
-                                        >
-                                            <option value="all">All Categories</option>
-                                            <option value="X-Ray">🩻 X-Ray</option>
-                                            <option value="CT-Scan">🔬 CT Scan</option>
-                                            <option value="MRI">🧲 MRI</option>
-                                            <option value="Blood-Test">💉 Blood Test</option>
-                                            <option value="Lab-Report">🧪 Lab Report</option>
-                                            <option value="Prescription">💊 Prescription</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Sort */}
-                                    <div className="col-md-3">
-                                        <label className="form-label fw-bold">
-                                            <i className="bi bi-sort-down me-2"></i>Sort By
-                                        </label>
-                                        <select
-                                            className="form-select"
-                                            value={sortBy}
-                                            onChange={e => setSortBy(e.target.value)}
-                                        >
-                                            <option value="newest">Newest First</option>
-                                            <option value="oldest">Oldest First</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Document List */}
-                            {/* Document List - Max 7 items visible with scroll */}
-                            <div className="card-body" style={{
-                                maxHeight: '1400px',  // Mỗi item ~200px, 7 items = 1400px
-                                overflowY: 'auto',
-                                overflowX: 'hidden'
-                            }}>
-                                {loadingRecords ? (
-                                    <div className="text-center py-5">
-                                        <div className="spinner-border text-primary"></div>
-                                        <p className="mt-2 text-muted">Loading health records...</p>
-                                    </div>
-                                ) : getFilteredAndSortedRecords().length === 0 ? (
-                                    <div className="alert alert-light border text-center">
-                                        <i className="bi bi-inbox me-2"></i>
-                                        {searchQuery || filterCategory !== 'all'
-                                            ? 'No documents match your filters.'
-                                            : 'No health records found.'}
-                                    </div>
-                                ) : (
-                                    getFilteredAndSortedRecords().map(record => (
-                                        <div key={record.healthRecordID} className="mb-4">
-                                            {/* Header cho group documents */}
-                                            <div className="d-flex justify-content-between align-items-center mb-3 px-2">
-                                                <h6 className="mb-0 text-primary fw-bold">
-                                                    <i className="bi bi-calendar-event me-2"></i>
-                                                    Documents Collection
-                                                </h6>
-                                                <span className="badge bg-primary">
-                                                    {record.documents?.length || 0} file(s)
-                                                </span>
-                                            </div>
-
-                                            {/* List documents */}
-                                            <div className="row g-3">
-                                                {record.documents?.map(doc => (
-                                                    <div key={doc.documentID} className="col-12">
-                                                        <div className="card border-0 shadow-sm hover-shadow" style={{ transition: 'all 0.3s ease' }}>
-                                                            <div className="card-body p-4">
-                                                                <div className="row align-items-center">
-                                                                    {/* COL 1: PREVIEW IMAGE - LỚN HƠN */}
-                                                                    <div className="col-md-2 col-sm-3 text-center mb-3 mb-md-0">
-                                                                        {doc.documentType?.toLowerCase().includes('pdf') ? (
-                                                                            <div className="bg-light rounded p-3 d-inline-block">
-                                                                                <i className="bi bi-file-pdf text-danger" style={{ fontSize: '4rem' }}></i>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <img
-                                                                                src={`${API_BASE_URL}${doc.fileUrl}`}
-                                                                                alt={doc.documentName}
-                                                                                className="rounded shadow-sm"
-                                                                                style={{
-                                                                                    width: '120px',
-                                                                                    height: '120px',
-                                                                                    objectFit: 'cover',
-                                                                                    cursor: 'pointer',
-                                                                                    border: '3px solid #e9ecef'
-                                                                                }}
-                                                                                onClick={() => window.open(`${API_BASE_URL}${doc.fileUrl}`, '_blank')}
-
-                                                                            />
-                                                                        )}
-                                                                    </div>
-
-                                                                    {/* COL 2: THÔNG TIN DOCUMENT */}
-                                                                    <div className="col-md-7 col-sm-6">
-                                                                        {/* Tên file */}
-                                                                        <h5 className="mb-2 fw-bold text-dark">
-                                                                            <i className="bi bi-file-earmark-text me-2 text-primary"></i>
-                                                                            {doc.documentName}
-                                                                        </h5>
-
-                                                                        {/* Category badge */}
-                                                                        {doc.category && (
-                                                                            <div className="mb-2">
-                                                                                <span className="badge bg-primary px-3 py-2" style={{ fontSize: '0.85rem' }}>
-                                                                                    {doc.category}
-                                                                                </span>
-                                                                            </div>
-                                                                        )}
-
-                                                                        {/* Ngày upload */}
-                                                                        <div className="text-muted mb-2">
-                                                                            <i className="bi bi-clock-history me-2"></i>
-                                                                            <small>
-                                                                                Uploaded: {new Date(doc.uploadedAt).toLocaleString('vi-VN', {
-                                                                                    hour: '2-digit',
-                                                                                    minute: '2-digit',
-                                                                                    day: '2-digit',
-                                                                                    month: 'short',
-                                                                                    year: 'numeric'
-                                                                                })}
-                                                                            </small>
-                                                                        </div>
-
-                                                                        {/* Description */}
-                                                                        {doc.description && (
-                                                                            <div className="bg-light rounded p-3 mt-3" style={{
-                                                                                maxHeight: '100px',
-                                                                                overflowY: 'auto',
-                                                                                overflowX: 'hidden'
-                                                                            }}>
-                                                                                <small className="text-muted d-block mb-1">
-                                                                                    <i className="bi bi-card-text me-1"></i>
-                                                                                    <strong>Description:</strong>
-                                                                                </small>
-                                                                                <p className="mb-0 text-dark" style={{
-                                                                                    wordBreak: 'break-word',
-                                                                                    whiteSpace: 'pre-wrap'
-                                                                                }}>
-                                                                                    {doc.description}
-                                                                                </p>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-
-                                                                    {/* COL 3: ACTION BUTTONS */}
-                                                                    <div className="col-md-3 col-sm-3 text-center text-md-end">
-                                                                        <button
-                                                                            className="btn btn-primary px-4 py-2 w-100 mb-2"
-                                                                            onClick={() => handleViewDocument(doc)}
-                                                                        >
-                                                                            <i className="bi bi-eye me-2"></i>
-                                                                            View Document
-                                                                        </button>
-                                                                        <button
-                                                                            className="btn btn-outline-secondary px-4 py-2 w-100"
-                                                                            onClick={() => window.open(doc.fileUrl, '_blank')}
-                                                                        >
-                                                                            <i className="bi bi-download me-2"></i>
-                                                                            Download
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Document Viewer Modal */}
-                    {selectedDocument && (
-                        <DocumentViewerModal
-                            show={showViewer}
-                            onHide={handleCloseViewer}
-                            document={selectedDocument}
-                        />
-                    )}
                 </div>
             </div>
         </div>
@@ -980,3 +657,329 @@ function SecurityForm({ token, logout }) {
         </div>
     );
 }
+
+
+// import { healthRecordApi } from '../api/healthRecordApi';
+// import DocumentViewerModal from '../components/DocumentViewerModal';
+
+// <style>{`
+//     .card-body::-webkit-scrollbar {
+//         width: 8px;
+//     }
+//     .card-body::-webkit-scrollbar-track {
+//         background: #f1f1f1;
+//         border-radius: 10px;
+//     }
+//     .card-body::-webkit-scrollbar-thumb {
+//         background: #888;
+//         border-radius: 10px;
+//     }
+//     .card-body::-webkit-scrollbar-thumb:hover {
+//         background: #555;
+//     }
+// `}</style>
+
+
+// Health Records states
+// const [healthRecords, setHealthRecords] = useState([]);
+// const [loadingRecords, setLoadingRecords] = useState(false);
+// const [selectedDocument, setSelectedDocument] = useState(null);
+// const [showViewer, setShowViewer] = useState(false);
+// const [filterCategory, setFilterCategory] = useState('all');
+// const [searchQuery, setSearchQuery] = useState('');
+// const [sortBy, setSortBy] = useState('newest');
+// const API_BASE_URL = 'https://localhost:7267';
+
+// const loadHealthRecords = async () => {
+//     setLoadingRecords(true);
+//     try {
+//         const data = await healthRecordApi.getMyRecords();
+//         console.log('🔍 Health Records Data:', data);
+//         if (data && data.length > 0) {
+//             console.log('📄 First Document:', data[0].documents?.[0]);
+//         }
+//         setHealthRecords(data);
+//     } catch (error) {
+//         console.error("Error loading health records:", error);
+//     }
+//     setLoadingRecords(false);
+// };
+
+// const getFilteredAndSortedRecords = () => {
+//     let filtered = [...healthRecords];
+
+//     // Apply category filter
+//     if (filterCategory !== 'all') {
+//         filtered = filtered.map(record => ({
+//             ...record,
+//             documents: record.documents?.filter(doc => doc.category === filterCategory)
+//         })).filter(record => record.documents && record.documents.length > 0);
+//     }
+
+//     // Apply search
+//     if (searchQuery.trim()) {
+//         const query = searchQuery.toLowerCase();
+//         filtered = filtered.map(record => ({
+//             ...record,
+//             documents: record.documents?.filter(doc =>
+//                 doc.documentName?.toLowerCase().includes(query) ||
+//                 doc.description?.toLowerCase().includes(query) ||
+//                 doc.category?.toLowerCase().includes(query)
+//             )
+//         })).filter(record => record.documents && record.documents.length > 0);
+//     }
+
+//     // Apply sorting
+//     if (sortBy === 'newest') {
+//         filtered.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+//         filtered = filtered.map(record => ({
+//             ...record,
+//             documents: record.documents?.sort((a, b) =>
+//                 new Date(b.uploadedAt) - new Date(a.uploadedAt)
+//             )
+//         }));
+//     } else if (sortBy === 'oldest') {
+//         filtered.sort((a, b) => new Date(a.lastUpdated) - new Date(b.lastUpdated));
+//         filtered = filtered.map(record => ({
+//             ...record,
+//             documents: record.documents?.sort((a, b) =>
+//                 new Date(a.uploadedAt) - new Date(b.uploadedAt)
+//             )
+//         }));
+//     }
+
+//     return filtered;
+// };
+
+// const handleViewDocument = (document) => {
+//     setSelectedDocument(document);
+//     setShowViewer(true);
+// };
+
+// const handleCloseViewer = () => {
+//     setShowViewer(false);
+//     setSelectedDocument(null);
+// };
+
+{/* thông tin y tế */ }
+{/* ======================================== */ }
+{/* HEALTH RECORDS SECTION - SINGLE CARD */ }
+{/* ======================================== */ }
+// <div className="mt-5">
+//     <div className="card border-0 shadow-sm">
+//         {/* Header */}
+//         <div className="card-header bg-primary text-white py-3">
+//             <h4 className="mb-0">
+//                 <i className="bi bi-file-earmark-medical me-2"></i>
+//                 Medical Documents & Health Records
+//             </h4>
+//         </div>
+
+//         {/* Filters & Search */}
+//         <div className="card-body border-bottom">
+//             <div className="row g-3">
+//                 {/* Search */}
+//                 <div className="col-md-6">
+//                     <label className="form-label fw-bold">
+//                         <i className="bi bi-search me-2"></i>Search
+//                     </label>
+//                     <input
+//                         type="text"
+//                         className="form-control"
+//                         placeholder="Search by name, description..."
+//                         value={searchQuery}
+//                         onChange={e => setSearchQuery(e.target.value)}
+//                     />
+//                 </div>
+
+//                 {/* Category Filter */}
+//                 <div className="col-md-3">
+//                     <label className="form-label fw-bold">
+//                         <i className="bi bi-funnel me-2"></i>Category
+//                     </label>
+//                     <select
+//                         className="form-select"
+//                         value={filterCategory}
+//                         onChange={e => setFilterCategory(e.target.value)}
+//                     >
+//                         <option value="all">All Categories</option>
+//                         <option value="X-Ray">🩻 X-Ray</option>
+//                         <option value="CT-Scan">🔬 CT Scan</option>
+//                         <option value="MRI">🧲 MRI</option>
+//                         <option value="Blood-Test">💉 Blood Test</option>
+//                         <option value="Lab-Report">🧪 Lab Report</option>
+//                         <option value="Prescription">💊 Prescription</option>
+//                     </select>
+//                 </div>
+
+//                 {/* Sort */}
+//                 <div className="col-md-3">
+//                     <label className="form-label fw-bold">
+//                         <i className="bi bi-sort-down me-2"></i>Sort By
+//                     </label>
+//                     <select
+//                         className="form-select"
+//                         value={sortBy}
+//                         onChange={e => setSortBy(e.target.value)}
+//                     >
+//                         <option value="newest">Newest First</option>
+//                         <option value="oldest">Oldest First</option>
+//                     </select>
+//                 </div>
+//             </div>
+//         </div>
+
+//         {/* Document List */}
+//         {/* Document List - Max 7 items visible with scroll */}
+//         <div className="card-body" style={{
+//             maxHeight: '1000px',  // Mỗi item ~200px, 5 items = 1000px
+//             overflowY: 'auto',
+//             overflowX: 'hidden'
+//         }}>
+//             {loadingRecords ? (
+//                 <div className="text-center py-5">
+//                     <div className="spinner-border text-primary"></div>
+//                     <p className="mt-2 text-muted">Loading health records...</p>
+//                 </div>
+//             ) : getFilteredAndSortedRecords().length === 0 ? (
+//                 <div className="alert alert-light border text-center">
+//                     <i className="bi bi-inbox me-2"></i>
+//                     {searchQuery || filterCategory !== 'all'
+//                         ? 'No documents match your filters.'
+//                         : 'No health records found.'}
+//                 </div>
+//             ) : (
+//                 getFilteredAndSortedRecords().map(record => (
+//                     <div key={record.healthRecordID} className="mb-4">
+//                         {/* Header cho group documents */}
+//                         <div className="d-flex justify-content-between align-items-center mb-3 px-2">
+//                             <h6 className="mb-0 text-primary fw-bold">
+//                                 <i className="bi bi-calendar-event me-2"></i>
+//                                 Documents Collection
+//                             </h6>
+//                             <span className="badge bg-primary">
+//                                 {record.documents?.length || 0} file(s)
+//                             </span>
+//                         </div>
+
+//                         {/* List documents */}
+//                         <div className="row g-3">
+//                             {record.documents?.map(doc => (
+//                                 <div key={doc.documentID} className="col-12">
+//                                     <div className="card border-0 shadow-sm hover-shadow" style={{ transition: 'all 0.3s ease' }}>
+//                                         <div className="card-body p-4">
+//                                             <div className="row align-items-center">
+//                                                 {/* COL 1: PREVIEW IMAGE - LỚN HƠN */}
+//                                                 <div className="col-md-2 col-sm-3 text-center mb-3 mb-md-0">
+//                                                     {doc.documentType?.toLowerCase().includes('pdf') ? (
+//                                                         <div className="bg-light rounded p-3 d-inline-block">
+//                                                             <i className="bi bi-file-pdf text-danger" style={{ fontSize: '4rem' }}></i>
+//                                                         </div>
+//                                                     ) : (
+//                                                         <img
+//                                                             src={`${API_BASE_URL}${doc.fileUrl}`}
+//                                                             alt={doc.documentName}
+//                                                             className="rounded shadow-sm"
+//                                                             style={{
+//                                                                 width: '120px',
+//                                                                 height: '120px',
+//                                                                 objectFit: 'cover',
+//                                                                 cursor: 'pointer',
+//                                                                 border: '3px solid #e9ecef'
+//                                                             }}
+//                                                             onClick={() => window.open(`${API_BASE_URL}${doc.fileUrl}`, '_blank')}
+
+//                                                         />
+//                                                     )}
+//                                                 </div>
+
+//                                                 {/* COL 2: THÔNG TIN DOCUMENT */}
+//                                                 <div className="col-md-7 col-sm-6">
+//                                                     {/* Tên file */}
+//                                                     <h5 className="mb-2 fw-bold text-dark">
+//                                                         <i className="bi bi-file-earmark-text me-2 text-primary"></i>
+//                                                         {doc.documentName}
+//                                                     </h5>
+
+//                                                     {/* Category badge */}
+//                                                     {doc.category && (
+//                                                         <div className="mb-2">
+//                                                             <span className="badge bg-primary px-3 py-2" style={{ fontSize: '0.85rem' }}>
+//                                                                 {doc.category}
+//                                                             </span>
+//                                                         </div>
+//                                                     )}
+
+//                                                     {/* Ngày upload */}
+//                                                     <div className="text-muted mb-2">
+//                                                         <i className="bi bi-clock-history me-2"></i>
+//                                                         <small>
+//                                                             Uploaded: {new Date(doc.uploadedAt).toLocaleString('vi-VN', {
+//                                                                 hour: '2-digit',
+//                                                                 minute: '2-digit',
+//                                                                 day: '2-digit',
+//                                                                 month: 'short',
+//                                                                 year: 'numeric'
+//                                                             })}
+//                                                         </small>
+//                                                     </div>
+
+//                                                     {/* Description */}
+//                                                     {doc.description && (
+//                                                         <div className="bg-light rounded p-3 mt-3" style={{
+//                                                             maxHeight: '100px',
+//                                                             overflowY: 'auto',
+//                                                             overflowX: 'hidden'
+//                                                         }}>
+//                                                             <small className="text-muted d-block mb-1">
+//                                                                 <i className="bi bi-card-text me-1"></i>
+//                                                                 <strong>Description:</strong>
+//                                                             </small>
+//                                                             <p className="mb-0 text-dark" style={{
+//                                                                 wordBreak: 'break-word',
+//                                                                 whiteSpace: 'pre-wrap'
+//                                                             }}>
+//                                                                 {doc.description}
+//                                                             </p>
+//                                                         </div>
+//                                                     )}
+//                                                 </div>
+
+//                                                 {/* COL 3: ACTION BUTTONS */}
+//                                                 <div className="col-md-3 col-sm-3 text-center text-md-end">
+//                                                     <button
+//                                                         className="btn btn-primary px-4 py-2 w-100 mb-2"
+//                                                         onClick={() => handleViewDocument(doc)}
+//                                                     >
+//                                                         <i className="bi bi-eye me-2"></i>
+//                                                         View Document
+//                                                     </button>
+//                                                     <button
+//                                                         className="btn btn-outline-secondary px-4 py-2 w-100"
+//                                                         onClick={() => window.open(doc.fileUrl, '_blank')}
+//                                                     >
+//                                                         <i className="bi bi-download me-2"></i>
+//                                                         Download
+//                                                     </button>
+//                                                 </div>
+//                                             </div>
+//                                         </div>
+//                                     </div>
+//                                 </div>
+//                             ))}
+//                         </div>
+//                     </div>
+//                 ))
+//             )}
+//         </div>
+//     </div>
+// </div>
+
+// {/* Document Viewer Modal */}
+// {selectedDocument && (
+//     <DocumentViewerModal
+//         show={showViewer}
+//         onHide={handleCloseViewer}
+//         document={selectedDocument}
+//     />
+// )}
