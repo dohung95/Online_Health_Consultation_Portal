@@ -13,6 +13,9 @@ export default function Doctors() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { toast, showToast, hideToast } = useToast();
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem('doctorsViewMode') || 'grid';
+  });
   const [pagination, setPagination] = useState({
     pageNumber: 1,
     pageSize: 10,
@@ -373,6 +376,62 @@ export default function Doctors() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  // Toggle view mode
+  const toggleViewMode = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('doctorsViewMode', mode);
+  };
+
+  // Get avatar gradient class based on name
+  const getAvatarGradient = (name) => {
+    const charCode = name.charCodeAt(0);
+    const gradientNumber = (charCode % 10) + 1;
+    return `avatar-gradient-${gradientNumber}`;
+  };
+
+  // Get status dot class
+  const getStatusDotClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'status-dot-active';
+      case 'inactive':
+        return 'status-dot-inactive';
+      case 'suspended':
+        return 'status-dot-suspended';
+      case 'banned':
+        return 'status-dot-banned';
+      default:
+        return 'status-dot-inactive';
+    }
+  };
+
+  // Get status badge class for card view
+  const getStatusBadgeCardClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'status-badge-active';
+      case 'inactive':
+        return 'status-badge-inactive';
+      case 'suspended':
+        return 'status-badge-suspended';
+      case 'banned':
+        return 'status-badge-banned';
+      default:
+        return 'status-badge-inactive';
+    }
+  };
+
+  // Get specialty badge class
+  const getSpecialtyBadgeClass = (specialty) => {
+    const specialtyLower = specialty?.toLowerCase();
+    if (specialtyLower?.includes('cardio')) return 'specialty-cardiology';
+    if (specialtyLower?.includes('derm')) return 'specialty-dermatology';
+    if (specialtyLower?.includes('neuro')) return 'specialty-neurology';
+    if (specialtyLower?.includes('pediatric')) return 'specialty-pediatrics';
+    if (specialtyLower?.includes('psychiat')) return 'specialty-psychiatry';
+    return 'specialty-general';
+  };
+
   return (
     <NavbarAdmin
       sidebarCollapsed={sidebarCollapsed}
@@ -381,13 +440,31 @@ export default function Doctors() {
       <main className="admin-content p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2 className="admin-page-title">Doctors List</h2>
-            <button
-              className="admin-btn-add"
-              onClick={() => setShowCreateModal(true)}
-            >
-              <i className="bi bi-plus-circle-fill"></i>
-              <span>Add New Doctor</span>
-            </button>
+            <div className="d-flex gap-2">
+              <button
+                className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => toggleViewMode('grid')}
+                title="Grid View"
+              >
+                <i className="bi bi-grid-3x3-gap"></i>
+                Grid
+              </button>
+              <button
+                className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+                onClick={() => toggleViewMode('table')}
+                title="Table View"
+              >
+                <i className="bi bi-table"></i>
+                Table
+              </button>
+              <button
+                className="admin-btn-add"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <i className="bi bi-plus-circle-fill"></i>
+                <span>Add New Doctor</span>
+              </button>
+            </div>
           </div>
 
           {/* Error Message */}
@@ -461,23 +538,140 @@ export default function Doctors() {
             </div>
           </div>
 
-          {/* Doctors Table */}
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-0">
-              {loading ? (
-                <div className="text-center p-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
+          {/* Doctors Display - Grid or Table */}
+          {viewMode === 'grid' ? (
+            /* Card Grid View */
+            loading ? (
+              <div className="card-grid-container">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="card-skeleton">
+                    <div className="d-flex gap-3 mb-3">
+                      <div className="skeleton-avatar"></div>
+                      <div className="flex-1">
+                        <div className="skeleton-line mb-2" style={{width: '60%'}}></div>
+                        <div className="skeleton-line" style={{width: '40%'}}></div>
+                      </div>
+                    </div>
                   </div>
-                  <p className="mt-2">Loading doctors...</p>
-                </div>
-              ) : doctors.length === 0 ? (
-                <div className="admin-empty-state">
-                  <i className="bi bi-inbox"></i>
-                  <p className="mt-2">No doctors found</p>
-                </div>
-              ) : (
-                <div className="table-responsive">
+                ))}
+              </div>
+            ) : doctors.length === 0 ? (
+              <div className="card-grid-empty">
+                <i className="bi bi-inbox"></i>
+                <h4>No doctors found</h4>
+                <p>Try adjusting your search or filters</p>
+              </div>
+            ) : (
+              <div className="card-grid-container">
+                {doctors.map((doctor) => (
+                  <div
+                    key={doctor.doctorID}
+                    className="doctor-card"
+                    onClick={() => handleViewDoctor(doctor)}
+                  >
+                    <div className="card-header-section">
+                      <div className="card-avatar-container">
+                        <div className={`card-avatar ${getAvatarGradient(doctor.fullName)}`}>
+                          {doctor.fullName.charAt(0)}
+                        </div>
+                        <div className={`status-indicator-dot ${getStatusDotClass(doctor.status)}`}></div>
+                      </div>
+                      <div className="card-info-section">
+                        <h3 className="card-title">{doctor.fullName}</h3>
+                        <p className="card-subtitle">{doctor.yearsOfExperience ? `${doctor.yearsOfExperience} years exp.` : 'New'}</p>
+                      </div>
+                    </div>
+
+                    <div className="card-badges">
+                      <span className={`specialty-badge ${getSpecialtyBadgeClass(doctor.specialty)}`}>
+                        {doctor.specialty}
+                      </span>
+                      <span className={`status-badge ${getStatusBadgeCardClass(doctor.status)}`}>
+                        {doctor.status}
+                      </span>
+                    </div>
+
+                    <div className="card-details">
+                      <div className="card-detail-item">
+                        <i className="bi bi-envelope"></i>
+                        <span>{doctor.email}</span>
+                      </div>
+                      {doctor.rating && (
+                        <div className="card-detail-item">
+                          <div className="card-rating">
+                            <span className="rating-stars">
+                              {[...Array(5)].map((_, i) => (
+                                <i
+                                  key={i}
+                                  className={`bi ${i < Math.floor(doctor.rating) ? 'bi-star-fill' : 'bi-star'}`}
+                                ></i>
+                              ))}
+                            </span>
+                            <span className="rating-number">{doctor.rating.toFixed(1)}</span>
+                            {doctor.totalReviews && (
+                              <span className="rating-count">({doctor.totalReviews})</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="card-footer">
+                      <button
+                        className="card-action-btn primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewDoctor(doctor);
+                        }}
+                        title="View Details"
+                      >
+                        <i className="bi bi-eye"></i>
+                        View
+                      </button>
+                      <button
+                        className="card-action-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditDoctor(doctor);
+                        }}
+                        title="Edit Doctor"
+                      >
+                        <i className="bi bi-pencil"></i>
+                        Edit
+                      </button>
+                      <button
+                        className="card-action-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleChangeStatus(doctor);
+                        }}
+                        title="Change Status"
+                      >
+                        <i className="bi bi-toggle-on"></i>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : (
+            /* Table View */
+            <div className="card border-0 shadow-sm">
+              <div className="card-body p-0">
+                {loading ? (
+                  <div className="text-center p-5">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Loading doctors...</p>
+                  </div>
+                ) : doctors.length === 0 ? (
+                  <div className="admin-empty-state">
+                    <i className="bi bi-inbox"></i>
+                    <p className="mt-2">No doctors found</p>
+                  </div>
+                ) : (
+                  <div className="table-responsive">
                   <table className="admin-table table mb-0 align-middle">
                     <thead className="table-light">
                       <tr>
@@ -549,8 +743,12 @@ export default function Doctors() {
                   </table>
                 </div>
               )}
+              </div>
             </div>
-            {!loading && doctors.length > 0 && (
+          )}
+
+          {/* Pagination (works for both views) */}
+          {!loading && doctors.length > 0 && (
               <div className="card-footer bg-white">
                 <div className="d-flex justify-content-between align-items-center">
                   <span className="text-muted" style={{fontSize: '13px'}}>
@@ -638,7 +836,6 @@ export default function Doctors() {
                 </div>
               </div>
             )}
-          </div>
 
           {/* View Doctor Details Modal */}
           {showViewModal && selectedDoctor && (
