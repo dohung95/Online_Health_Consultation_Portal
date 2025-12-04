@@ -17,15 +17,18 @@ namespace OHCP_BK.Controllers
         private readonly OHCPContext _context;
         private readonly ILogger<AppointmentController> _logger;
         private readonly INotificationService _notificationService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         public AppointmentController(
             OHCPContext context, 
             ILogger<AppointmentController> logger,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _logger = logger;
             _notificationService = notificationService;
+            _httpClientFactory = httpClientFactory;
         }
 
         // GET: api/Appointment
@@ -273,6 +276,41 @@ namespace OHCP_BK.Controllers
 
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
+
+                // Notify admins about new appointment
+                try
+                {
+                    // Get patient and doctor names for notification
+                    var patient = await _context.Patients.FindAsync(userId);
+                    var doctor = await _context.Doctors.FindAsync(dto.DoctorID);
+
+                    if (patient != null && doctor != null)
+                    {
+                        using var httpClient = _httpClientFactory.CreateClient();
+                        var notificationDto = new
+                        {
+                            appointmentId = appointment.AppointmentID,
+                            patientName = patient.FullName,
+                            doctorName = doctor.FullName,
+                            appointmentTime = appointment.AppointmentTime,
+                            consultationType = appointment.ConsultationType
+                        };
+
+                        var response = await httpClient.PostAsJsonAsync(
+                            "https://localhost:7267/api/admin/notifications/appointment-created",
+                            notificationDto);
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            _logger.LogWarning("Failed to send admin notification for new appointment");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error sending admin notification for appointment creation");
+                    // Don't fail the appointment creation if notification fails
+                }
 
                 // Return result (call GetAppointment to return full details with join tables)
                 return CreatedAtAction(nameof(GetAppointment), new { id = appointment.AppointmentID }, new
