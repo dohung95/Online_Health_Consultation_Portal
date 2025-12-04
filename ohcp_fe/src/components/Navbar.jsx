@@ -42,23 +42,122 @@ function Navbar() {
         };
     }, [lastScrollY]);
 
-    // Handle appointment button click with authentication and role check
-    // const handleAppointmentClick = (e) => {
-    //     e.preventDefault();
-
-    //     // Check role - only Patient can access schedule
-    //     if (isAuthenticated && !isUser) {
-    //         // Doctor or Admin - show alert
-    //         alert("Schedule appointments is only available for patients.");
-    //         return;
-    //     }
-
-    //     // Use handleAuthenticatedAction để hiển thị confirm dialog
-    //     handleAuthenticatedAction(isAuthenticated, navigate, '/schedule');
-    // };
-
     return (
         <>
+            {/* Mobile Menu Overlay & Sidebar - Outside navbar wrapper */}
+            {mobileMenuOpen && (
+                <>
+                    {/* Overlay Backdrop */}
+                    <div
+                        className="mobile-menu-overlay"
+                        onClick={() => setMobileMenuOpen(false)}
+                    ></div>
+
+                    {/* Sidebar Menu */}
+                    <div className="mobile-menu-container">
+                        {/* Close Button */}
+                        <button
+                            className="mobile-menu-close"
+                            onClick={() => setMobileMenuOpen(false)}
+                            aria-label="Close menu"
+                        >
+                            <i className="bi bi-x-lg"></i>
+                        </button>
+
+                        <ul className="mobile-menu">
+                            {/* Main Navigation */}
+                            <li>
+                                <NavLink to="/" onClick={() => setMobileMenuOpen(false)} end className="mobile-nav-link">
+                                    <i className="fas fa-home me-2"></i> Home
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to="/about_us" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
+                                    <i className="fas fa-info-circle me-2"></i> About Us
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to="/doctors" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
+                                    <i className="fas fa-user-md me-2"></i> Doctors
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to="/schedule" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
+                                    <i className="fas fa-calendar-alt me-2"></i> Schedule
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to="/contact_us" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
+                                    <i className="fas fa-envelope me-2"></i> Contact Us
+                                </NavLink>
+                            </li>
+
+                            {/* Patient Menu Items - Only show for authenticated patients */}
+                            {isAuthenticated && isUser && (
+                                <>
+                                    <hr className="mobile-divider" />
+                                    <li className="mobile-menu-section-title">
+                                        <i className="fas fa-user-circle me-2"></i> Patient Portal
+                                    </li>
+                                    <li>
+                                        <NavLink to="/profile-patient" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
+                                            <i className="fas fa-user me-2"></i> My Profile
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink to="/my-appointments" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
+                                            <i className="fas fa-calendar-check me-2"></i> My Appointments
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink to="/my-prescriptions" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
+                                            <i className="fas fa-prescription-bottle-alt me-2"></i> My Prescriptions
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink to="/health-records" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
+                                            <i className="fas fa-file-medical me-2"></i> Health Records
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink to="/share-records" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
+                                            <i className="fas fa-share-alt me-2"></i> Share Records
+                                        </NavLink>
+                                    </li>
+                                </>
+                            )}
+
+                            <hr className="mobile-divider" />
+
+                            {/* Auth Section */}
+                            <div className="mobile-auth-section">
+                                {isAuthenticated ? (
+                                    <>
+                                        <div className="mobile-user-info">
+                                            <i className="fas fa-user-circle me-2"></i>
+                                            <span className="mobile-role-badge">
+                                                {isAdmin ? 'Admin' : isDoctor ? 'Doctor' : 'Patient'}
+                                            </span>
+                                        </div>
+                                        <li>
+                                            <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="btn-mobile-logout">
+                                                <i className="fas fa-sign-out-alt me-2"></i> Logout
+                                            </button>
+                                        </li>
+                                    </>
+                                ) : (
+                                    <li>
+                                        <NavLink to="/login" onClick={() => setMobileMenuOpen(false)} className="btn-mobile-login">
+                                            <i className="fas fa-sign-in-alt me-2"></i> Login
+                                        </NavLink>
+                                    </li>
+                                )}
+                            </div>
+                        </ul>
+                    </div>
+                </>
+            )}
+
             <div className={`navbar-wrapper container ${isVisible ? 'navbar-visible' : 'navbar-hidden'}`}>
                 {/* ============ TOP BAR ============ */}
                 <div className="topbar">
@@ -102,8 +201,22 @@ function Navbar() {
                 <nav className="main-navbar">
                     <div className="container d-flex justify-content-between align-items-center position-relative">
 
+                        {/* Mobile Menu Toggle - Move to beginning */}
+                        <button
+                            className="mobile-toggle d-xl-none"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            aria-label="Toggle menu"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffffff" width="48" height="48">
+                                <g data-name="2.Menu">
+                                    <path d="M12 24a12 12 0 1 1 12-12 12.013 12.013 0 0 1-12 12zm0-22a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2z" />
+                                    <path d="M8 7h8v2H8zM8 11h8v2H8zM8 15h8v2H8z" />
+                                </g>
+                            </svg>
+                        </button>
+
                         {/* Desktop Menu */}
-                        <ul className="nav-menu d-none d-lg-flex m-0">
+                        <ul className="nav-menu d-none d-xl-flex m-0">
                             <li><NavLink to="/" className="nav-link" end>Home</NavLink></li>
                             <li><NavLink to="/about_us" className="nav-link" end>About Us</NavLink></li>
                             <li><NavLink to="/doctors" className="nav-link">Doctors</NavLink></li>
@@ -171,91 +284,8 @@ function Navbar() {
                                     <NavLink to="/login" className="btn-login">Login</NavLink>
                                 </>
                             )}
-
-                            {/* Social Icons */}
-                            <div className="nav-icons d-none d-xl-flex gap-3 ms-3">
-                                <a href="#" className="text-white"><i className="fab fa-facebook-f"></i></a>
-                                <a href="#" className="text-white"><i className="fab fa-linkedin-in"></i></a>
-                                <a href="#" className="text-white"><i className="fab fa-twitter"></i></a>
-                            </div>
                         </div>
-
-                        {/* Mobile Menu Toggle */}
-                        <button
-                            className="mobile-toggle d-lg-none"
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            aria-label="Toggle menu"
-                        >
-                            <i className={mobileMenuOpen ? "fas fa-times" : "fas fa-bars"}></i>
-                        </button>
                     </div>
-
-                    {/* Mobile Menu */}
-                    {mobileMenuOpen && (
-                        <div className="mobile-menu-container">
-                            <ul className="mobile-menu">
-                                <li>
-                                    <NavLink to="/" onClick={() => setMobileMenuOpen(false)} end className="mobile-nav-link">
-                                        <i className="fas fa-home me-2"></i> Home
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink to="/about_us" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
-                                        <i className="fas fa-info-circle me-2"></i> About Us
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink to="/doctors" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
-                                        <i className="fas fa-user-md me-2"></i> Doctors
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink to="/schedule" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
-                                        <i className="fas fa-calendar-alt me-2"></i> Schedule
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink to="/contact_us" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
-                                        <i className="fas fa-envelope me-2"></i> Contact Us
-                                    </NavLink>
-                                </li>
-
-                                <hr className="mobile-divider" />
-
-                                {/* Auth Section */}
-                                <div className="mobile-auth-section">
-                                    {isAuthenticated ? (
-                                        <>
-                                            <div className="mobile-user-info">
-                                                <i className="fas fa-user-circle me-2"></i>
-                                                <span className="mobile-role-badge">
-                                                    {isAdmin ? 'Admin' : isDoctor ? 'Doctor' : 'Patient'}
-                                                </span>
-                                            </div>
-                                            <li>
-                                                <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="btn-mobile-logout">
-                                                    <i className="fas fa-sign-out-alt me-2"></i> Logout
-                                                </button>
-                                            </li>
-                                        </>
-                                    ) : (
-                                        <li>
-                                            <NavLink to="/login" onClick={() => setMobileMenuOpen(false)} className="btn-mobile-login">
-                                                <i className="fas fa-sign-in-alt me-2"></i> Login
-                                            </NavLink>
-                                        </li>
-                                    )}
-                                </div>
-
-                                {/* Social Icons */}
-                                <div className="mobile-social-icons">
-                                    <a href="#" className="mobile-social-link"><i className="fab fa-facebook-f"></i></a>
-                                    <a href="#" className="mobile-social-link"><i className="fab fa-linkedin-in"></i></a>
-                                    <a href="#" className="mobile-social-link"><i className="fab fa-twitter"></i></a>
-                                </div>
-                            </ul>
-                        </div>
-                    )}
                 </nav>
             </div>
         </>
