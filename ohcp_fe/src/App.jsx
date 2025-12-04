@@ -42,6 +42,7 @@ import PatientPrescriptionView from './components/PatientPrescriptionView';
 
 import DoctorPage from './components/DoctorPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import ExcludeRolesRoute from './components/ExcludeRolesRoute';
 
 import AdminRoute from './components/Admin/AdminRoute';
 import HealthRecords from './components/HealthRecords';
@@ -91,9 +92,10 @@ function AppContent() {
             <Route path="/health-records" element={<HealthRecords />} />
             <Route path="/share-records" element={<ShareHealthRecords />} />
             <Route path="/profile-patient" element={<ProfilePatient />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/book/:doctorId" element={<Schedule />} />
-            <Route path="/my-appointments" element={<MyAppointments />} />
+            
+            {/* <Route path="/schedule" element={<Schedule />} /> */}
+            {/* <Route path="/book/:doctorId" element={<Schedule />} /> */}
+            {/* <Route path="/my-appointments" element={<MyAppointments />} /> */}
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/doctor/:id" element={<DoctorProfile />} />
             {/* Doctor only */}
@@ -103,32 +105,33 @@ function AppContent() {
               </ProtectedRoute>
             } />
             
-            {/* Patient only routes */}
-            {/* <Route path="/schedule" element={
-              <ProtectedRoute allowedRoles={['Patient']}>
+            <Route path="/schedule" element={
+              <ExcludeRolesRoute excludedRoles={['Admin', 'Doctor']}>
                 <Schedule />
-              </ProtectedRoute>
+              </ExcludeRolesRoute>
             } />
             <Route path="/book/:doctorId" element={
-              <ProtectedRoute allowedRoles={['Patient']}>
+              <ExcludeRolesRoute excludedRoles={['Admin', 'Doctor']}>
                 <Schedule />
-              </ProtectedRoute>
+              </ExcludeRolesRoute>
             } />
             <Route path="/my-appointments" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <MyAppointments />
               </ProtectedRoute>
             } />
-            <Route path="/doctors" element={
+            {/* <Route path="/doctors" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <Doctors />
               </ProtectedRoute>
-            } />
-            <Route path="/doctor/:id" element={
+            } /> */}
+            {/* <Route path="/doctor/:id" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <DoctorProfile />
               </ProtectedRoute>
             } /> */}
+
+            
             <Route path="/records" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <Records />

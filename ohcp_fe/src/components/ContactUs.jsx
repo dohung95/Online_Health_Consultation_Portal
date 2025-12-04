@@ -4,8 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import Loading from './Loading';
 import axios from 'axios';
 function ContactUs() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, roles } = useAuth();
   const [loading, setLoading] = useState(true);
+
+  // Check if user is Admin or Doctor
+  const isAdminOrDoctor = roles.some(role =>
+    ['admin', 'doctor'].includes(role.toLowerCase())
+  );
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -49,9 +54,9 @@ function ContactUs() {
     }
   }, [isAuthenticated]);
 
-  // Populate form data when user profile is loaded
+  // Populate form data when user profile is loaded (only for Patient role)
   useEffect(() => {
-    if (userProfile) {
+    if (userProfile && !isAdminOrDoctor) {
       setFormData(prev => ({
         ...prev,
         name: userProfile.fullName || '',
@@ -59,7 +64,7 @@ function ContactUs() {
         phone: userProfile.phoneNumber || ''
       }));
     }
-  }, [userProfile]);
+  }, [userProfile, isAdminOrDoctor]);
 
   // Check authentication when user tries to interact with form
   const handleInputFocus = (e) => {
@@ -84,6 +89,12 @@ function ContactUs() {
 
     // Check authentication before submitting
     if (!checkAuthAndRedirect()) {
+      return;
+    }
+
+    // Block Admin and Doctor from submitting
+    if (isAdminOrDoctor) {
+      setSubmitMessage('Admin and Doctor accounts cannot submit contact forms. Please use internal communication channels.');
       return;
     }
 
@@ -162,6 +173,29 @@ function ContactUs() {
 
         <div>
           <div className='contactus-form-container'>
+            {/* Show notification for Admin/Doctor users */}
+            {isAuthenticated && isAdminOrDoctor && (
+              <div style={{
+                marginBottom: '20px',
+                padding: '15px 20px',
+                borderRadius: '8px',
+                backgroundColor: '#fff3cd',
+                border: '1px solid #ffc107',
+                color: '#856404',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <i className='fas fa-info-circle' style={{ fontSize: '20px' }}></i>
+                <div>
+                  <strong>Contact Form Unavailable</strong>
+                  <p style={{ margin: '5px 0 0 0', fontSize: '14px' }}>
+                    Admin and Doctor accounts cannot submit contact forms. Please use internal communication channels.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit}>
               <div className='row contactus-form-row'>
                 <div className='col-md-6'>
@@ -235,9 +269,13 @@ function ContactUs() {
                 <button
                   type='submit'
                   className='contactus-submit-btn'
-                  disabled={submitting}
+                  disabled={submitting || isAdminOrDoctor}
+                  style={{
+                    opacity: isAdminOrDoctor ? 0.5 : 1,
+                    cursor: isAdminOrDoctor ? 'not-allowed' : 'pointer'
+                  }}
                 >
-                  <b>{submitting ? 'Sending...' : 'Send Message'}</b>
+                  <b>{isAdminOrDoctor ? 'Contact Form Not Available' : submitting ? 'Sending...' : 'Send Message'}</b>
                 </button>
               </div>
 
