@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import NavbarAdmin from "./NavbarAdmin";
 import DashboardCharts from "./DashboardCharts";
-import { patientsApi, appointmentsApi, medicalRecordsApi } from "../../services/adminApi";
+import { patientsApi, appointmentsApi, medicalRecordsApi } from "../../../services/adminApi";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "./Admin.css";
+import "../Css/Admin.css";
 
 export default function Admin() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

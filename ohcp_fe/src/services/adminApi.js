@@ -192,4 +192,36 @@ export const invoicesApi = {
   }
 };
 
+// ==================== ANALYTICS API ====================
+
+export const analyticsApi = {
+  getPatientRegistrations: async (year = 0) => {
+    const response = await adminApi.get('/analytics/patient-registrations', {
+      params: { year }
+    });
+    return response.data;
+  },
+
+  getAppointmentsByWeek: async (year = 0, month = 0) => {
+    const response = await adminApi.get('/analytics/appointments-by-week', {
+      params: { year, month }
+    });
+    return response.data;
+  },
+
+  getAppointmentsByMonth: async (year = 0) => {
+    const response = await adminApi.get('/analytics/appointments-by-month', {
+      params: { year }
+    });
+    return response.data;
+  },
+
+  getRevenueByMonth: async (year = 0) => {
+    const response = await adminApi.get('/analytics/revenue-by-month', {
+      params: { year }
+    });
+    return response.data;
+  }
+};
+
 export default adminApi;

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
-import { patientsApi, medicalRecordsApi } from "../../services/adminApi";
+import { patientsApi, medicalRecordsApi } from "../../../services/adminApi";
 import Toast from "./Toast";
-import useToast from "./useToast";
+import useToast from "../useToast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "./Admin.css";
+import "../Css/Admin.css";
 
 export default function Patients() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -13,6 +13,9 @@ export default function Patients() {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem('patientsViewMode') || 'grid';
+  });
   const [pagination, setPagination] = useState({
     pageNumber: 1,
     pageSize: 10,
@@ -270,6 +273,51 @@ export default function Patients() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  // Toggle view mode
+  const toggleViewMode = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('patientsViewMode', mode);
+  };
+
+  // Get avatar gradient class based on name
+  const getAvatarGradient = (name) => {
+    const charCode = name.charCodeAt(0);
+    const gradientNumber = (charCode % 10) + 1;
+    return `avatar-gradient-${gradientNumber}`;
+  };
+
+  // Get status dot class
+  const getStatusDotClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'status-dot-active';
+      case 'inactive':
+        return 'status-dot-inactive';
+      case 'suspended':
+        return 'status-dot-suspended';
+      case 'banned':
+        return 'status-dot-banned';
+      default:
+        return 'status-dot-inactive';
+    }
+  };
+
+  // Get status badge class for card view
+  const getStatusBadgeCardClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'status-badge-active';
+      case 'inactive':
+        return 'status-badge-inactive';
+      case 'suspended':
+        return 'status-badge-suspended';
+      case 'banned':
+        return 'status-badge-banned';
+      default:
+        return 'status-badge-inactive';
+    }
+  };
+
   return (
     <NavbarAdmin
       sidebarCollapsed={sidebarCollapsed}
@@ -278,6 +326,24 @@ export default function Patients() {
       <main className="admin-content p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2 className="admin-page-title">Patients List</h2>
+            <div className="d-flex gap-2">
+              <button
+                className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => toggleViewMode('grid')}
+                title="Grid View"
+              >
+                <i className="bi bi-grid-3x3-gap"></i>
+                Grid
+              </button>
+              <button
+                className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+                onClick={() => toggleViewMode('table')}
+                title="Table View"
+              >
+                <i className="bi bi-table"></i>
+                Table
+              </button>
+            </div>
           </div>
 
           {/* Error Message */}
@@ -349,23 +415,127 @@ export default function Patients() {
             </div>
           </div>
 
-          {/* Patients Table */}
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-0">
-              {loading ? (
-                <div className="text-center p-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
+          {/* Patients Display - Grid or Table */}
+          {viewMode === 'grid' ? (
+            /* Card Grid View */
+            loading ? (
+              <div className="card-grid-container">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="card-skeleton">
+                    <div className="d-flex gap-3 mb-3">
+                      <div className="skeleton-avatar"></div>
+                      <div className="flex-1">
+                        <div className="skeleton-line mb-2" style={{width: '60%'}}></div>
+                        <div className="skeleton-line" style={{width: '40%'}}></div>
+                      </div>
+                    </div>
                   </div>
-                  <p className="mt-2">Loading patients...</p>
-                </div>
-              ) : patients.length === 0 ? (
-                <div className="admin-empty-state">
-                  <i className="bi bi-inbox"></i>
-                  <p className="mt-2">No patients found</p>
-                </div>
-              ) : (
-                <div className="table-responsive">
+                ))}
+              </div>
+            ) : patients.length === 0 ? (
+              <div className="card-grid-empty">
+                <i className="bi bi-inbox"></i>
+                <h4>No patients found</h4>
+                <p>Try adjusting your search or filters</p>
+              </div>
+            ) : (
+              <div className="card-grid-container">
+                {patients.map((patient) => (
+                  <div
+                    key={patient.patientID}
+                    className="patient-card"
+                    onClick={() => handleViewPatient(patient)}
+                  >
+                    <div className="card-header-section">
+                      <div className="card-avatar-container">
+                        <div className={`card-avatar ${getAvatarGradient(patient.fullName)}`}>
+                          {patient.fullName.charAt(0)}
+                        </div>
+                        <div className={`status-indicator-dot ${getStatusDotClass(patient.status)}`}></div>
+                      </div>
+                      <div className="card-info-section">
+                        <h3 className="card-title">{patient.fullName}</h3>
+                        <p className="card-subtitle">{patient.age} years • {patient.gender}</p>
+                      </div>
+                    </div>
+
+                    <div className="card-badges">
+                      <span className={`status-badge ${getStatusBadgeCardClass(patient.status)}`}>
+                        {patient.status}
+                      </span>
+                    </div>
+
+                    <div className="card-details">
+                      <div className="card-detail-item">
+                        <i className="bi bi-telephone"></i>
+                        <span>{patient.phone}</span>
+                      </div>
+                      <div className="card-detail-item">
+                        <i className="bi bi-envelope"></i>
+                        <span>{patient.email}</span>
+                      </div>
+                      <div className="card-detail-item">
+                        <i className="bi bi-calendar-event"></i>
+                        <span><strong>Last Visit:</strong> {patient.lastVisit || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    <div className="card-footer">
+                      <button
+                        className="card-action-btn primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewPatient(patient);
+                        }}
+                        title="View Details"
+                      >
+                        <i className="bi bi-eye"></i>
+                        View
+                      </button>
+                      <button
+                        className="card-action-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditPatient(patient);
+                        }}
+                        title="Edit Patient"
+                      >
+                        <i className="bi bi-pencil"></i>
+                        Edit
+                      </button>
+                      <button
+                        className="card-action-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleChangeStatus(patient);
+                        }}
+                        title="Change Status"
+                      >
+                        <i className="bi bi-toggle-on"></i>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : (
+            /* Table View */
+            <div className="card border-0 shadow-sm">
+              <div className="card-body p-0">
+                {loading ? (
+                  <div className="text-center p-5">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Loading patients...</p>
+                  </div>
+                ) : patients.length === 0 ? (
+                  <div className="admin-empty-state">
+                    <i className="bi bi-inbox"></i>
+                    <p className="mt-2">No patients found</p>
+                  </div>
+                ) : (
+                  <div className="table-responsive">
                   <table className="admin-table table mb-0 align-middle">
                     <thead className="table-light">
                       <tr>
@@ -433,8 +603,12 @@ export default function Patients() {
                   </table>
                 </div>
               )}
+              </div>
             </div>
-            {!loading && patients.length > 0 && (
+          )}
+
+          {/* Pagination (works for both views) */}
+          {!loading && patients.length > 0 && (
               <div className="card-footer bg-white">
                 <div className="d-flex justify-content-between align-items-center">
                   <span className="text-muted" style={{fontSize: '13px'}}>
@@ -522,7 +696,6 @@ export default function Patients() {
                 </div>
               </div>
             )}
-          </div>
 
           {/* View Patient Details Modal */}
           {showViewModal && selectedPatient && (

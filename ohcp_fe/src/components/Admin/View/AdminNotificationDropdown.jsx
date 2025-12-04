@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import './AdminNotificationDropdown.css';
+import '../Css/AdminNotificationDropdown.css';
 
 const AdminNotificationDropdown = () => {
     const [notifications, setNotifications] = useState([]);

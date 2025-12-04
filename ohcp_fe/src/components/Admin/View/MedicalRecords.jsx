@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
-import { medicalRecordsApi } from "../../services/adminApi";
+import { medicalRecordsApi } from "../../../services/adminApi";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "./Admin.css";
+import "../Css/Admin.css";
 
 export default function MedicalRecords() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
