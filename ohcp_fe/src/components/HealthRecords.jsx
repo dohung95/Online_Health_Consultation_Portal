@@ -103,13 +103,13 @@ const HealthRecords = () => {
     };
 
     const handleViewDocument = (document) => {
-    setSelectedDocument(document);
-    setShowViewer(true);
-};
-const handleCloseViewer = () => {
-    setShowViewer(false);
-    setSelectedDocument(null);
-};
+        setSelectedDocument(document);
+        setShowViewer(true);
+    };
+    const handleCloseViewer = () => {
+        setShowViewer(false);
+        setSelectedDocument(null);
+    };
 
     // --- HANDLE SAVE HISTORY ---
     const handleSaveHistory = async () => {
@@ -480,7 +480,7 @@ const handleCloseViewer = () => {
                                         <span className="fw-bold text-primary">
                                             <i className="bi bi-calendar-event me-2"></i>
                                             {/* Use toLocaleDateString to show only date */}
-                                            Document 
+                                            Document
                                         </span>
 
                                         <span className="badge bg-light text-dark border">
@@ -510,8 +510,8 @@ const handleCloseViewer = () => {
                                                                         style={{
                                                                             width: '60px',
                                                                             height: '60px',
-                                                                            objectFit: 'cover', 
-                                                                            cursor: 'pointer' 
+                                                                            objectFit: 'cover',
+                                                                            cursor: 'pointer'
                                                                         }}
                                                                         // if click: open in new tab
                                                                         onClick={() => window.open(doc.fileUrl, '_blank')}
@@ -543,18 +543,29 @@ const handleCloseViewer = () => {
                                                         )}
                                                     </div>
                                                     <button
-    className="btn btn-sm btn-outline-primary"
-    onClick={() => handleViewDocument(doc)}
->
-    <i className="bi bi-eye me-1"></i>View
-</button>
+                                                        className="btn btn-sm btn-outline-primary"
+                                                        onClick={() => handleViewDocument(doc)}
+                                                    >
+                                                        <i className="bi bi-eye me-1"></i>View
+                                                    </button>
                                                 </div>
                                                 {/* Description */}
                                                 {doc.description && (
-                                                    <p className="mb-2 text-muted small">
-                                                        <i className="bi bi-card-text me-1"></i>
-                                                        {doc.description}
-                                                    </p>
+                                                    <div className="bg-light rounded p-3 mt-3" style={{
+                                                        maxHeight: '100px',
+                                                        overflowY: 'auto',
+                                                        overflowX: 'hidden'
+                                                    }}>
+                                                        <small className="text-muted d-block mb-1">
+                                                            <i className="bi bi-card-text me-1"></i>
+                                                        </small>
+                                                        <p className="mb-0 text-dark" style={{
+                                                            wordBreak: 'break-word',
+                                                            whiteSpace: 'pre-wrap'
+                                                        }}>
+                                                            {doc.description}
+                                                        </p>
+                                                    </div>
                                                 )}
                                                 {/* Lab Results - Show if available */}
                                                 {doc.TestResults && (

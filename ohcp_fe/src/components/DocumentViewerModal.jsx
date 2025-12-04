@@ -30,9 +30,9 @@ const DocumentViewerModal = ({
         }
     };
     const getViewUrl = () => {
-    const token = localStorage.getItem('token');
-    return `${apiBaseUrl}/api/HealthRecord/document/${document.documentID}?token=${encodeURIComponent(token)}`;
-};
+        const token = localStorage.getItem('token');
+        return `${apiBaseUrl}/api/HealthRecord/document/${document.documentID}?token=${encodeURIComponent(token)}`;
+    };
     const onDownload = (documentID, fileName) => {
         const token = localStorage.getItem('token');
         const downloadUrl = `${apiBaseUrl}/api/HealthRecord/document/${documentID}?token=${encodeURIComponent(token)}`;
@@ -147,9 +147,21 @@ const DocumentViewerModal = ({
                             </div>
                         )}
                         {document.description && (
-                            <div>
-                                <i className="bi bi-chat-left-text me-2"></i>
-                                Notes: <span className="fst-italic">{document.description}</span>
+                            <div className="bg-light rounded p-3 mt-3" style={{
+                                maxHeight: '200px',
+                                overflowY: 'auto',
+                                overflowX: 'hidden'
+                            }}>
+                                <small className="text-muted d-block mb-1">
+                                    <i className="bi bi-chat-left-text me-2"></i>
+                                    <strong>Notes:</strong>
+                                </small>
+                                <p className="mb-0 text-dark" style={{
+                                    wordBreak: 'break-word',
+                                    whiteSpace: 'pre-wrap'
+                                }}>
+                                    {document.description}
+                                </p>
                             </div>
                         )}
                     </div>
