@@ -137,7 +137,7 @@ namespace OHCP_BK.Controllers.Admin
         // Get all notifications for the current admin user
         [HttpGet]
         public async Task<ActionResult<AdminNotificationListResponseDto>> GetAdminNotifications(
-            [FromQuery] int limit = 50)
+            [FromQuery] int? limit = null)
         {
             try
             {
@@ -147,10 +147,14 @@ namespace OHCP_BK.Controllers.Admin
                     return Unauthorized("User ID not found");
                 }
 
-                var notifications = await _context.Notifications
+                var query = _context.Notifications
                     .Where(n => n.UserId == userId)
-                    .OrderByDescending(n => n.CreatedAt)
-                    .Take(limit)
+                    .OrderByDescending(n => n.CreatedAt);
+
+                // Apply limit only if specified
+                var notificationsQuery = limit.HasValue ? query.Take(limit.Value) : query;
+
+                var notifications = await notificationsQuery
                     .Select(n => new AdminNotificationDto
                     {
                         NotificationID = n.NotificationID,
@@ -161,13 +165,16 @@ namespace OHCP_BK.Controllers.Admin
                     })
                     .ToListAsync();
 
+                var totalCount = await _context.Notifications
+                    .CountAsync(n => n.UserId == userId);
+
                 var unreadCount = await _context.Notifications
                     .CountAsync(n => n.UserId == userId && !n.IsRead);
 
                 return Ok(new AdminNotificationListResponseDto
                 {
                     Notifications = notifications,
-                    TotalCount = notifications.Count,
+                    TotalCount = totalCount,
                     UnreadCount = unreadCount
                 });
             }
@@ -269,6 +276,41 @@ namespace OHCP_BK.Controllers.Admin
             {
                 _logger.LogError(ex, "Error marking notification as read");
                 return StatusCode(500, new { error = "Failed to mark notification as read", details = ex.Message });
+            }
+        }
+
+        // DELETE: api/admin/notifications/{id}
+        // Delete a specific notification
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteNotification(int id)
+        {
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized("User ID not found");
+                }
+
+                var notification = await _context.Notifications
+                    .FirstOrDefaultAsync(n => n.NotificationID == id && n.UserId == userId);
+
+                if (notification == null)
+                {
+                    return NotFound("Notification not found");
+                }
+
+                _context.Notifications.Remove(notification);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Notification {Id} deleted by user {UserId}", id, userId);
+
+                return Ok(new { message = "Notification deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting notification {Id}", id);
+                return StatusCode(500, new { error = "Failed to delete notification", details = ex.Message });
             }
         }
     }

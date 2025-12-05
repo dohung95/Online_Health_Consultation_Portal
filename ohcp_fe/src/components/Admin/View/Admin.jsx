@@ -57,7 +57,32 @@ export default function Admin() {
       onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
     >
       <main className="admin-content p-4">
-        <h2 className="admin-page-title mb-4">System Overview</h2>
+          {/* Dashboard Page Header with Visual Distinction */}
+          <div className="admin-page-header-dashboard mb-4">
+            <div className="d-flex justify-content-between align-items-start">
+              <div className="admin-page-title-section">
+                <div className="d-flex align-items-center gap-3 mb-2">
+                  <div className="admin-page-icon-dashboard">
+                    <i className="bi bi-speedometer2"></i>
+                  </div>
+                  <div>
+                    <h2 className="admin-page-title mb-1">
+                      System Dashboard
+                    </h2>
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="admin-page-badge-dashboard">
+                        <i className="bi bi-graph-up-arrow me-1"></i>
+                        Control Center
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p className="admin-page-subtitle-dashboard mb-0">
+                  Monitor system health, track key metrics, and manage healthcare operations
+                </p>
+              </div>
+            </div>
+          </div>
 
         {error && (
           <div className="alert alert-danger admin-alert" role="alert">
@@ -75,28 +100,47 @@ export default function Admin() {
           </div>
         ) : (
           <>
-            {/* Stats Cards */}
-            <div className="row g-4 mb-5">
-              {[
-                { title: "Total Patients", value: stats.totalPatients, color: "primary", icon: "bi-people" },
-                { title: "Today's Appointments", value: stats.todayAppointments, color: "success", icon: "bi-calendar-check" },
-                { title: "Pending Approval", value: stats.pendingApproval, color: "warning", icon: "bi-hourglass-split" },
-                { title: "Medical Records", value: stats.totalRecords, color: "info", icon: "bi-file-medical" },
-              ].map((stat) => (
-                <div key={stat.title} className="col-lg-3 col-md-6">
-                  <div className="admin-stat-card h-100">
-                    <div className="d-flex align-items-center">
-                      <div className={`admin-stat-icon ${stat.color} me-3`}>
-                        <i className={`bi ${stat.icon}`}></i>
-                      </div>
-                      <div>
-                        <p className="text-muted mb-1" style={{ fontSize: '13px' }}>{stat.title}</p>
-                        <h3 className="mb-0" style={{ fontSize: '28px', fontWeight: 700 }}>{stat.value}</h3>
-                      </div>
-                    </div>
-                  </div>
+            {/* Stats Inline */}
+            <div className="dashboard-stats-inline mb-4">
+              <div className="stat-inline-item stat-patients">
+                <div className="stat-inline-icon">
+                  <i className="bi bi-people-fill"></i>
                 </div>
-              ))}
+                <div className="stat-inline-content">
+                  <div className="stat-inline-value">{stats.totalPatients}</div>
+                  <div className="stat-inline-label">Total Patients</div>
+                </div>
+              </div>
+
+              <div className="stat-inline-item stat-today-appt">
+                <div className="stat-inline-icon">
+                  <i className="bi bi-calendar-check-fill"></i>
+                </div>
+                <div className="stat-inline-content">
+                  <div className="stat-inline-value">{stats.todayAppointments}</div>
+                  <div className="stat-inline-label">Today's Appointments</div>
+                </div>
+              </div>
+
+              <div className="stat-inline-item stat-pending-appt">
+                <div className="stat-inline-icon">
+                  <i className="bi bi-hourglass-split"></i>
+                </div>
+                <div className="stat-inline-content">
+                  <div className="stat-inline-value">{stats.pendingApproval}</div>
+                  <div className="stat-inline-label">Pending Approval</div>
+                </div>
+              </div>
+
+              <div className="stat-inline-item stat-records">
+                <div className="stat-inline-icon">
+                  <i className="bi bi-file-medical-fill"></i>
+                </div>
+                <div className="stat-inline-content">
+                  <div className="stat-inline-value">{stats.totalRecords}</div>
+                  <div className="stat-inline-label">Medical Records</div>
+                </div>
+              </div>
             </div>
 
             {/* Dashboard Analytics Charts */}
