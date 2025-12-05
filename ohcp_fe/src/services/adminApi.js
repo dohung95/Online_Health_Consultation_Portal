@@ -157,6 +157,21 @@ export const medicalRecordsApi = {
   getByPatientId: async (patientId) => {
     const response = await adminApi.get(`/adminmedicalrecords/patient/${patientId}`);
     return response.data;
+  },
+
+  // New: Get patient list for patient-centric view
+  getPatients: async (params = {}) => {
+    const { pageNumber = 1, pageSize = 10, searchTerm = '' } = params;
+    const response = await adminApi.get('/adminmedicalrecords/patients', {
+      params: { pageNumber, pageSize, searchTerm }
+    });
+    return response.data;
+  },
+
+  // New: Get comprehensive patient medical history
+  getPatientMedicalHistory: async (patientId) => {
+    const response = await adminApi.get(`/adminmedicalrecords/patient/${patientId}/details`);
+    return response.data;
   }
 };
 
