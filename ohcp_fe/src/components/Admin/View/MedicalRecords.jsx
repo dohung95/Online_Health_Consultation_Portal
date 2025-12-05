@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
 import PrescriptionViewer from "./PrescriptionViewer";
+import PatientCardGrid from "./PatientCardGrid";
 import { medicalRecordsApi } from "../../../services/adminApi";
 import Toast from "./Toast";
 import useToast from "../useToast";
@@ -40,6 +41,27 @@ export default function MedicalRecords() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState(null);
+
+  // Auto-collapse sidebar based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      // Mobile (< 768px): Default to collapsed (hidden)
+      if (window.innerWidth < 768) {
+        setSidebarCollapsed(true);
+      }
+      // Tablet (768px - 1200px): Default to NOT collapsed (so it shows condensed sidebar)
+      // Desktop (> 1200px): Default to NOT collapsed
+      else {
+        setSidebarCollapsed(false);
+      }
+    };
+
+    // Initial check
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch patient list
   const fetchPatients = async () => {
@@ -400,57 +422,11 @@ export default function MedicalRecords() {
                     <p className="mt-2">No patients found</p>
                   </div>
                 ) : (
-                  <div className="table-responsive">
-                    <table className="admin-table table mb-0 align-middle">
-                      <thead className="table-light">
-                        <tr>
-                          <th>Patient ID</th>
-                          <th>Full Name</th>
-                          <th>Email</th>
-                          <th>Gender</th>
-                          <th>Date of Birth</th>
-                          <th>Total Records</th>
-                          <th>Total Documents</th>
-                          <th>Last Updated</th>
-                          <th className="text-center">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {patients.map((patient) => (
-                          <tr key={patient.patientID}>
-                            <td><strong>{patient.patientID.substring(0, 8)}</strong></td>
-                            <td>
-                              <div className="d-flex align-items-center">
-                                <div className="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-2" style={{ width: "35px", height: "35px" }}>
-                                  {patient.fullName.charAt(0)}
-                                </div>
-                                {patient.fullName}
-                              </div>
-                            </td>
-                            <td>{patient.email}</td>
-                            <td>{patient.gender || 'N/A'}</td>
-                            <td>{formatDate(patient.dateOfBirth)}</td>
-                            <td>
-                              <span className="badge bg-primary">{patient.totalRecords}</span>
-                            </td>
-                            <td>
-                              <span className="badge bg-success">{patient.totalDocuments}</span>
-                            </td>
-                            <td>{formatDate(patient.lastUpdated)}</td>
-                            <td className="text-center">
-                              <button
-                                className="btn btn-outline-slate btn-sm"
-                                title="View Medical History"
-                                onClick={() => handleViewPatient(patient)}
-                              >
-                                <i className="bi bi-eye"></i> View Details
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <PatientCardGrid
+                    patients={patients}
+                    onViewPatient={handleViewPatient}
+                    formatDate={formatDate}
+                  />
                 )}
               </div>
 
