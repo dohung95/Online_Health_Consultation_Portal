@@ -76,15 +76,72 @@ namespace OHCP_BK.Controllers
                     return BadRequest(ModelState);
                 }
 
+                // Check if consultation already exists for this appointment
+                var existingConsultation = await _context.Consultations
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.AppointmentID == consultation.AppointmentID);
+
+                if (existingConsultation != null)
+                {
+                    // Update existing consultation - need to fetch with tracking
+                    var consultationToUpdate = await _context.Consultations
+                        .FirstOrDefaultAsync(c => c.ConsultationID == existingConsultation.ConsultationID);
+
+                    if (consultationToUpdate != null)
+                    {
+                        consultationToUpdate.StartTime = consultation.StartTime;
+                        consultationToUpdate.EndTime = consultation.EndTime;
+                        consultationToUpdate.DoctorNotes = consultation.DoctorNotes;
+                        consultationToUpdate.FollowUpDate = consultation.FollowUpDate;
+
+                        await _context.SaveChangesAsync();
+                        
+                        _logger.LogInformation($"Updated existing consultation {consultationToUpdate.ConsultationID} for appointment {consultation.AppointmentID}");
+                        return Ok(consultationToUpdate);
+                    }
+                }
+
+                // Create new consultation
                 _context.Consultations.Add(consultation);
                 await _context.SaveChangesAsync();
 
+                _logger.LogInformation($"Created new consultation {consultation.ConsultationID} for appointment {consultation.AppointmentID}");
                 return CreatedAtAction(nameof(GetConsultation), new { id = consultation.ConsultationID }, consultation);
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // Handle duplicate key error specifically
+                if (dbEx.InnerException?.Message.Contains("duplicate key") == true)
+                {
+                    _logger.LogWarning($"Duplicate consultation detected for appointment {consultation.AppointmentID}. Attempting to update instead.");
+                    
+                    // Try to get and update the existing one
+                    var existing = await _context.Consultations
+                        .FirstOrDefaultAsync(c => c.AppointmentID == consultation.AppointmentID);
+                    
+                    if (existing != null)
+                    {
+                        existing.DoctorNotes = consultation.DoctorNotes;
+                        existing.StartTime = consultation.StartTime;
+                        existing.EndTime = consultation.EndTime;
+                        existing.FollowUpDate = consultation.FollowUpDate;
+                        
+                        await _context.SaveChangesAsync();
+                        return Ok(existing);
+                    }
+                    
+                    return Conflict("Consultation already exists for this appointment but could not be updated.");
+                }
+                
+                _logger.LogError($"Database error creating consultation: {dbEx.Message}");
+                _logger.LogError($"Inner exception: {dbEx.InnerException?.Message}");
+                return StatusCode(500, $"Database error: {dbEx.InnerException?.Message ?? dbEx.Message}");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error creating consultation: {ex.Message}");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError($"Exception details: {ex.InnerException?.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
