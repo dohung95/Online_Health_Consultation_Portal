@@ -64,7 +64,7 @@ export default function PrescriptionViewer({ patientId }) {
         <>
             <div className="admin-card mb-4" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div className="card-header" style={{
-                    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                    background: 'linear-gradient(135deg, #9774e9ae 0%, #ccb6f1a0 100%)',
                     color: 'white',
                     borderRadius: '8px 8px 0 0',
                     padding: '16px 20px',
@@ -88,8 +88,8 @@ export default function PrescriptionViewer({ patientId }) {
                                     key={prescription.prescriptionHeaderID}
                                     className="prescription-card"
                                     style={{
-                                        background: 'linear-gradient(135deg, #ffffff 0%, #faf5ff 100%)',
-                                        border: '1px solid #e9d5ff',
+                                        background: 'linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%)',
+                                        border: '1px solid #99f6e4',
                                         borderRadius: '8px',
                                         padding: '16px',
                                         cursor: 'pointer',
@@ -101,12 +101,12 @@ export default function PrescriptionViewer({ patientId }) {
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.transform = 'translateY(-2px)';
                                         e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.15)';
-                                        e.currentTarget.style.borderColor = '#8b5cf6';
+                                        e.currentTarget.style.borderColor = '#a989f6ff';
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.transform = 'translateY(0)';
                                         e.currentTarget.style.boxShadow = 'none';
-                                        e.currentTarget.style.borderColor = '#e9d5ff';
+                                        e.currentTarget.style.borderColor = '#99f6e4';
                                     }}
                                 >
                                     {/* Status Indicator Bar */}
@@ -116,7 +116,7 @@ export default function PrescriptionViewer({ patientId }) {
                                         top: 0,
                                         bottom: 0,
                                         width: '4px',
-                                        background: '#8b5cf6'
+                                        background: '#c3aef4ff'
                                     }}></div>
 
                                     <div className="d-flex align-items-start gap-3" style={{ paddingLeft: '8px' }}>
@@ -125,7 +125,7 @@ export default function PrescriptionViewer({ patientId }) {
                                             width: '48px',
                                             height: '48px',
                                             borderRadius: '12px',
-                                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                                            background: 'linear-gradient(135deg, #9575dfff 0%, #a182d5ff 100%)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -200,7 +200,7 @@ export default function PrescriptionViewer({ patientId }) {
                     <div className="modal-dialog modal-lg modal-dialog-scrollable">
                         <div className="modal-content" style={{ border: 'none', boxShadow: 'var(--shadow-lg)' }}>
                             <div className="modal-header admin-modal-header" style={{
-                                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                                background: 'linear-gradient(135deg, #c8b5f5ff 0%, #9f74e8ff 100%)',
                                 color: 'white',
                                 borderBottom: 'none'
                             }}>

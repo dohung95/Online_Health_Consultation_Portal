@@ -141,7 +141,9 @@ export default function MedicalRecords() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load document');
+        const errorText = await response.text();
+        console.error('Failed to load document:', response.status, errorText);
+        throw new Error(`Failed to load document: ${response.status} ${response.statusText}`);
       }
 
       const type = documentType?.toLowerCase() || '';
@@ -153,6 +155,11 @@ export default function MedicalRecords() {
       } else {
         // Handle images and PDFs as blobs
         const blob = await response.blob();
+
+        if (blob.size === 0) {
+          throw new Error('Received empty file');
+        }
+
         const url = URL.createObjectURL(blob);
         setDocumentPreviewUrl(url);
       }
@@ -160,7 +167,7 @@ export default function MedicalRecords() {
       console.error('Error loading document:', error);
       showToast({
         title: 'Error',
-        message: 'Failed to load document preview',
+        message: error.message || 'Failed to load document preview',
         type: 'error'
       });
     } finally {
@@ -212,13 +219,10 @@ export default function MedicalRecords() {
   // Check if file type is previewable
   const isPreviewable = (documentType) => {
     const type = documentType?.toLowerCase() || '';
+    // Only support images and PDFs for preview
     return type.includes('image') || type.includes('jpg') || type.includes('png') ||
-      type.includes('jpeg') || type.includes('gif') || type.includes('bmp') ||
-      type.includes('pdf') || type.includes('text') || type.includes('txt') ||
-      type.includes('video') || type.includes('mp4') || type.includes('avi') ||
-      type.includes('mov') || type.includes('webm') || type.includes('mkv') ||
-      type.includes('audio') || type.includes('mp3') || type.includes('wav') ||
-      type.includes('ogg') || type.includes('m4a');
+      type.includes('jpeg') || type.includes('gif') || type.includes('bmp') || type.includes('webp') ||
+      type.includes('pdf');
   };
 
   const getCategoryIcon = (category) => {
@@ -811,8 +815,12 @@ export default function MedicalRecords() {
                                   borderBottom: '1px solid #a7f3d0',
                                   cursor: 'pointer'
                                 }}
-                                  data-bs-toggle="collapse"
-                                  data-bs-target={`#collapse${catIndex}`}>
+                                  onClick={() => {
+                                    const collapseEl = document.getElementById(`collapse${catIndex}`);
+                                    if (collapseEl) {
+                                      collapseEl.classList.toggle('show');
+                                    }
+                                  }}>
                                   <div className="d-flex align-items-center justify-content-between">
                                     <div className="d-flex align-items-center gap-2">
                                       <i className={`bi ${getCategoryIcon(category.category)}`} style={{ color: '#059669', fontSize: '18px' }}></i>
@@ -851,7 +859,10 @@ export default function MedicalRecords() {
                                           background: '#ffffff',
                                           border: '1px solid #e0f2fe'
                                         }}
-                                        onClick={() => handleViewDocument(doc)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewDocument(doc);
+                                        }}
                                         onMouseEnter={(e) => {
                                           e.currentTarget.style.background = 'linear-gradient(135deg, #ecfeff 0%, #cffafe 100%)';
                                           e.currentTarget.style.borderColor = '#0891b2';
@@ -1145,9 +1156,6 @@ export default function MedicalRecords() {
                             <i className={`${getFileIcon(selectedDocument.documentType)} fs-1 mb-3`}></i>
                             <h5 className="mt-3">{selectedDocument.documentName}</h5>
                             <p className="text-muted">Preview not available for this file type</p>
-                            <p className="text-muted small mb-3">
-                              File Type: <strong>{selectedDocument.documentType || 'Unknown'}</strong>
-                            </p>
                             <button
                               onClick={() => handleDownloadDocument(selectedDocument.documentID, selectedDocument.documentName)}
                               className="btn btn-primary mt-2"
