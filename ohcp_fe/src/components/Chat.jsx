@@ -5,6 +5,7 @@ import { useChat } from '../context/ChatContext';
 import { collection, query, orderBy, limit, addDoc, serverTimestamp, onSnapshot, where, doc, setDoc } from "firebase/firestore";
 import getBotResponse from '../AI_BOT/BotBrain';
 import { getGeminiResponse } from '../services/geminiService';
+import { toast } from 'sonner';
 
 const usersRef = collection(db, "users");
 
@@ -195,7 +196,7 @@ export default function Chat() {
         // 4. LOGIC RẼ NHÁNH
 
         if (isGuest && targetUid !== BOT_USER.uid) {
-            alert('Please login to chat with doctors!');
+            toast.error('Please login to chat with doctors!');
             return;
         }
 
@@ -260,19 +261,19 @@ export default function Chat() {
         const file = e.target.files[0];
         if (file && file.type.startsWith('image/')) {
             if (file.size > 300 * 1024) { // Giới hạn 300KB (base64 sẽ to hơn ~33%)
-                alert('Image too large! Maximum 300KB');
+                toast.error('Image too large! Maximum 300KB');
                 return;
             }
             setSelectedFile(file);
         } else {
-            alert('Only image files are accepted!');
+            toast.error('Only image files are accepted!');
         }
     };
 
     const sendImage = async () => {
         if (!selectedFile || !firebaseUser || !chatPartner) return;
         if (chatPartner.uid === BOT_USER.uid) {
-            alert('Cannot send image to Bot!');
+            toast.error('Cannot send image to Bot!');
             return;
         }
 
@@ -292,7 +293,7 @@ export default function Chat() {
 
                     // Kiểm tra kích thước sau khi convert
                     if (base64Image.length > 900 * 1024) { // ~900KB (để an toàn < 1MB của Firestore)
-                        alert('Image too large after conversion! Please choose smaller image.');
+                        toast.error('Image too large after conversion! Please choose smaller image.');
                         setUploading(false);
                         return;
                     }
@@ -330,20 +331,20 @@ export default function Chat() {
                     if (fileInputRef.current) fileInputRef.current.value = '';
                 } catch (error) {
                     console.error('Error sending image:', error);
-                    alert('Error sending image!');
+                    toast.error('Error sending image!');
                     setUploading(false);
                 }
             };
 
             reader.onerror = () => {
-                alert('Error reading file!');
+                toast.error('Error reading file!');
                 setUploading(false);
             };
 
             reader.readAsDataURL(selectedFile); // Chuyển file thành base64
         } catch (error) {
             console.error('Error sending image:', error);
-            alert('Error sending image!');
+            toast.error('Error sending image!');
             setUploading(false);
         }
     };
@@ -358,7 +359,7 @@ export default function Chat() {
             if (item.type.startsWith('image/')) {
                 // Kiểm tra nếu đang chat với Bot
                 if (chatPartner.uid === BOT_USER.uid) {
-                    alert('Can not send image to Bot!');
+                    toast.error('Can not send image to Bot!');
                     return;
                 }
                 e.preventDefault();
@@ -366,7 +367,7 @@ export default function Chat() {
                 const file = item.getAsFile();
                 if (file) {
                     if (file.size > 300 * 1024) { // Giới hạn 300KB
-                        alert('Image too large! Maximum 300KB');
+                        toast.error('Image too large! Maximum 300KB');
                         return;
                     }
                     setSelectedFile(file);

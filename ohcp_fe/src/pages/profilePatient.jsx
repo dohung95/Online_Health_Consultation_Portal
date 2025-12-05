@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getProfile, updateProfile, changePassword, changeEmail } from '../api/account';
+import { toast } from 'sonner';
 
 export default function PatientProfile() {
     const { token, logout } = useAuth();
@@ -43,7 +44,7 @@ export default function PatientProfile() {
             setProfile(data);
         } catch (error) {
             console.error("Error loading profile:", error);
-            alert("Unable to load profile information.");
+            toast.error("Unable to load profile information.");
         } finally {
             setLoading(false);
         }
@@ -169,7 +170,7 @@ function GeneralInfoForm({ profile, token, onUpdate }) {
             if (onUpdate) onUpdate(); // Tải lại dữ liệu mới
         } catch (error) {
             console.error(error);
-            alert("Update error: " + (error.response?.data?.message || error.message));
+            toast.error("Update error: " + (error.response?.data?.message || error.message));
         } finally {
             setSaving(false);
         }
@@ -495,17 +496,17 @@ function SecurityForm({ token, logout }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (passwords.newPassword !== passwords.confirmNewPassword) {
-            alert("New password confirmation does not match!");
+            toast.error("New password confirmation does not match!");
             return;
         }
 
         setChanging(true);
         try {
             await changePassword(token, passwords);
-            alert("Password changed successfully! Please log in again.");
+            toast.success("Password changed successfully! Please log in again.");
             logout(); // Đăng xuất để user đăng nhập lại với pass mới
         } catch (error) {
-            alert("Error: " + (error.response?.data?.message || "Current password is incorrect."));
+            toast.error("Error: " + (error.response?.data?.message || "Current password is incorrect."));
         } finally {
             setChanging(false);
         }
@@ -515,17 +516,17 @@ function SecurityForm({ token, logout }) {
         e.preventDefault();
 
         if (!emailChange.newEmail || !emailChange.password) {
-            alert("Please fill in all fields!");
+            toast.error("Please fill in all fields!");
             return;
         }
 
         setChangingEmail(true);
         try {
             await changeEmail(token, emailChange);
-            alert("Email changed successfully! Please log in again.");
+            toast.success("Email changed successfully! Please log in again.");
             logout(); // Đăng xuất để user đăng nhập lại với email mới
         } catch (error) {
-            alert("Error: " + (error.response?.data?.message || "Failed to change email."));
+            toast.error("Error: " + (error.response?.data?.message || "Failed to change email."));
         } finally {
             setChangingEmail(false);
         }

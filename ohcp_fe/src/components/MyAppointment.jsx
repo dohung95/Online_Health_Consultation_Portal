@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { toast } from 'sonner';
 
 const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
@@ -24,7 +25,7 @@ const MyAppointments = () => {
         } catch (error) {
             console.error("Error loading appointments:", error);
             if (error.response && error.response.status === 401) {
-                alert("Session expired.");
+                toast.error("Session expired.");
                 navigate('/login');
             }
         } finally {
@@ -38,11 +39,11 @@ const MyAppointments = () => {
 
         try {
             await appointmentService.cancelAppointment(id, "Patient request");
-            alert("Appointment cancelled successfully.");
+            toast.success("Appointment cancelled successfully.");
             loadAppointments();
         } catch (error) {
             const msg = error.response?.data?.message || error.response?.data || "Failed to cancel.";
-            alert(msg);
+            toast.error(msg);
         }
     };
 
@@ -52,7 +53,7 @@ const MyAppointments = () => {
         const partnerID = isDoctor ? appointment.patientID : appointment.doctorID;
 
         if (!partnerData || !partnerID) {
-            alert("Chat partner information is missing.");
+            toast.error("Chat partner information is missing.");
             return;
         }
 
@@ -95,10 +96,10 @@ const MyAppointments = () => {
             }
 
             console.warn(`[Chat] ✗ Could not find user with Firebase ID: ${firebaseID}`);
-            alert(`Could not find chat user. They may not have registered in the chat system yet.`);
+            toast.error(`Could not find chat user. They may not have registered in the chat system yet.`);
         } catch (error) {
             console.error("[Chat] Error:", error);
-            alert("Error initiating chat.");
+            toast.error("Error initiating chat.");
         }
     };
 
@@ -143,7 +144,7 @@ const MyAppointments = () => {
 
         } catch (error) {
             console.error("Error initiating video call:", error);
-            alert("Unable to start video call.");
+            toast.error("Unable to start video call.");
         }
     };
 
