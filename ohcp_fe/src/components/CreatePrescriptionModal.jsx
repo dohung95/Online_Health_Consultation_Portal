@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { prescriptionService } from '../api/prescriptionApi';
+import consultationApi from '../api/consultationApi';
 import './Css/PrescriptionModal.css';
 
 const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
@@ -117,7 +118,30 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
 
       console.log('Sending prescription data:', prescriptionData);
 
+      // Create prescription
       await prescriptionService.createPrescription(prescriptionData);
+      
+      // Create consultation if there are doctor notes
+      if (additionalNotes.trim()) {
+        const consultationData = {
+          AppointmentID: appointmentId,
+          StartTime: new Date().toISOString(),
+          EndTime: new Date().toISOString(),
+          DoctorNotes: additionalNotes.trim(),
+          FollowUpDate: null
+        };
+
+        console.log('Sending consultation data:', consultationData);
+        
+        try {
+          await consultationApi.createConsultation(consultationData);
+          console.log('Consultation created successfully');
+        } catch (consultationError) {
+          console.error('Error creating consultation:', consultationError);
+          console.error('Consultation error details:', consultationError.response?.data);
+          // Don't fail the whole operation if consultation fails
+        }
+      }
       
       // Success - close modal and reset
       alert('Prescription created successfully!');
