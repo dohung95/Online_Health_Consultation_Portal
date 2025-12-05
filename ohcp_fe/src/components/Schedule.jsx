@@ -64,9 +64,9 @@ function Schedule() {
     }
     try {
       const bookingData = {
-        doctorID: selectedDoctor,
-        appointmentTime: selectedSlot.startTime,
-        consultationType: consultationType
+        DoctorID: selectedDoctor,
+        AppointmentTime: selectedSlot.startTime,
+        ConsultationType: consultationType
       };
       await appointmentService.createAppointment(bookingData);
       alert("Appointment scheduled successfully!");

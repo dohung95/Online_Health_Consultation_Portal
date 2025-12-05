@@ -172,7 +172,8 @@ namespace OHCP_BK.Controllers
                         notificationId = n.NotificationID,
                         message = n.Message,
                         isRead = n.IsRead,
-                        createdAt = n.CreatedAt
+                        createdAt = n.CreatedAt,
+                        appointmentId = n.AppointmentId
                     })
                     .ToListAsync();
 

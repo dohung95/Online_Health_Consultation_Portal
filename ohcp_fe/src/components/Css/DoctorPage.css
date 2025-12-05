@@ -31,7 +31,7 @@ body {
 }
 
 .sidebar {
-    width: 288px;
+    width: 360px;
     border-right: 1px solid var(--slate-200);
     background-color: #fff;
     padding: 1.5rem;
@@ -50,7 +50,7 @@ body {
     border-radius: 0.5rem;
     color: var(--slate-800);
     font-weight: 600;
-    font-size: 0.9375rem;
+    font-size: 1rem;
     text-decoration: none;
 }
 
@@ -71,6 +71,7 @@ body {
 
 .nav-link-custom .material-symbols-outlined {
     color: var(--slate-500);
+    font-size: 1.5rem;
 }
 
 .status-badge {
@@ -186,6 +187,85 @@ body {
 
 .hover-table-row:hover {
     background-color: var(--background-light);
+}
+
+/* Logout hover effect */
+.logout-link:hover .material-symbols-outlined,
+.logout-link:hover p {
+    color: #dc2626 !important; /* red-600 */
+}
+
+/* Notification Dropdown */
+.notification-dropdown {
+    animation: slideDown 0.2s ease-out;
+}
+
+/* Notification bell pulse animation */
+.notification-bell-pulse {
+    animation: bellPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes bellPulse {
+    0%, 100% {
+        transform: scale(1);
+        color: inherit;
+    }
+    50% {
+        transform: scale(1.15);
+        color: #3b82f6;
+    }
+}
+
+/* New notification item pulse animation */
+.notification-new-pulse {
+    animation: newNotificationPulse 2s ease-in-out infinite;
+    border-left: 3px solid #3b82f6 !important;
+    position: relative;
+}
+
+@keyframes newNotificationPulse {
+    0%, 100% {
+        background-color: #f1f5f9;
+    }
+    50% {
+        background-color: #dbeafe;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-item {
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: #f8fafc !important;
+}
+
+.notification-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
 .type-badge {

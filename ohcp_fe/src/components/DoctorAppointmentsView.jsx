@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Card, Button, Form } from 'react-bootstrap';
 import { doctorService } from '../api/doctorApi';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
-export default function DoctorAppointmentsView({ doctorId, onViewAppointment }) {
+export default function DoctorAppointmentsView({ doctorId, onViewAppointment, viewedAppointments = [] }) {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
+  const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { roles, initiateCall } = useAuth();
   const { openChatWith } = useChat();
+  
+  // Filter state
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [filterActive, setFilterActive] = useState(false);
 
   useEffect(() => {
     if (!doctorId) return;
@@ -23,7 +30,10 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment }) 
       setError(null);
       try {
         const data = await doctorService.getDoctorAppointments(doctorId);
-        if (mounted) setAppointments(data || []);
+        if (mounted) {
+          setAppointments(data || []);
+          setFilteredAppointments(data || []);
+        }
       } catch (err) {
         console.error('Error fetching appointments:', err);
         if (mounted) setError('Failed to load appointments');
@@ -159,8 +169,94 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment }) 
     }
   };
 
+  // Filter by date
+  const handleDateFilter = () => {
+    if (!selectedDate) {
+      setFilteredAppointments(appointments);
+      setFilterActive(false);
+      return;
+    }
+
+    const filterDate = new Date(selectedDate);
+    const filtered = appointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.appointmentDate);
+      return appointmentDate.toDateString() === filterDate.toDateString();
+    });
+
+    setFilteredAppointments(filtered);
+    setFilterActive(true);
+    setShowDatePicker(false);
+  };
+
+  const clearFilter = () => {
+    setSelectedDate('');
+    setFilteredAppointments(appointments);
+    setFilterActive(false);
+  };
+
   return (
-    <div className="table-responsive">
+    <>
+      <div className="d-flex justify-content-end p-3 pb-0">
+        <div className="position-relative">
+          <Button 
+            variant="outline-primary"
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            size="sm"
+          >
+            <i className="bi bi-calendar-check me-2"></i>
+            Filter by Date
+          </Button>
+          
+          {showDatePicker && (
+            <Card className="position-absolute end-0 mt-2 shadow-lg" style={{ zIndex: 1000, minWidth: '300px' }}>
+              <Card.Body>
+                <Form.Group className="mb-3">
+                  <Form.Label className="fw-semibold">Select Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                  />
+                </Form.Group>
+                <div className="d-flex gap-2">
+                  <Button 
+                    variant="primary" 
+                    size="sm" 
+                    className="flex-grow-1"
+                    onClick={handleDateFilter}
+                  >
+                    Apply Filter
+                  </Button>
+                  <Button 
+                    variant="outline-secondary" 
+                    size="sm"
+                    onClick={() => {
+                      clearFilter();
+                      setShowDatePicker(false);
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {filterActive && (
+        <div className="alert alert-info d-flex justify-content-between align-items-center mb-3 mx-3">
+          <span>
+            <i className="bi bi-funnel-fill me-2"></i>
+            Showing appointments for: <strong>{new Date(selectedDate).toLocaleDateString()}</strong>
+          </span>
+          <Button variant="link" size="sm" onClick={clearFilter}>
+            Clear Filter
+          </Button>
+        </div>
+      )}
+
+      <div className="table-responsive">
       <table className="table table-borderless align-middle mb-0">
         <thead className="table-header">
           <tr>
@@ -174,9 +270,14 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment }) 
           </tr>
         </thead>
         <tbody>
-          {appointments.map((a) => (
+          {filteredAppointments.map((a) => (
             <tr key={a.appointmentID} className="border-bottom hover-table-row">
-              <td className="px-4 py-4 fw-medium text-dark fw-bold">#{a.appointmentID}</td>
+              <td className="px-4 py-4 fw-medium text-dark fw-bold">
+                #{a.appointmentID}
+                {!viewedAppointments.includes(a.appointmentID) && (
+                  <span className="badge bg-success ms-2 small">NEW</span>
+                )}
+              </td>
               <td className="px-4 py-4 text-dark">{a.patient?.fullName || 'Unknown Patient'}</td>
               <td className="px-4 py-4 text-dark">
                 {new Date(a.appointmentTime).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
@@ -209,16 +310,10 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment }) 
                 </span>
               </td>
               <td className="px-4 py-4 text-end">
-                <button
-                  className="btn btn-view d-flex align-items-center justify-content-center ms-auto"
-                  onClick={() => onViewAppointment ? onViewAppointment(a) : navigate(`/appointment/${a.appointmentID}`)}
-                >
-                  View
-                </button>
-                <div className="d-flex gap-2 flex-wrap">
+                <div className="d-flex gap-2 align-items-center justify-content-end flex-nowrap">
                   {a.consultationType === 'Chat' && a.status === 'Scheduled' && (
                     <button
-                      className="btn btn-sm btn-primary"
+                      className="btn btn-sm btn-primary flex-shrink-0"
                       onClick={() => handleChat(a)}
                       title="Start chat"
                     >
@@ -229,14 +324,21 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment }) 
 
                   {a.consultationType === 'Video Call' && a.status === 'Scheduled' && (
                     <button
-                      className="btn btn-sm btn-success"
-                      onClick={() => handleVideoCall(a)}  // ← Truyền cả object "item"
+                      className="btn btn-sm btn-success flex-shrink-0"
+                      onClick={() => handleVideoCall(a)}
                       title="Start video call"
                     >
                       <i className="bi bi-camera-video me-1"></i>
                       Call Now
                     </button>
                   )}
+                  
+                  <button
+                    className="btn btn-view d-flex align-items-center justify-content-center"
+                    onClick={() => onViewAppointment ? onViewAppointment(a) : navigate(`/appointment/${a.appointmentID}`)}
+                  >
+                    View
+                  </button>
                 </div>
               </td>
             </tr>
@@ -244,5 +346,6 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment }) 
         </tbody>
       </table>
     </div>
+    </>
   );
 }

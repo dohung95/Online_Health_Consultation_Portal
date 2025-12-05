@@ -17,6 +17,9 @@ namespace OHCP_BK.Models
         public string Message { get; set; } = null!;
         public bool IsRead { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+        // Optional reference to related appointment
+        public int? AppointmentId { get; set; }
 
         public virtual AppUser User { get; set; } = null!;
     }
