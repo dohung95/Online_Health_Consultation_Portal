@@ -438,9 +438,34 @@ export default function Doctors() {
       onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
     >
       <main className="admin-content p-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="admin-page-title">Doctors List</h2>
-            <div className="d-flex gap-2">
+          {/* Doctors Page Header with Visual Distinction */}
+          <div className="admin-page-header-doctors mb-4">
+            <div className="d-flex justify-content-between align-items-start">
+              <div className="admin-page-title-section">
+                <div className="d-flex align-items-center gap-3 mb-2">
+                  <div className="admin-page-icon-doctors">
+                    <i className="bi bi-clipboard2-pulse-fill"></i>
+                  </div>
+                  <div>
+                    <h2 className="admin-page-title mb-1">
+                      Doctors Management
+                    </h2>
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="admin-page-badge-doctors">
+                        <i className="bi bi-heart-pulse-fill me-1"></i>
+                        Medical Professionals
+                      </span>
+                      <span className="admin-page-count">
+                        {pagination.totalCount} {pagination.totalCount === 1 ? 'Doctor' : 'Doctors'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p className="admin-page-subtitle-doctors mb-0">
+                  Manage healthcare providers, specialties, and professional credentials
+                </p>
+              </div>
+              <div className="d-flex gap-2">
               <button
                 className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
                 onClick={() => toggleViewMode('grid')}
@@ -464,6 +489,7 @@ export default function Doctors() {
                 <i className="bi bi-plus-circle-fill"></i>
                 <span>Add New Doctor</span>
               </button>
+            </div>
             </div>
           </div>
 

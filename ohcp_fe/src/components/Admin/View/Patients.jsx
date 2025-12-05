@@ -324,9 +324,34 @@ export default function Patients() {
       onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
     >
       <main className="admin-content p-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="admin-page-title">Patients List</h2>
-            <div className="d-flex gap-2">
+          {/* Patients Page Header with Visual Distinction */}
+          <div className="admin-page-header-patients mb-4">
+            <div className="d-flex justify-content-between align-items-start">
+              <div className="admin-page-title-section">
+                <div className="d-flex align-items-center gap-3 mb-2">
+                  <div className="admin-page-icon-patients">
+                    <i className="bi bi-person-hearts"></i>
+                  </div>
+                  <div>
+                    <h2 className="admin-page-title mb-1">
+                      Patients Management
+                    </h2>
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="admin-page-badge-patients">
+                        <i className="bi bi-shield-fill-check me-1"></i>
+                        Healthcare Recipients
+                      </span>
+                      <span className="admin-page-count">
+                        {pagination.totalCount} {pagination.totalCount === 1 ? 'Patient' : 'Patients'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p className="admin-page-subtitle-patients mb-0">
+                  Manage patient records, health information, and medical history
+                </p>
+              </div>
+              <div className="d-flex gap-2">
               <button
                 className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
                 onClick={() => toggleViewMode('grid')}
@@ -343,6 +368,7 @@ export default function Patients() {
                 <i className="bi bi-table"></i>
                 Table
               </button>
+            </div>
             </div>
           </div>
 
