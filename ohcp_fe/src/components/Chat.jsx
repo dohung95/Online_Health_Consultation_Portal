@@ -3,7 +3,6 @@ import { auth, db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { collection, query, orderBy, limit, addDoc, serverTimestamp, onSnapshot, where, doc, setDoc } from "firebase/firestore";
-import getBotResponse from '../AI_BOT/BotBrain';
 import { getGeminiResponse } from '../services/geminiService';
 import { toast } from 'sonner';
 
@@ -104,26 +103,83 @@ export default function Chat() {
         }
 
         if (firebaseUser) {
+            const myUid = firebaseUser.uid.replace(/-/g, '');
+
             if (isPatient) {
                 // Only set default bot if no partner is selected yet
                 if (!chatPartner) {
                     setChatPartner(BOT_USER);
                 }
 
-                // load list doctor
-                const qDoctors = query(usersRef, where("role", "==", "doctor"));
-                const unsubDoctors = onSnapshot(qDoctors, (snapshot) => {
-                    setDoctorList(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+                // Load list doctors đã từng chat (từ collection chats)
+                const chatsRef = collection(db, "chats");
+                const qChats = query(
+                    chatsRef,
+                    where("participants", "array-contains", myUid)
+                    // orderBy("lastMessageAt", "desc") // TODO: Uncomment sau khi tạo Firestore index
+                );
+
+                const unsubChats = onSnapshot(qChats, (snapshot) => {
+                    const doctors = [];
+
+                    snapshot.docs.forEach(doc => {
+                        const chatData = doc.data();
+                        const participants = chatData.participants || [];
+
+                        // Tìm UID của đối phương (không phải của mình)
+                        const partnerUid = participants.find(uid => uid !== myUid);
+
+                        if (partnerUid && chatData[partnerUid]) {
+                            // Chỉ lấy những người có role doctor (có thể kiểm tra qua displayName hoặc thêm field role vào chat doc)
+                            // Hoặc đơn giản hơn: lấy tất cả trừ Bot
+                            if (partnerUid !== BOT_USER.uid.replace(/-/g, '')) {
+                                doctors.push({
+                                    uid: partnerUid,
+                                    displayName: chatData[partnerUid].displayName,
+                                    photoURL: chatData[partnerUid].photoURL,
+                                    lastMessage: chatData.lastMessage || '',
+                                    lastMessageAt: chatData.lastMessageAt,
+                                    id: doc.id
+                                });
+                            }
+                        }
+                    });
+                    setDoctorList(doctors);
                 });
-                return unsubDoctors; //clear
+                return unsubChats;
             }
-            // 2. DOCTOR: load list patient
+            // 2. DOCTOR: load list patient đã từng chat
             else if (isDoctor) {
-                const qPatients = query(usersRef, where("role", "==", "patient"));
-                const unsubPatients = onSnapshot(qPatients, (snapshot) => {
-                    setUserList(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+                const chatsRef = collection(db, "chats");
+                const qChats = query(
+                    chatsRef,
+                    where("participants", "array-contains", myUid)
+                    // orderBy("lastMessageAt", "desc") // TODO: Uncomment sau khi tạo Firestore index
+                );
+
+                const unsubChats = onSnapshot(qChats, (snapshot) => {
+                    const patients = [];
+                    snapshot.docs.forEach(doc => {
+                        const chatData = doc.data();
+                        const participants = chatData.participants || [];
+
+                        // Tìm UID của đối phương (không phải của mình)
+                        const partnerUid = participants.find(uid => uid !== myUid);
+
+                        if (partnerUid && chatData[partnerUid]) {
+                            patients.push({
+                                uid: partnerUid,
+                                displayName: chatData[partnerUid].displayName,
+                                photoURL: chatData[partnerUid].photoURL,
+                                lastMessage: chatData.lastMessage || '',
+                                lastMessageAt: chatData.lastMessageAt,
+                                id: doc.id
+                            });
+                        }
+                    });
+                    setUserList(patients);
                 });
-                return unsubPatients;
+                return unsubChats;
             }
         }
     }, [firebaseUser, isDoctor, isPatient, roles, isGuest]);
@@ -147,7 +203,8 @@ export default function Chat() {
             setLoading(true);
 
             const myUid = firebaseUser.uid.replace(/-/g, '');
-            const targetUid = chatPartner.uid.replace(/-/g, '');
+            // chatPartner.uid đã là sanitized format (không có dấu gạch ngang)
+            const targetUid = chatPartner.uid;
             const chatRoomId = myUid < targetUid ? `${myUid}_${targetUid}` : `${targetUid}_${myUid}`;
 
             const messagesCollectionRef = collection(db, "chats", chatRoomId, "messages");
@@ -173,7 +230,8 @@ export default function Chat() {
         const uid = isGuest ? 'guest_temp_id' : firebaseUser.uid;
         const photoURL = isGuest ? 'https://api.dicebear.com/8.x/avataaars/svg?seed=guest' : firebaseUser.photoURL;
         const myUid = uid.replace(/-/g, '');
-        const targetUid = chatPartner.uid.replace(/-/g, '');
+        // chatPartner.uid đã là sanitized format (không có dấu gạch ngang)
+        const targetUid = chatPartner.uid;
         const displayName = isGuest ? "Guest" : (csharpUser.preferred_username || "User");
 
         // 2. TẠO TIN NHẮN CỦA USER
@@ -196,11 +254,11 @@ export default function Chat() {
         // 4. LOGIC RẼ NHÁNH
 
         if (isGuest && targetUid !== BOT_USER.uid) {
-            toast.error('Please login to chat with doctors!');
+            toast.info('Please login to chat with doctors!');
             return;
         }
 
-        if (targetUid === BOT_USER.uid) {
+        if (targetUid === BOT_USER.uid.replace(/-/g, '')) {
             // === LOGIC CHO BOT (KHÔNG LƯU DB) ===
 
             // Bot "suy nghĩ" với Gemini AI (tự động fallback nếu lỗi)
@@ -261,19 +319,19 @@ export default function Chat() {
         const file = e.target.files[0];
         if (file && file.type.startsWith('image/')) {
             if (file.size > 300 * 1024) { // Giới hạn 300KB (base64 sẽ to hơn ~33%)
-                toast.error('Image too large! Maximum 300KB');
+                toast.info('Image too large! Maximum 300KB');
                 return;
             }
             setSelectedFile(file);
         } else {
-            toast.error('Only image files are accepted!');
+            toast.info('Only image files are accepted!');
         }
     };
 
     const sendImage = async () => {
         if (!selectedFile || !firebaseUser || !chatPartner) return;
         if (chatPartner.uid === BOT_USER.uid) {
-            toast.error('Cannot send image to Bot!');
+            toast.info('Cannot send image to Bot!');
             return;
         }
 
@@ -281,7 +339,8 @@ export default function Chat() {
         try {
             const { uid, photoURL } = firebaseUser;
             const myUid = uid.replace(/-/g, '');
-            const targetUid = chatPartner.uid.replace(/-/g, '');
+            // chatPartner.uid đã là sanitized format
+            const targetUid = chatPartner.uid;
             const displayName = csharpUser.preferred_username || "User";
 
             // Chuyển file thành Base64
@@ -293,7 +352,7 @@ export default function Chat() {
 
                     // Kiểm tra kích thước sau khi convert
                     if (base64Image.length > 900 * 1024) { // ~900KB (để an toàn < 1MB của Firestore)
-                        toast.error('Image too large after conversion! Please choose smaller image.');
+                        toast.info('Image too large after conversion! Please choose smaller image.');
                         setUploading(false);
                         return;
                     }
@@ -358,8 +417,8 @@ export default function Chat() {
 
             if (item.type.startsWith('image/')) {
                 // Kiểm tra nếu đang chat với Bot
-                if (chatPartner.uid === BOT_USER.uid) {
-                    toast.error('Can not send image to Bot!');
+                if (chatPartner.uid === BOT_USER.uid.replace(/-/g, '')) {
+                    toast.info('Can not send image to Bot!');
                     return;
                 }
                 e.preventDefault();
@@ -367,7 +426,7 @@ export default function Chat() {
                 const file = item.getAsFile();
                 if (file) {
                     if (file.size > 300 * 1024) { // Giới hạn 300KB
-                        toast.error('Image too large! Maximum 300KB');
+                        toast.info('Image too large! Maximum 300KB');
                         return;
                     }
                     setSelectedFile(file);
@@ -388,6 +447,23 @@ export default function Chat() {
         if (!timestamp) return "...";
         const date = new Date(timestamp.seconds * 1000);
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Helper function để format thời gian relative
+    const FormatRelativeTime = (timestamp) => {
+        if (!timestamp) return "";
+        const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return "Vừa xong";
+        if (diffMins < 60) return `${diffMins} phút trước`;
+        if (diffHours < 24) return `${diffHours} giờ trước`;
+        if (diffDays < 7) return `${diffDays} ngày trước`;
+        return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
     }
 
     /// template
@@ -460,7 +536,7 @@ export default function Chat() {
                             <>
                                 {!chatPartner ? (
                                     <ul className="list-group list-group-flush">
-                                        {userList.length === 0 && <li className="list-group-item">No patient list.</li>}
+                                        {userList.length === 0 && <li className="list-group-item">Chưa có cuộc trò chuyện nào.</li>}
                                         {userList.map(u => (
                                             <li
                                                 key={u.id}
@@ -472,9 +548,21 @@ export default function Chat() {
                                                     src={u.photoURL || 'https://api.dicebear.com/8.x/initials/svg?seed=' + u.displayName}
                                                     alt="ava"
                                                     className="rounded-circle me-2"
-                                                    style={{ width: 40, height: 40 }}
+                                                    style={{ width: 40, height: 40, flexShrink: 0 }}
                                                 />
-                                                <span className="fw-bold">{u.displayName}</span>
+                                                <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                                                    <div className="fw-bold">{u.displayName}</div>
+                                                    {u.lastMessage && (
+                                                        <small className="text-muted text-truncate d-block" style={{ fontSize: '0.85rem' }}>
+                                                            {u.lastMessage}
+                                                        </small>
+                                                    )}
+                                                </div>
+                                                {u.lastMessageAt && (
+                                                    <small className="text-muted ms-2" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                                        {FormatRelativeTime(u.lastMessageAt)}
+                                                    </small>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
@@ -618,9 +706,12 @@ export default function Chat() {
                                             src={BOT_USER.photoURL}
                                             alt="ava"
                                             className="rounded-circle me-2"
-                                            style={{ width: 40, height: 40 }}
+                                            style={{ width: 40, height: 40, flexShrink: 0 }}
                                         />
-                                        <span className="fw-bold">{BOT_USER.displayName}</span>
+                                        <div className="flex-grow-1">
+                                            <div className="fw-bold">{BOT_USER.displayName}</div>
+                                            <small className="text-muted" style={{ fontSize: '0.85rem' }}>Hỗ trợ AI 24/7</small>
+                                        </div>
                                     </li>
                                     {doctorList.map(doc => (
                                         <li
@@ -633,9 +724,21 @@ export default function Chat() {
                                                 src={doc.photoURL || 'https://api.dicebear.com/8.x/initials/svg?seed=' + doc.displayName}
                                                 alt="ava"
                                                 className="rounded-circle me-2"
-                                                style={{ width: 40, height: 40 }}
+                                                style={{ width: 40, height: 40, flexShrink: 0 }}
                                             />
-                                            <span className="fw-bold">Dr.{doc.displayName}</span>
+                                            <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                                                <div className="fw-bold">Dr.{doc.displayName}</div>
+                                                {doc.lastMessage && (
+                                                    <small className="text-muted text-truncate d-block" style={{ fontSize: '0.85rem' }}>
+                                                        {doc.lastMessage}
+                                                    </small>
+                                                )}
+                                            </div>
+                                            {doc.lastMessageAt && (
+                                                <small className="text-muted ms-2" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                                    {FormatRelativeTime(doc.lastMessageAt)}
+                                                </small>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
