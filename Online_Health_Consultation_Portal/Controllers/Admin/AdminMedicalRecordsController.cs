@@ -312,6 +312,8 @@ namespace OHCP_BK.Controllers.Admin
                         .ThenInclude(hr => hr.MedicalDocuments)
                     .Include(p => p.Appointments)
                         .ThenInclude(a => a.Doctor)
+                    .Include(p => p.Appointments)
+                        .ThenInclude(a => a.Consultation)
                     .FirstOrDefaultAsync(p => p.PatientID == patientId);
 
                 if (patient == null)
@@ -330,7 +332,8 @@ namespace OHCP_BK.Controllers.Admin
                         DoctorName = a.Doctor.FullName,
                         DoctorSpecialty = a.Doctor.Specialty,
                         ConsultationType = a.ConsultationType,
-                        Status = a.Status
+                        Status = a.Status,
+                        DoctorNotes = a.Consultation != null ? a.Consultation.DoctorNotes : null
                     })
                     .ToList();
 
@@ -393,6 +396,46 @@ namespace OHCP_BK.Controllers.Admin
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "An error occurred while fetching patient medical history", details = ex.Message });
+            }
+        }
+
+        // GET: api/admin/adminmedicalrecords/patient/{patientId}/prescriptions
+        [HttpGet("patient/{patientId}/prescriptions")]
+        public async Task<ActionResult<IEnumerable<Dtos.PrescriptionHeaderResponseDTO>>> GetPatientPrescriptions(string patientId)
+        {
+            try
+            {
+                var prescriptions = await _context.PrescriptionHeaders
+                    .Where(ph => ph.PatientID == patientId)
+                    .Include(ph => ph.PrescriptionItems)
+                    .Include(ph => ph.Appointment)
+                        .ThenInclude(a => a.Doctor)
+                    .OrderByDescending(ph => ph.IssueDate)
+                    .ToListAsync();
+
+                var response = prescriptions.Select(h => new Dtos.PrescriptionHeaderResponseDTO
+                {
+                    PrescriptionHeaderID = h.PrescriptionHeaderID,
+                    AppointmentID = h.AppointmentID,
+                    PatientID = h.PatientID,
+                    IssueDate = h.IssueDate,
+                    DoctorName = h.Appointment?.Doctor?.FullName,
+                    Specialty = h.Appointment?.Doctor?.Specialty,
+                    Medications = h.PrescriptionItems.Select(pi => new Dtos.PrescriptionItemResponseDTO
+                    {
+                        PrescriptionItemID = pi.PrescriptionItemID,
+                        MedicationName = pi.MedicationName,
+                        Dosage = pi.Dosage,
+                        Instructions = pi.Instructions,
+                        TotalSupplyDays = pi.TotalSupplyDays
+                    }).ToList()
+                }).ToList();
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while fetching patient prescriptions", details = ex.Message });
             }
         }
     }

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
+import PrescriptionViewer from "./PrescriptionViewer";
+import PatientCardGrid from "./PatientCardGrid";
 import { medicalRecordsApi } from "../../../services/adminApi";
 import Toast from "./Toast";
 import useToast from "../useToast";
@@ -34,6 +36,32 @@ export default function MedicalRecords() {
   const [loadingDocument, setLoadingDocument] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+
+  // Prescription state
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState(null);
+
+  // Auto-collapse sidebar based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      // Mobile (< 768px): Default to collapsed (hidden)
+      if (window.innerWidth < 768) {
+        setSidebarCollapsed(true);
+      }
+      // Tablet (768px - 1200px): Default to NOT collapsed (so it shows condensed sidebar)
+      // Desktop (> 1200px): Default to NOT collapsed
+      else {
+        setSidebarCollapsed(false);
+      }
+    };
+
+    // Initial check
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch patient list
   const fetchPatients = async () => {
@@ -135,7 +163,9 @@ export default function MedicalRecords() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load document');
+        const errorText = await response.text();
+        console.error('Failed to load document:', response.status, errorText);
+        throw new Error(`Failed to load document: ${response.status} ${response.statusText}`);
       }
 
       const type = documentType?.toLowerCase() || '';
@@ -147,6 +177,11 @@ export default function MedicalRecords() {
       } else {
         // Handle images and PDFs as blobs
         const blob = await response.blob();
+
+        if (blob.size === 0) {
+          throw new Error('Received empty file');
+        }
+
         const url = URL.createObjectURL(blob);
         setDocumentPreviewUrl(url);
       }
@@ -154,7 +189,7 @@ export default function MedicalRecords() {
       console.error('Error loading document:', error);
       showToast({
         title: 'Error',
-        message: 'Failed to load document preview',
+        message: error.message || 'Failed to load document preview',
         type: 'error'
       });
     } finally {
@@ -206,13 +241,10 @@ export default function MedicalRecords() {
   // Check if file type is previewable
   const isPreviewable = (documentType) => {
     const type = documentType?.toLowerCase() || '';
+    // Only support images and PDFs for preview
     return type.includes('image') || type.includes('jpg') || type.includes('png') ||
-      type.includes('jpeg') || type.includes('gif') || type.includes('bmp') ||
-      type.includes('pdf') || type.includes('text') || type.includes('txt') ||
-      type.includes('video') || type.includes('mp4') || type.includes('avi') ||
-      type.includes('mov') || type.includes('webm') || type.includes('mkv') ||
-      type.includes('audio') || type.includes('mp3') || type.includes('wav') ||
-      type.includes('ogg') || type.includes('m4a');
+      type.includes('jpeg') || type.includes('gif') || type.includes('bmp') || type.includes('webp') ||
+      type.includes('pdf');
   };
 
   const getCategoryIcon = (category) => {
@@ -390,57 +422,11 @@ export default function MedicalRecords() {
                     <p className="mt-2">No patients found</p>
                   </div>
                 ) : (
-                  <div className="table-responsive">
-                    <table className="admin-table table mb-0 align-middle">
-                      <thead className="table-light">
-                        <tr>
-                          <th>Patient ID</th>
-                          <th>Full Name</th>
-                          <th>Email</th>
-                          <th>Gender</th>
-                          <th>Date of Birth</th>
-                          <th>Total Records</th>
-                          <th>Total Documents</th>
-                          <th>Last Updated</th>
-                          <th className="text-center">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {patients.map((patient) => (
-                          <tr key={patient.patientID}>
-                            <td><strong>{patient.patientID.substring(0, 8)}</strong></td>
-                            <td>
-                              <div className="d-flex align-items-center">
-                                <div className="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-2" style={{ width: "35px", height: "35px" }}>
-                                  {patient.fullName.charAt(0)}
-                                </div>
-                                {patient.fullName}
-                              </div>
-                            </td>
-                            <td>{patient.email}</td>
-                            <td>{patient.gender || 'N/A'}</td>
-                            <td>{formatDate(patient.dateOfBirth)}</td>
-                            <td>
-                              <span className="badge bg-primary">{patient.totalRecords}</span>
-                            </td>
-                            <td>
-                              <span className="badge bg-success">{patient.totalDocuments}</span>
-                            </td>
-                            <td>{formatDate(patient.lastUpdated)}</td>
-                            <td className="text-center">
-                              <button
-                                className="btn btn-outline-slate btn-sm"
-                                title="View Medical History"
-                                onClick={() => handleViewPatient(patient)}
-                              >
-                                <i className="bi bi-eye"></i> View Details
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <PatientCardGrid
+                    patients={patients}
+                    onViewPatient={handleViewPatient}
+                    formatDate={formatDate}
+                  />
                 )}
               </div>
 
@@ -598,56 +584,140 @@ export default function MedicalRecords() {
                   )}
                 </div>
 
-                <div className="row">
+                <div className="row g-4">
                   {/* Left Column - Appointment History */}
-                  <div className="col-md-6">
-                    <div className="admin-card mb-4">
-                      <div className="card-body">
-                        <h5 className="mb-3">
-                          <i className="bi bi-calendar-check me-2 text-primary"></i>
+                  <div className="col-lg-6">
+                    <div className="admin-card mb-4" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                      <div className="card-header" style={{
+                        background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',
+                        color: 'white',
+                        borderRadius: '8px 8px 0 0',
+                        padding: '16px 20px',
+                        borderBottom: 'none'
+                      }}>
+                        <h5 className="mb-0 d-flex align-items-center" style={{ fontWeight: '600' }}>
+                          <i className="bi bi-calendar-check me-2"></i>
                           Appointment History
+                          {patientHistory.appointments && patientHistory.appointments.length > 0 && (
+                            <span className="badge bg-white text-primary ms-2" style={{ fontSize: '12px' }}>
+                              {patientHistory.appointments.length}
+                            </span>
+                          )}
                         </h5>
+                      </div>
+                      <div className="card-body" style={{ flex: 1, overflowY: 'auto', maxHeight: '600px' }}>
                         {patientHistory.appointments && patientHistory.appointments.length > 0 ? (
-                          <div className="timeline">
+                          <div style={{ position: 'relative' }}>
                             {patientHistory.appointments.map((appointment, index) => (
                               <div
                                 key={appointment.appointmentID}
-                                className="timeline-item mb-3"
-                                style={{ cursor: 'pointer' }}
+                                className="appointment-card"
+                                style={{
+                                  background: 'linear-gradient(135deg, #ffffff 0%, #ecfeff 100%)',
+                                  border: '1px solid #bae6fd',
+                                  borderRadius: '8px',
+                                  padding: '16px',
+                                  marginBottom: '12px',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.3s ease',
+                                  position: 'relative',
+                                  overflow: 'hidden'
+                                }}
                                 onClick={() => handleViewAppointment(appointment)}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(-2px)';
+                                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(8, 145, 178, 0.15)';
+                                  e.currentTarget.style.borderColor = '#0891b2';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                  e.currentTarget.style.boxShadow = 'none';
+                                  e.currentTarget.style.borderColor = '#bae6fd';
+                                }}
                               >
-                                <div className="d-flex gap-3">
-                                  <div className="timeline-marker">
-                                    <div className={`rounded-circle ${getStatusBadgeClass(appointment.status)} text-white d-flex align-items-center justify-content-center`} style={{ width: "40px", height: "40px" }}>
-                                      <i className="bi bi-calendar-event"></i>
-                                    </div>
+                                {/* Status Indicator Bar */}
+                                <div style={{
+                                  position: 'absolute',
+                                  left: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  width: '4px',
+                                  background: appointment.status === 'Completed' ? '#10b981' :
+                                    appointment.status === 'Scheduled' ? '#0891b2' : '#ef4444'
+                                }}></div>
+
+                                <div className="d-flex align-items-start gap-3" style={{ paddingLeft: '8px' }}>
+                                  {/* Icon */}
+                                  <div style={{
+                                    width: '48px',
+                                    height: '48px',
+                                    borderRadius: '12px',
+                                    background: appointment.status === 'Completed' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' :
+                                      appointment.status === 'Scheduled' ? 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)' :
+                                        'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: '20px',
+                                    flexShrink: 0,
+                                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                  }}>
+                                    <i className="bi bi-calendar-event"></i>
                                   </div>
+
+                                  {/* Content */}
                                   <div className="flex-grow-1">
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                       <div>
-                                        <h6 className="mb-1">{formatDateTime(appointment.appointmentTime)}</h6>
-                                        <p className="mb-0 text-muted" style={{ fontSize: '13px' }}>
-                                          <i className="bi bi-person-badge me-1"></i>
-                                          Dr. {appointment.doctorName} - {appointment.doctorSpecialty}
+                                        <h6 className="mb-1" style={{ color: '#0f172a', fontWeight: '600', fontSize: '14px' }}>
+                                          {formatDateTime(appointment.appointmentTime)}
+                                        </h6>
+                                        <p className="mb-0" style={{ fontSize: '13px', color: '#64748b' }}>
+                                          <i className="bi bi-person-badge me-1" style={{ color: '#0891b2' }}></i>
+                                          Dr. {appointment.doctorName}
                                         </p>
                                       </div>
-                                      <span className={`badge ${getStatusBadgeClass(appointment.status)}`}>
+                                      <span className={`badge ${getStatusBadgeClass(appointment.status)}`} style={{
+                                        fontSize: '11px',
+                                        padding: '4px 10px',
+                                        fontWeight: '600'
+                                      }}>
                                         {appointment.status}
                                       </span>
                                     </div>
-                                    <p className="mb-0" style={{ fontSize: '13px' }}>
-                                      <i className="bi bi-clipboard-pulse me-1"></i>
-                                      {appointment.consultationType}
-                                    </p>
-                                    <p className="mb-0 mt-1" style={{ fontSize: '12px', color: '#6c757d' }}>
-                                      <i className="bi bi-hand-index me-1"></i>
-                                      Click to view details
+
+                                    <div className="d-flex flex-wrap gap-2 mt-2">
+                                      <span style={{
+                                        fontSize: '12px',
+                                        padding: '4px 10px',
+                                        background: 'rgba(8, 145, 178, 0.1)',
+                                        color: '#0891b2',
+                                        borderRadius: '6px',
+                                        fontWeight: '500'
+                                      }}>
+                                        <i className="bi bi-hospital me-1"></i>
+                                        {appointment.doctorSpecialty}
+                                      </span>
+                                      <span style={{
+                                        fontSize: '12px',
+                                        padding: '4px 10px',
+                                        background: 'rgba(6, 182, 212, 0.1)',
+                                        color: '#0e7490',
+                                        borderRadius: '6px',
+                                        fontWeight: '500'
+                                      }}>
+                                        <i className="bi bi-clipboard-pulse me-1"></i>
+                                        {appointment.consultationType}
+                                      </span>
+                                    </div>
+
+                                    <p className="mb-0 mt-2" style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>
+                                      <i className="bi bi-cursor me-1"></i>
+                                      Click to view full details
                                     </p>
                                   </div>
                                 </div>
-                                {index < patientHistory.appointments.length - 1 && (
-                                  <div className="timeline-line"></div>
-                                )}
                               </div>
                             ))}
                           </div>
@@ -662,82 +732,174 @@ export default function MedicalRecords() {
                   </div>
 
                   {/* Right Column - Medical Documents */}
-                  <div className="col-md-6">
-                    <div className="admin-card mb-4">
-                      <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <h5 className="mb-0">
-                            <i className="bi bi-folder2-open me-2 text-success"></i>
+                  <div className="col-lg-6">
+                    <div className="admin-card mb-4" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                      <div className="card-header" style={{
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        color: 'white',
+                        borderRadius: '8px 8px 0 0',
+                        padding: '16px 20px',
+                        borderBottom: 'none'
+                      }}>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <h5 className="mb-0 d-flex align-items-center" style={{ fontWeight: '600' }}>
+                            <i className="bi bi-folder2-open me-2"></i>
                             Medical Documents
+                            {patientHistory.documentsByCategory && (
+                              <span className="badge bg-white text-success ms-2" style={{ fontSize: '12px' }}>
+                                {patientHistory.documentsByCategory.reduce((sum, cat) => sum + cat.documentCount, 0)}
+                              </span>
+                            )}
                           </h5>
                           <select
                             className="form-select form-select-sm"
-                            style={{ width: 'auto' }}
+                            style={{
+                              width: 'auto',
+                              background: 'rgba(255, 255, 255, 0.2)',
+                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              color: 'white',
+                              fontSize: '12px',
+                              padding: '4px 8px'
+                            }}
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
                           >
-                            <option value="all">All Categories</option>
+                            <option value="all" style={{ color: '#0f172a' }}>All Categories</option>
                             {patientHistory.documentsByCategory && patientHistory.documentsByCategory.map((cat) => (
-                              <option key={cat.category} value={cat.category}>
+                              <option key={cat.category} value={cat.category} style={{ color: '#0f172a' }}>
                                 {cat.category} ({cat.documentCount})
                               </option>
                             ))}
                           </select>
                         </div>
+                      </div>
+                      <div className="card-body" style={{ flex: 1, overflowY: 'auto', maxHeight: '600px', padding: '20px' }}>
 
                         {patientHistory.documentsByCategory && patientHistory.documentsByCategory.length > 0 ? (
-                          <div className="accordion" id="documentAccordion">
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {getFilteredDocuments().map((category, catIndex) => (
-                              <div className="accordion-item" key={category.category}>
-                                <h2 className="accordion-header">
-                                  <button
-                                    className={`accordion-button ${catIndex !== 0 ? 'collapsed' : ''}`}
-                                    type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target={`#collapse${catIndex}`}
-                                    aria-expanded={catIndex === 0}
-                                  >
-                                    <i className={`bi ${getCategoryIcon(category.category)} me-2`}></i>
-                                    {category.category}
-                                    <span className="badge bg-primary ms-2">{category.documentCount}</span>
-                                  </button>
-                                </h2>
+                              <div key={category.category} style={{
+                                border: '1px solid #d1fae5',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                background: 'linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%)'
+                              }}>
+                                {/* Category Header */}
+                                <div style={{
+                                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                                  padding: '12px 16px',
+                                  borderBottom: '1px solid #a7f3d0',
+                                  cursor: 'pointer'
+                                }}
+                                  onClick={() => {
+                                    const collapseEl = document.getElementById(`collapse${catIndex}`);
+                                    if (collapseEl) {
+                                      collapseEl.classList.toggle('show');
+                                    }
+                                  }}>
+                                  <div className="d-flex align-items-center justify-content-between">
+                                    <div className="d-flex align-items-center gap-2">
+                                      <i className={`bi ${getCategoryIcon(category.category)}`} style={{ color: '#059669', fontSize: '18px' }}></i>
+                                      <span style={{ fontWeight: '600', color: '#065f46', fontSize: '14px' }}>
+                                        {category.category}
+                                      </span>
+                                      <span className="badge" style={{
+                                        background: '#10b981',
+                                        color: 'white',
+                                        fontSize: '11px',
+                                        padding: '3px 8px'
+                                      }}>
+                                        {category.documentCount}
+                                      </span>
+                                    </div>
+                                    <i className="bi bi-chevron-down" style={{ color: '#059669', fontSize: '14px' }}></i>
+                                  </div>
+                                </div>
+
+                                {/* Documents List */}
                                 <div
                                   id={`collapse${catIndex}`}
-                                  className={`accordion-collapse collapse ${catIndex === 0 ? 'show' : ''}`}
-                                  data-bs-parent="#documentAccordion"
+                                  className={`collapse ${catIndex === 0 ? 'show' : ''}`}
                                 >
-                                  <div className="accordion-body">
-                                    <div className="list-group list-group-flush">
-                                      {category.documents.map((doc) => (
-                                        <div
-                                          key={doc.documentID}
-                                          className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                                          style={{ cursor: 'pointer' }}
-                                          onClick={() => handleViewDocument(doc)}
-                                        >
-                                          <div className="d-flex align-items-start gap-2 flex-grow-1">
-                                            <i className={`${getFileIcon(doc.documentType)} fs-4`}></i>
-                                            <div className="flex-grow-1">
-                                              <h6 className="mb-1">{doc.documentName}</h6>
-                                              {doc.description && (
-                                                <p className="mb-1 text-muted" style={{ fontSize: '12px' }}>{doc.description}</p>
+                                  <div style={{ padding: '8px' }}>
+                                    {category.documents.map((doc, docIndex) => (
+                                      <div
+                                        key={doc.documentID}
+                                        className="document-item"
+                                        style={{
+                                          padding: '12px',
+                                          borderRadius: '6px',
+                                          marginBottom: docIndex < category.documents.length - 1 ? '6px' : '0',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.2s ease',
+                                          background: '#ffffff',
+                                          border: '1px solid #e0f2fe'
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewDocument(doc);
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.background = 'linear-gradient(135deg, #ecfeff 0%, #cffafe 100%)';
+                                          e.currentTarget.style.borderColor = '#0891b2';
+                                          e.currentTarget.style.transform = 'translateX(4px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.background = '#ffffff';
+                                          e.currentTarget.style.borderColor = '#e0f2fe';
+                                          e.currentTarget.style.transform = 'translateX(0)';
+                                        }}
+                                      >
+                                        <div className="d-flex align-items-start gap-3">
+                                          {/* File Icon */}
+                                          <div style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            borderRadius: '8px',
+                                            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexShrink: 0
+                                          }}>
+                                            <i className={`${getFileIcon(doc.documentType)}`} style={{ fontSize: '20px' }}></i>
+                                          </div>
+
+                                          {/* Document Info */}
+                                          <div className="flex-grow-1">
+                                            <h6 className="mb-1" style={{ fontSize: '13px', fontWeight: '600', color: '#0f172a' }}>
+                                              {doc.documentName}
+                                            </h6>
+                                            {doc.description && (
+                                              <p className="mb-1" style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4' }}>
+                                                {doc.description}
+                                              </p>
+                                            )}
+                                            <div className="d-flex flex-wrap gap-2 mt-1">
+                                              {doc.documentDate && (
+                                                <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                                  <i className="bi bi-calendar3 me-1"></i>
+                                                  {formatDate(doc.documentDate)}
+                                                </span>
                                               )}
-                                              <div className="d-flex gap-3" style={{ fontSize: '11px', color: '#6c757d' }}>
-                                                {doc.documentDate && (
-                                                  <span><i className="bi bi-calendar3 me-1"></i>{formatDate(doc.documentDate)}</span>
-                                                )}
-                                                {doc.performedBy && (
-                                                  <span><i className="bi bi-person me-1"></i>{doc.performedBy}</span>
-                                                )}
-                                                <span><i className="bi bi-upload me-1"></i>{formatDate(doc.uploadedAt)}</span>
-                                              </div>
+                                              {doc.performedBy && (
+                                                <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                                  <i className="bi bi-person me-1"></i>
+                                                  {doc.performedBy}
+                                                </span>
+                                              )}
+                                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                                <i className="bi bi-upload me-1"></i>
+                                                {formatDate(doc.uploadedAt)}
+                                              </span>
                                             </div>
                                           </div>
-                                          <i className="bi bi-chevron-right"></i>
+
+                                          {/* Arrow Icon */}
+                                          <i className="bi bi-arrow-right-circle" style={{ color: '#0891b2', fontSize: '18px', flexShrink: 0 }}></i>
                                         </div>
-                                      ))}
-                                    </div>
+                                      </div>
+                                    ))}
                                   </div>
                                 </div>
                               </div>
@@ -751,6 +913,13 @@ export default function MedicalRecords() {
                         )}
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* Prescription Viewer Section */}
+                <div className="row g-4 mt-2">
+                  <div className="col-12">
+                    <PrescriptionViewer patientId={selectedPatient.patientID} />
                   </div>
                 </div>
               </>
@@ -963,9 +1132,6 @@ export default function MedicalRecords() {
                             <i className={`${getFileIcon(selectedDocument.documentType)} fs-1 mb-3`}></i>
                             <h5 className="mt-3">{selectedDocument.documentName}</h5>
                             <p className="text-muted">Preview not available for this file type</p>
-                            <p className="text-muted small mb-3">
-                              File Type: <strong>{selectedDocument.documentType || 'Unknown'}</strong>
-                            </p>
                             <button
                               onClick={() => handleDownloadDocument(selectedDocument.documentID, selectedDocument.documentName)}
                               className="btn btn-primary mt-2"
@@ -1031,13 +1197,37 @@ export default function MedicalRecords() {
                             <strong>Date & Time:</strong>
                             <span>{formatDateTime(selectedAppointment.appointmentTime)}</span>
                           </div>
-                          <div className="admin-info-row">
-                            <strong>Consultation Type:</strong>
-                            <span className="badge bg-info">{selectedAppointment.consultationType}</span>
+                          <div style={{ marginBottom: '16px', padding: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <strong style={{ color: '#0f172a', fontWeight: '600', minWidth: '140px' }}>Consultation Type:</strong>
+                            <span className="badge" style={{
+                              background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',
+                              color: 'white',
+                              padding: '6px 14px',
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 4px rgba(8, 145, 178, 0.2)'
+                            }}>
+                              <i className="bi bi-clipboard-pulse me-1"></i>
+                              {selectedAppointment.consultationType}
+                            </span>
                           </div>
-                          <div className="admin-info-row">
-                            <strong>Status:</strong>
-                            <span className={`badge ${getStatusBadgeClass(selectedAppointment.status)}`}>
+                          <div style={{ marginBottom: '16px', padding: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <strong style={{ color: '#0f172a', fontWeight: '600', minWidth: '140px' }}>Status:</strong>
+                            <span className={`badge`} style={{
+                              background: selectedAppointment.status === 'Completed' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' :
+                                selectedAppointment.status === 'Scheduled' ? 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)' :
+                                  'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                              color: 'white',
+                              padding: '6px 14px',
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)'
+                            }}>
+                              <i className={`bi ${selectedAppointment.status === 'Completed' ? 'bi-check-circle' :
+                                selectedAppointment.status === 'Scheduled' ? 'bi-clock' :
+                                  'bi-x-circle'} me-1`}></i>
                               {selectedAppointment.status}
                             </span>
                           </div>
@@ -1099,6 +1289,26 @@ export default function MedicalRecords() {
                               <span>{formatDate(patientHistory.dateOfBirth)}</span>
                             </div>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Doctor Notes */}
+                  {selectedAppointment.doctorNotes && (
+                    <div className="admin-card mb-3">
+                      <div className="card-body">
+                        <h6 className="mb-3">
+                          <i className="bi bi-clipboard-pulse me-2 text-primary"></i>
+                          Doctor's Notes
+                        </h6>
+                        <div className="alert alert-info mb-0" style={{
+                          backgroundColor: '#e0f2fe',
+                          borderColor: '#0891b2',
+                          color: '#0f172a'
+                        }}>
+                          <i className="bi bi-journal-medical me-2"></i>
+                          {selectedAppointment.doctorNotes}
                         </div>
                       </div>
                     </div>
