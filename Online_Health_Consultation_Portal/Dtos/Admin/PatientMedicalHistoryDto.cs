@@ -26,6 +26,7 @@ namespace OHCP_BK.DTOs.Admin
         public string DoctorSpecialty { get; set; } = string.Empty;
         public string ConsultationType { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public string? DoctorNotes { get; set; }
     }
 
     public class MedicalDocumentCategoryDto

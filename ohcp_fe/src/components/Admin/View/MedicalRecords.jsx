@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
+import PrescriptionViewer from "./PrescriptionViewer";
 import { medicalRecordsApi } from "../../../services/adminApi";
 import Toast from "./Toast";
 import useToast from "../useToast";
@@ -34,6 +35,11 @@ export default function MedicalRecords() {
   const [loadingDocument, setLoadingDocument] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+
+  // Prescription state
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState(null);
 
   // Fetch patient list
   const fetchPatients = async () => {
@@ -922,6 +928,13 @@ export default function MedicalRecords() {
                     </div>
                   </div>
                 </div>
+
+                {/* Prescription Viewer Section */}
+                <div className="row g-4 mt-2">
+                  <div className="col-12">
+                    <PrescriptionViewer patientId={selectedPatient.patientID} />
+                  </div>
+                </div>
               </>
             )}
           </>
@@ -1292,6 +1305,26 @@ export default function MedicalRecords() {
                               <span>{formatDate(patientHistory.dateOfBirth)}</span>
                             </div>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Doctor Notes */}
+                  {selectedAppointment.doctorNotes && (
+                    <div className="admin-card mb-3">
+                      <div className="card-body">
+                        <h6 className="mb-3">
+                          <i className="bi bi-clipboard-pulse me-2 text-primary"></i>
+                          Doctor's Notes
+                        </h6>
+                        <div className="alert alert-info mb-0" style={{
+                          backgroundColor: '#e0f2fe',
+                          borderColor: '#0891b2',
+                          color: '#0f172a'
+                        }}>
+                          <i className="bi bi-journal-medical me-2"></i>
+                          {selectedAppointment.doctorNotes}
                         </div>
                       </div>
                     </div>
