@@ -710,7 +710,7 @@ export default function Chat() {
                                         />
                                         <div className="flex-grow-1">
                                             <div className="fw-bold">{BOT_USER.displayName}</div>
-                                            <small className="text-muted" style={{ fontSize: '0.85rem' }}>Hỗ trợ AI 24/7</small>
+                                            <small className="text-muted" style={{ fontSize: '0.85rem' }}>AI support 24/7</small>
                                         </div>
                                     </li>
                                     {doctorList.map(doc => (
