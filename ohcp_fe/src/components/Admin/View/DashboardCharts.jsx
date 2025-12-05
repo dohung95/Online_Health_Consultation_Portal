@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { analyticsApi } from '../../../services/adminApi';
 import '../Css/DashboardCharts.css';
 
@@ -222,36 +222,61 @@ const DashboardCharts = () => {
                     </div>
                 </div>
 
-                {/* Revenue by Month Chart - Stacked Area Chart */}
+                {/* Revenue by Status - Pie Chart */}
                 <div className="col-lg-6">
                     <div className="admin-card chart-card">
                         <div className="chart-header">
                             <h5 className="chart-title">
-                                <i className="bi bi-currency-dollar me-2"></i>
-                                Revenue by Month
+                                <i className="bi bi-pie-chart me-2"></i>
+                                Revenue by Status
                             </h5>
                             <span className="chart-subtitle">Year {selectedYear}</span>
                         </div>
                         <div className="chart-container">
                             <ResponsiveContainer width="100%" height={300}>
-                                <AreaChart data={revenueData}>
-                                    <defs>
-                                        <linearGradient id="colorPaid" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.3}/>
-                                        </linearGradient>
-                                        <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
-                                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.3}/>
-                                        </linearGradient>
-                                        <linearGradient id="colorCancelled" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0.3}/>
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                    <XAxis dataKey="month" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                                    <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
+                                <PieChart>
+                                    <Pie
+                                        data={(() => {
+                                            // Calculate total revenue by status
+                                            const totals = revenueData.reduce((acc, month) => {
+                                                acc.paid += month.paid || 0;
+                                                acc.pending += month.pending || 0;
+                                                acc.cancelled += month.cancelled || 0;
+                                                return acc;
+                                            }, { paid: 0, pending: 0, cancelled: 0 });
+
+                                            return [
+                                                { name: 'Paid', value: totals.paid, color: '#10b981' },
+                                                { name: 'Pending', value: totals.pending, color: '#f59e0b' },
+                                                { name: 'Cancelled', value: totals.cancelled, color: '#ef4444' }
+                                            ].filter(item => item.value > 0); // Only show non-zero values
+                                        })()}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={100}
+                                        paddingAngle={3}
+                                        dataKey="value"
+                                        label={({ name, value, percent }) => `${name}: $${value.toFixed(0)} (${(percent * 100).toFixed(1)}%)`}
+                                        labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
+                                    >
+                                        {(() => {
+                                            const totals = revenueData.reduce((acc, month) => {
+                                                acc.paid += month.paid || 0;
+                                                acc.pending += month.pending || 0;
+                                                acc.cancelled += month.cancelled || 0;
+                                                return acc;
+                                            }, { paid: 0, pending: 0, cancelled: 0 });
+
+                                            return [
+                                                { name: 'Paid', value: totals.paid, color: '#10b981' },
+                                                { name: 'Pending', value: totals.pending, color: '#f59e0b' },
+                                                { name: 'Cancelled', value: totals.cancelled, color: '#ef4444' }
+                                            ].filter(item => item.value > 0).map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ));
+                                        })()}
+                                    </Pie>
                                     <Tooltip
                                         contentStyle={{
                                             backgroundColor: '#fff',
@@ -261,35 +286,17 @@ const DashboardCharts = () => {
                                         }}
                                         formatter={(value) => `$${value.toFixed(2)}`}
                                     />
-                                    <Legend />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="paid"
-                                        stackId="1"
-                                        stroke="#10b981"
-                                        strokeWidth={2}
-                                        fill="url(#colorPaid)"
-                                        name="Paid"
+                                    <Legend
+                                        verticalAlign="bottom"
+                                        height={36}
+                                        formatter={(value, entry) => {
+                                            const total = revenueData.reduce((sum, month) =>
+                                                sum + (month.paid || 0) + (month.pending || 0) + (month.cancelled || 0), 0);
+                                            const percent = total > 0 ? (entry.payload.value / total * 100).toFixed(1) : 0;
+                                            return `${value} ($${entry.payload.value.toFixed(0)} - ${percent}%)`;
+                                        }}
                                     />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="pending"
-                                        stackId="1"
-                                        stroke="#f59e0b"
-                                        strokeWidth={2}
-                                        fill="url(#colorPending)"
-                                        name="Pending"
-                                    />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="cancelled"
-                                        stackId="1"
-                                        stroke="#ef4444"
-                                        strokeWidth={2}
-                                        fill="url(#colorCancelled)"
-                                        name="Cancelled"
-                                    />
-                                </AreaChart>
+                                </PieChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
