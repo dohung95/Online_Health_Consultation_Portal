@@ -337,7 +337,7 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
             {/* Notes section */}
             <div>
               <label className="d-flex flex-column w-100">
-                <p className="text-text-light-primary small fw-medium mb-2">Instructions / Additional Notes</p>
+                <p className="text-text-light-primary small fw-medium mb-2">Doctor Notes - Diagnosis</p>
                 <textarea 
                   className="form-control" 
                   rows="4" 
