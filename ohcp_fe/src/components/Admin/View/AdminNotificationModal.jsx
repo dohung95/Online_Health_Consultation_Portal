@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import axios from 'axios';
-import '../Css/AdminNotificationDropdown.css';
-import AdminNotificationModal from './AdminNotificationModal';
+import '../Css/AdminNotificationModal.css';
 
-const AdminNotificationDropdown = () => {
+const AdminNotificationModal = ({ isOpen, onClose }) => {
     const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const dropdownRef = useRef(null);
+    const [totalCount, setTotalCount] = useState(0);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     const API_URL = 'https://localhost:7267/api/admin/notifications';
 
@@ -18,20 +16,21 @@ const AdminNotificationDropdown = () => {
         return token ? { Authorization: `Bearer ${token}` } : {};
     };
 
-    // Fetch notifications (limit to 10 for dropdown)
-    const fetchNotifications = async () => {
+    // Fetch all notifications (without limit)
+    const fetchAllNotifications = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_URL}?limit=10`, {
+            const response = await axios.get(API_URL, {
                 headers: getAuthHeader()
             });
 
             if (response.data) {
                 setNotifications(response.data.notifications || []);
+                setTotalCount(response.data.totalCount || 0);
                 setUnreadCount(response.data.unreadCount || 0);
             }
         } catch (error) {
-            console.error('Error fetching notifications:', error);
+            console.error('Error fetching all notifications:', error);
         } finally {
             setLoading(false);
         }
@@ -48,7 +47,7 @@ const AdminNotificationDropdown = () => {
             setNotifications(notifications.map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
         } catch (error) {
-            console.error('Error marking notifications as read:', error);
+            console.error('Error marking all notifications as read:', error);
         }
     };
 
@@ -83,6 +82,7 @@ const AdminNotificationDropdown = () => {
             setNotifications(prevNotifications =>
                 prevNotifications.filter(n => n.notificationID !== notificationId)
             );
+            setTotalCount(prev => prev - 1);
 
             // Update unread count if it was unread
             const notification = notifications.find(n => n.notificationID === notificationId);
@@ -94,35 +94,17 @@ const AdminNotificationDropdown = () => {
         }
     };
 
-    // Toggle dropdown
-    const toggleDropdown = () => {
-        setIsOpen(!isOpen);
-        if (!isOpen) {
-            fetchNotifications();
+    // Fetch notifications when modal opens and auto-refresh every 3 seconds while open
+    useEffect(() => {
+        if (isOpen) {
+            fetchAllNotifications();
+
+            // Refresh every 3 seconds (3000 ms) while modal is open
+            const intervalId = setInterval(fetchAllNotifications, 3000);
+
+            return () => clearInterval(intervalId);
         }
-    };
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    // Initial fetch and auto-refresh every 3 seconds
-    useEffect(() => {
-        fetchNotifications();
-
-        // Refresh every 3 seconds (3000 ms)
-        const intervalId = setInterval(fetchNotifications, 3000);
-
-        return () => clearInterval(intervalId);
-    }, []);
+    }, [isOpen]);
 
     // Format time ago
     const formatTimeAgo = (dateString) => {
@@ -145,101 +127,93 @@ const AdminNotificationDropdown = () => {
         return 'bi-calendar-check-fill';
     };
 
-    return (
-        <div className="admin-notification-dropdown" ref={dropdownRef}>
-            <button
-                className="admin-icon-btn position-relative"
-                onClick={toggleDropdown}
-                aria-label="Notifications"
-            >
-                <i className="bi bi-bell"></i>
-                {unreadCount > 0 && (
-                    <span className="admin-notification-badge">{unreadCount}</span>
-                )}
-            </button>
+    if (!isOpen) return null;
 
-            {isOpen && (
-                <div className="admin-notification-dropdown-menu">
-                    <div className="admin-notification-header">
-                        <h6 className="mb-0">Notifications</h6>
+    return ReactDOM.createPortal(
+        <div className="admin-notification-modal-overlay" onClick={onClose}>
+            <div className="admin-notification-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="admin-notification-modal-header">
+                    <h4>
+                        <i className="bi bi-bell-fill"></i>
+                        All Notifications
+                    </h4>
+                    <div className="admin-notification-modal-header-actions">
                         {unreadCount > 0 && (
                             <button
-                                className="admin-notification-mark-all"
+                                className="admin-notification-modal-mark-all"
                                 onClick={markAllAsRead}
                             >
-                                Mark all as read
+                                <i className="bi bi-check-all"></i> Mark all as read ({unreadCount})
                             </button>
                         )}
                     </div>
+                    <button
+                        className="admin-notification-modal-close"
+                        onClick={onClose}
+                        aria-label="Close"
+                    >
+                        <i className="bi bi-x-lg"></i>
+                    </button>
+                </div>
 
-                    <div className="admin-notification-list">
-                        {loading ? (
-                            <div className="admin-notification-loading">
-                                <div className="spinner-border spinner-border-sm" role="status">
-                                    <span className="visually-hidden">Loading...</span>
-                                </div>
+                <div className="admin-notification-modal-body">
+                    {loading ? (
+                        <div className="admin-notification-modal-loading">
+                            <div className="spinner-border" role="status">
+                                <span className="visually-hidden">Loading...</span>
                             </div>
-                        ) : notifications.length === 0 ? (
-                            <div className="admin-notification-empty">
-                                <i className="bi bi-bell-slash"></i>
-                                <p>No notifications</p>
-                            </div>
-                        ) : (
-                            notifications.map((notification) => (
+                            <p>Loading notifications...</p>
+                        </div>
+                    ) : notifications.length === 0 ? (
+                        <div className="admin-notification-modal-empty">
+                            <i className="bi bi-bell-slash"></i>
+                            <h5>No notifications</h5>
+                            <p>You're all caught up!</p>
+                        </div>
+                    ) : (
+                        <div className="admin-notification-modal-list">
+                            {notifications.map((notification) => (
                                 <div
                                     key={notification.notificationID}
-                                    className={`admin-notification-item ${!notification.isRead ? 'unread' : ''}`}
+                                    className={`admin-notification-modal-item ${!notification.isRead ? 'unread' : ''}`}
                                     onClick={() => !notification.isRead && markAsRead(notification.notificationID)}
                                 >
-                                    <div className="admin-notification-icon">
+                                    <div className="admin-notification-modal-icon">
                                         <i className={`bi ${getNotificationIcon(notification.notificationType)}`}></i>
                                     </div>
-                                    <div className="admin-notification-content">
-                                        <p className="admin-notification-message">{notification.message}</p>
-                                        <span className="admin-notification-time">
+                                    <div className="admin-notification-modal-content">
+                                        <p className="admin-notification-modal-message">
+                                            {notification.message}
+                                        </p>
+                                        <span className="admin-notification-modal-time">
                                             {formatTimeAgo(notification.createdAt)}
                                         </span>
                                     </div>
                                     {!notification.isRead && (
-                                        <div className="admin-notification-unread-dot"></div>
+                                        <div className="admin-notification-modal-unread-dot"></div>
                                     )}
                                     <button
-                                        className="admin-notification-delete-btn"
+                                        className="admin-notification-modal-delete-btn"
                                         onClick={(e) => deleteNotification(notification.notificationID, e)}
                                         aria-label="Delete notification"
                                     >
                                         <i className="bi bi-x"></i>
                                     </button>
                                 </div>
-                            ))
-                        )}
-                    </div>
-
-                    {notifications.length > 0 && (
-                        <div className="admin-notification-footer">
-                            <button
-                                className="admin-notification-view-all"
-                                onClick={() => {
-                                    setIsOpen(false);
-                                    setIsModalOpen(true);
-                                }}
-                            >
-                                View all notifications
-                            </button>
+                            ))}
                         </div>
                     )}
                 </div>
-            )}
 
-            <AdminNotificationModal
-                isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    fetchNotifications(); // Refresh dropdown when modal closes
-                }}
-            />
-        </div>
+                <div className="admin-notification-modal-footer">
+                    <p className="admin-notification-modal-count">
+                        Total: {totalCount} notification{totalCount !== 1 ? 's' : ''}
+                    </p>
+                </div>
+            </div>
+        </div>,
+        document.body
     );
 };
 
-export default AdminNotificationDropdown;
+export default AdminNotificationModal;
