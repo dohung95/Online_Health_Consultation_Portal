@@ -39,9 +39,22 @@ const DoctorProfile = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      // Clear tokens from localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      
+      // Call logout from AuthContext (clears state and Firebase)
+      await logout();
+      
+      // Navigate to login page
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force navigate to login even if logout fails
+      navigate('/login');
+    }
   };
 
   const handleViewAppointment = async (appointment) => {
@@ -104,7 +117,7 @@ const DoctorProfile = () => {
             <div className="doctor-profile-img"></div>
             <div className="d-flex flex-column">
               <h1 className="fs-6 fw-bold mb-0 text-dark">
-                BS. {doctorData?.fullName || 'Loading...'}
+                {doctorData?.fullName || 'Loading...'}
               </h1>
               <p className="text-secondary small mb-0">{doctorData?.specialty || 'Specialty'}</p>
             </div>
