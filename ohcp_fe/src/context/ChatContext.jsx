@@ -9,7 +9,16 @@ export const ChatProvider = ({ children }) => {
     const [selectedChatPartner, setSelectedChatPartner] = useState(null);
 
     const openChatWith = (partner) => {
-        setSelectedChatPartner(partner);
+        if (partner && partner.uid) {
+            // ✅ CRITICAL: Sanitize UID để đảm bảo không có dấu gạch ngang
+            const sanitizedPartner = {
+                ...partner,
+                uid: partner.uid.replace(/-/g, '')
+            };
+            setSelectedChatPartner(sanitizedPartner);
+        } else {
+            setSelectedChatPartner(partner);
+        }
         setIsChatOpen(true);
     };
 
@@ -26,7 +35,7 @@ export const ChatProvider = ({ children }) => {
             isChatOpen,
             setIsChatOpen,
             selectedChatPartner,
-            setSelectedChatPartner,
+            setSelectedChatPartner: openChatWith, // ✅ Wrap với sanitize logic
             openChatWith,
             closeChat,
             toggleChat

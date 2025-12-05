@@ -6,6 +6,7 @@ import { signInWithCustomToken, signOut } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
 import * as signalR from "@microsoft/signalr";
+import { toast } from 'sonner';
 
 const AuthContext = createContext();
 
@@ -305,7 +306,7 @@ export function AuthProvider({ children }) {
                     // C. Khi NGƯỜI BẠN GỌI đã "Từ chối"
                     newConnection.on("CallDeclined", () => {
                         console.log("Call declined.");
-                        alert("User declined the call.");
+                        toast.info("User declined the call.");
                     });
 
                 })
@@ -333,13 +334,13 @@ export function AuthProvider({ children }) {
             // Lấy token và decode để lấy thông tin người gọi
             const currentToken = localStorage.getItem('token');
             if (!currentToken) {
-                alert("Error: You are not logged in. Please log in again.");
+                toast.error("Error: You are not logged in. Please log in again.");
                 return;
             }
 
             const decodedUser = decodeToken(currentToken);
             if (!decodedUser) {
-                alert("Error: Invalid token.");
+                toast.error("Error: Invalid token.");
                 return;
             }
 
@@ -357,14 +358,14 @@ export function AuthProvider({ children }) {
             // ===== KIỂM TRA VÀ GỬI THÔNG BÁO CHO NGƯỜI NHẬN =====
             if (!connection) {
                 console.error("Error: No SignalR connection");
-                alert("Error: Unable to send call notification. Please try again.");
+                toast.error("Error: Unable to send call notification. Please try again.");
                 return;
             }
 
             // Kiểm tra connection state
             if (connection.state !== signalR.HubConnectionState.Connected) {
                 console.error(`Error: SignalR connection is not in Connected state. Current state: ${connection.state}`);
-                alert("Error: Connection not ready. Please wait a moment and try again.");
+                toast.error("Error: Connection not ready. Please wait a moment and try again.");
                 return;
             }
 
@@ -374,7 +375,7 @@ export function AuthProvider({ children }) {
                 console.log(`✓ Đã gửi thông báo cuộc gọi đến ${targetUserName}`);
             } catch (invokeError) {
                 console.error("Error invoking InitiateCall:", invokeError);
-                alert("Error: Unable to send call notification. " + invokeError.message);
+                toast.error("Error: Unable to send call notification. " + invokeError.message);
                 return;
             }
             // =========================================================
@@ -392,7 +393,7 @@ export function AuthProvider({ children }) {
 
         } catch (error) {
             console.error("Error initiating call:", error);
-            alert("Error: Unable to initiate call. " + error.message);
+            toast.error("Error: Unable to initiate call. " + error.message);
         }
     };
 
@@ -401,19 +402,20 @@ export function AuthProvider({ children }) {
         // 1. Kiểm tra connection và cuộc gọi đến
         if (!connection) {
             console.error("Error: No SignalR connection");
-            alert("Error: Connection not established. Please try again.");
+            toast.error("Error: Connection not established. Please try again.");
             return;
         }
 
         if (!incomingCall) {
             console.error("Error: No incoming call");
+            toast.error("Error: No incoming call");
             return;
         }
 
         // 2. Kiểm tra connection state
         if (connection.state !== signalR.HubConnectionState.Connected) {
             console.error(`Error: SignalR connection is not in Connected state. Current state: ${connection.state}`);
-            alert("Error: Connection not ready. Please wait and try again.");
+            toast.error("Error: Connection not ready. Please wait and try again.");
             return;
         }
 
@@ -422,7 +424,7 @@ export function AuthProvider({ children }) {
             const currentToken = localStorage.getItem('token');
             if (!currentToken) {
                 console.error("Error: No token found for the receiver");
-                alert("Error: No token found, please log in again.");
+                toast.error("Error: No token found, please log in again.");
                 return;
             }
 
@@ -430,7 +432,7 @@ export function AuthProvider({ children }) {
             const decodedUser = decodeToken(currentToken);
             if (!decodedUser) {
                 console.error("Error: Unable to decode token of the receiver");
-                alert("Error: Invalid token.");
+                toast.error("Error: Invalid token.");
                 return;
             }
 
@@ -450,7 +452,7 @@ export function AuthProvider({ children }) {
             setIncomingCall(null); // Đóng pop-up
         } catch (error) {
             console.error("Error accepting call:", error);
-            alert("Error: Unable to accept call. " + error.message);
+            toast.error("Error: Unable to accept call. " + error.message);
         }
     };
 
@@ -488,4 +490,3 @@ export function AuthProvider({ children }) {
         </AuthContext.Provider>
     );
 }
-
