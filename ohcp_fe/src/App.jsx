@@ -48,6 +48,7 @@ import AdminRoute from './components/Admin/AdminRoute';
 import HealthRecords from './components/HealthRecords';
 import ShareHealthRecords from './components/ShareHealthRecords';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import { Toaster } from 'sonner';
 
 function App() {
   return (
@@ -73,6 +74,7 @@ function AppContent() {
 
   return (
     <>
+      <Toaster position="top-right" richColors />
       {!isVideoCallPage && !isAdminPage && <IncomingCallModal />}
       {!isVideoCallPage && !isAdminPage && <PrescriptionNotificationModal />}
       <div className="App">

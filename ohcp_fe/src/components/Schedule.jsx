@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import './Css/Schedule.css';
 import Loading from './Loading';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 
 function Schedule() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ function Schedule() {
     }
     fetchDoctors();
   }, []);
-  // ✅ NEW: Auto-select specialty if coming from doctor detail page
+  // Auto-select specialty if coming from doctor detail page
   useEffect(() => {
     if (doctorId && doctors.length > 0) {
       const preSelectedDoc = doctors.find(d => d.doctorID === doctorId);
@@ -59,7 +60,7 @@ function Schedule() {
   // 3. appointment processing
   const handleSchedule = async () => {
     if (!selectedDoctor || !selectedSlot) {
-      alert("Please select a doctor and a time slot.");
+      toast.warning("Please select a doctor and a time slot.");
       return;
     }
     try {
@@ -69,10 +70,10 @@ function Schedule() {
         consultationType: consultationType
       };
       await appointmentService.createAppointment(bookingData);
-      alert("Appointment scheduled successfully!");
+      toast.success("Appointment scheduled successfully!");
       navigate('/my-appointments');
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to schedule appointment.");
+      toast.error(error.response?.data?.message || "Failed to schedule appointment.");
     }
   };
   const [loading, setLoading] = useState(true);

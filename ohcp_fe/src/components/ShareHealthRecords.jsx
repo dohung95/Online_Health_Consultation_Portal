@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { shareApi } from '../api/shareRecordApi';
 import { doctorService } from '../api/doctorApi';
 import { healthRecordApi } from '../api/healthRecordApi';
+import { toast } from 'sonner';
+
 const ShareHealthRecords = () => {
     // States
     const [doctors, setDoctors] = useState([]);
@@ -38,7 +40,7 @@ const ShareHealthRecords = () => {
             setShares(sharesData || []);
         } catch (error) {
             console.error("❌ Error loading data:", error);
-            alert(`Failed to load data: ${error.response?.data?.message || error.message}`);
+            toast.error(`Failed to load data: ${error.response?.data?.message || error.message}`);
         } finally {
             setLoading(false);
         }
@@ -88,9 +90,9 @@ const ShareHealthRecords = () => {
 
     const handleShare = async (e) => {
         e.preventDefault();
-        // ✅ VALIDATION: If advanced mode + no docs selected
+        // VALIDATION: If advanced mode + no docs selected
         if (!shareAll && selectedDocuments.length === 0) {
-            alert('Please select at least one document to share, or check "Select All"');
+            toast.warning('Please select at least one document to share, or check "Select All"');
             return;
         }
         try {
@@ -104,7 +106,7 @@ const ShareHealthRecords = () => {
             await shareApi.shareWithDoctor(data);
 
             const shareType = shareAll ? 'Entire record' : `${selectedDocuments.length} document(s)`;
-            alert(`✅ Shared successfully! ${shareType} shared.`);
+            toast.success(`Shared successfully! ${shareType} shared.`);
             // Reset form
             setSelectedRecord('');
             setSelectedDoctor('');
@@ -131,7 +133,7 @@ const ShareHealthRecords = () => {
     } else {
         errorMessage = error.message;
     }
-    alert(`❌ Failed to share: ${errorMessage}`);
+    toast.error(`Failed to share: ${errorMessage}`);
 }
     };
 
@@ -141,11 +143,11 @@ const ShareHealthRecords = () => {
         }
         try {
             await shareApi.revokeShare(shareId);
-            alert('✅ Access revoked successfully');
+            toast.success('Access revoked successfully');
             loadData();
         } catch (error) {
             console.error(error);
-            alert('❌ Failed to revoke access');
+            toast.error('Failed to revoke access');
         }
     };
 

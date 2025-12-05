@@ -3,6 +3,7 @@ import { healthRecordApi } from '../api/healthRecordApi';
 import DocumentViewerModal from './DocumentViewerModal';
 import { appointmentService } from '../api/appointmentApi';
 import "../components/Css/HealthRecords.css"
+import { toast } from 'sonner';
 
 const HealthRecords = () => {
     // State for Documents
@@ -133,9 +134,9 @@ const HealthRecords = () => {
             await healthRecordApi.updateMedicalHistory(tempHistory);
             setHistory(tempHistory);
             setIsEditingHistory(false);
-            alert("Medical history updated!");
+            toast.success("Medical history updated!");
         } catch (error) {
-            alert("Failed to update history");
+            toast.error("Failed to update history");
         }
     };
 
@@ -146,7 +147,7 @@ const HealthRecords = () => {
             setShowDetailModal(true);
         } catch (error) {
             console.error('Error loading appointment detail:', error);
-            alert('Failed to load appointment details');
+            toast.error('Failed to load appointment details');
         }
     };
     // NEW: Format date helper
@@ -176,7 +177,7 @@ const HealthRecords = () => {
 
     const handleSubmitUpload = async (e) => {
         e.preventDefault();
-        if (files.length === 0) return alert("Please select files.");
+        if (files.length === 0) return toast.warning("Please select files.");
         const data = new FormData();
 
         // Append files
@@ -197,7 +198,7 @@ const HealthRecords = () => {
         }
         try {
             await healthRecordApi.createMedicalDocument(data);
-            alert("✅ Uploaded successfully!");
+            toast.success("✅ Uploaded successfully!");
 
             // Reset form
             setShowUploadForm(false);
@@ -213,7 +214,7 @@ const HealthRecords = () => {
             setRecords(newDocs);
         } catch (error) {
             console.error(error);
-            alert("❌ Upload failed: " + (error.response?.data?.message || error.message));
+            toast.error("Upload failed: " + (error.response?.data?.message || error.message));
         }
     };
 
