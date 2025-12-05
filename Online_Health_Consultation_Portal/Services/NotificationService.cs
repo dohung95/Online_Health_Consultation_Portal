@@ -11,6 +11,7 @@ namespace OHCP_BK.Services
         Task SendMedicationReminderAsync(string patientId, MedicationReminderDto reminder);
         Task SendPrescriptionReminderAsync(string patientId, List<MedicationReminderDto> medications, int prescriptionId, DateTime issueDate);
         Task SendAppointmentNotificationAsync(string patientId, AppointmentNotificationDto notification);
+        Task SendAppointmentNotificationAsync(string doctorId, int appointmentId, string patientName, DateTime appointmentTime, string consultationType);
         Task<bool> CheckIfReminderExistsAsync(string userId, string message, DateTime date);
         Task<bool> CheckIfAppointmentReminderExistsAsync(int appointmentId, string userId);
     }
@@ -157,6 +158,44 @@ namespace OHCP_BK.Services
             {
                 _logger.LogError(ex, "Error sending appointment notification to patient {PatientId}", patientId);
                 throw;
+            }
+        }
+
+        public async Task SendAppointmentNotificationAsync(string doctorId, int appointmentId, string patientName, DateTime appointmentTime, string consultationType)
+        {
+            try
+            {
+                var notification = new Notification
+                {
+                    UserId = doctorId,
+                    Message = $"New appointment from {patientName} - {consultationType} at {appointmentTime:MMM dd, yyyy h:mm tt}",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow,
+                    AppointmentId = appointmentId
+                };
+
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var context = scope.ServiceProvider.GetRequiredService<OHCPContext>();
+                    context.Notifications.Add(notification);
+                    await context.SaveChangesAsync();
+                }
+
+                // Send real-time notification via SignalR
+                await _hubContext.Clients.User(doctorId).SendAsync("ReceiveAppointmentNotification", new
+                {
+                    appointmentID = appointmentId,
+                    patientName = patientName,
+                    appointmentTime = appointmentTime,
+                    consultationType = consultationType,
+                    message = notification.Message
+                });
+
+                _logger.LogInformation($"Sent appointment notification to doctor {doctorId} for appointment {appointmentId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error sending appointment notification to doctor {doctorId}");
             }
         }
 

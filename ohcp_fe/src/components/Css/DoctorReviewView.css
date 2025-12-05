@@ -1,0 +1,62 @@
+.rating-stars {
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+}
+
+.rating-stars .text-warning {
+  color: #ffc107 !important;
+}
+
+.rating-stars .text-muted {
+  color: #dee2e6 !important;
+}
+
+/* Date picker dropdown */
+.position-relative .card {
+  max-width: 320px;
+}
+
+/* Table styling */
+.table thead th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  padding: 1rem;
+}
+
+.table tbody td {
+  vertical-align: middle;
+  padding: 1rem;
+}
+
+.table tbody tr:hover {
+  background-color: #f1f3f5;
+}
+
+/* Pagination buttons */
+.btn-sm {
+  min-width: 35px;
+}
+
+/* Filter alert */
+.alert-info {
+  border-left: 4px solid #0dcaf0;
+}
+
+/* Empty state */
+.bi-inbox {
+  opacity: 0.3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .table {
+    font-size: 0.875rem;
+  }
+  
+  .table thead th,
+  .table tbody td {
+    padding: 0.5rem;
+  }
+}

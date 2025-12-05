@@ -269,6 +269,28 @@ namespace OHCP_BK.Controllers
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
 
+                // Send real-time notification to doctor about new appointment
+                try
+                {
+                    var doctor = await _context.Doctors.FindAsync(dto.DoctorID);
+                    var patient = await _context.Patients.FindAsync(userId);
+                    
+                    if (doctor != null && patient != null)
+                    {
+                        await _notificationService.SendAppointmentNotificationAsync(
+                            doctor.DoctorID,
+                            appointment.AppointmentID,
+                            patient.FullName,
+                            appointment.AppointmentTime,
+                            appointment.ConsultationType
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error sending real-time appointment notification to doctor");
+                }
+
                 // Notify admins about new appointment
                 try
                 {
