@@ -19,7 +19,7 @@ namespace OHCP_BK.Models
         // Recommended follow-up date set by the doctor
         public DateTime? FollowUpDate { get; set; }
 
-        public virtual Appointment Appointment { get; set; } = null!;
+        public virtual Appointment? Appointment { get; set; }
     }
 
 }
