@@ -187,9 +187,9 @@ export function AuthProvider({ children }) {
     };
 
     ///=>> use for identity and firebase
-    const register = async (username, phonenumber, email, password, confirmPassword, role) => {
+    const register = async (username, phonenumber, email, password, confirmPassword, role, DateOfBirth) => {
         try {
-            await registerAPI(username, phonenumber, email, password, confirmPassword);
+            await registerAPI(username, phonenumber, email, password, confirmPassword, DateOfBirth);
             // const csharpResponse = await loginAPI(email, password);
             // const csharpToken = csharpResponse.accessToken;
             // localStorage.setItem('token', csharpToken);

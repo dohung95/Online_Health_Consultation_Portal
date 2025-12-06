@@ -33,14 +33,15 @@ export async function login(email, password) {
     }
 }
 
-export async function register(username, phonenumber, email, password, confirmPassword) {
+export async function register(username, phonenumber, email, password, confirmPassword, DateOfBirth) {
     try {
         const res = await axios.post(`${API_URL_register}/register/patient`, {
             email,
             password,
             confirmPassword,
             FullName: username,
-            phonenumber
+            phonenumber,
+            DateOfBirth
         });
         return res.data;
     } catch (error) {
