@@ -25,15 +25,7 @@ const styles = {
         zIndex: 1000,
         transition: 'transform 0.2s',
     },
-    chatBox: {
-        position: 'fixed',
-        bottom: '100px',
-        right: '30px',
-        width: '350px',
-        height: '500px',
-        zIndex: 999,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-    }
+
 };
 
 export default function Chat() {
@@ -495,8 +487,8 @@ export default function Chat() {
             {/* 2. Chat Box (popup) */}
             {isChatBoxOpen && (
                 <div
-                    className="chat-box container d-flex flex-column border rounded shadow-lg bg-white"
-                    style={styles.chatBox}
+                    className="chat-box chat-box-responsive container d-flex flex-column border rounded shadow-lg bg-white"
+                // style={styles.chatBox} // Removed in favor of CSS class
                 >
                     {/* Header */}
                     <div className="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
