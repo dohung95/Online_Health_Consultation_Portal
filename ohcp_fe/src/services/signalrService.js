@@ -18,13 +18,13 @@ class SignalRService {
       return;
     }
 
-    console.log('Starting SignalR connection with token:', token.substring(0, 20) + '...');
+    // console.log('Starting SignalR connection with token:', token.substring(0, 20) + '...');
 
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl('https://localhost:7267/notificationHub', {
         accessTokenFactory: () => {
           const currentToken = localStorage.getItem('token');
-          console.log('Providing token for SignalR connection');
+          // console.log('Providing token for SignalR connection');
           return currentToken;
         },
       })
@@ -43,12 +43,12 @@ class SignalRService {
 
     // Handle reconnecting
     this.connection.onreconnecting(error => {
-      console.log('SignalR reconnecting...', error);
+      // console.log('SignalR reconnecting...', error);
     });
 
     // Handle reconnected
     this.connection.onreconnected(connectionId => {
-      console.log('SignalR reconnected. ConnectionId:', connectionId);
+      console.log('✅ SignalR reconnected');
     });
 
     // Handle closed
@@ -69,16 +69,16 @@ class SignalRService {
         });
       });
     } catch (err) {
-      console.error('❌ Error starting SignalR connection:', err);
-      console.error('Error details:', {
-        message: err.message,
-        statusCode: err.statusCode,
-        errorType: err.constructor.name
-      });
+      // console.error('❌ Error starting SignalR connection:', err);
+      // console.error('Error details:', {
+      //   message: err.message,
+      //   statusCode: err.statusCode,
+      //   errorType: err.constructor.name
+      // });
       
       // Don't retry if it's an authentication error
       if (err.statusCode === 401 || err.message?.includes('401')) {
-        console.error('Authentication failed. Please check your token or login again.');
+        console.error('❌ SignalR Authentication failed. Please login again.');
         return; // Stop retrying
       }
       
@@ -91,7 +91,7 @@ class SignalRService {
     if (this.connection) {
       try {
         await this.connection.stop();
-        console.log('SignalR connection stopped');
+        // console.log('SignalR connection stopped');
       } catch (err) {
         console.error('Error stopping SignalR connection:', err);
       }

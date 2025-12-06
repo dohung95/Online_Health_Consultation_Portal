@@ -250,7 +250,8 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                         alert('Unknown consultation type');
                       }
                     }}
-                    disabled={appointment.status !== 'Scheduled'}
+                    title={new Date(appointment.appointmentTime) < new Date() ? "Appointment time has passed" : `Join ${appointment.consultationType}`}
+                    disabled={appointment.status !== 'Scheduled' || new Date(appointment.appointmentTime) < new Date()}
                   >
                     <i className={`bi ${appointment.consultationType === 'Video Call' ? 'bi-camera-video' :
                       appointment.consultationType === 'Audio Call' ? 'bi-telephone' :

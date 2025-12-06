@@ -1,6 +1,8 @@
 ﻿// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation  } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Home from './components/Home';
 import Schedule from './components/Schedule';
 import MyAppointments from './components/MyAppointment';
@@ -166,6 +168,17 @@ function AppContent() {
           </Routes>
         </div>
         {!hideLayout && <Footer />}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </div>
     </>
   );

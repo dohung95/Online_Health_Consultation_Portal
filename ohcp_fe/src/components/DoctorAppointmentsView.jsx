@@ -147,15 +147,15 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
         roomId += characters.charAt(Math.floor(Math.random() * characters.length));
       }
 
-      console.log('Video Call Info:', {
-        patientID,
-        doctorID,
-        patientName,
-        doctorName,
-        roomId,
-        targetUserId,
-        targetUserName
-      });
+      // console.log('Video Call Info:', {
+      //   patientID,
+      //   doctorID,
+      //   patientName,
+      //   doctorName,
+      //   roomId,
+      //   targetUserId,
+      //   targetUserName
+      // });
 
       // Lấy tên bác sĩ hiện tại
       const currentDoctorName = doctorName || "Doctor";
@@ -257,95 +257,97 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
       )}
 
       <div className="table-responsive">
-      <table className="table table-borderless align-middle mb-0">
-        <thead className="table-header">
-          <tr>
-            <th scope="col" className="px-4 py-3">ID</th>
-            <th scope="col" className="px-4 py-3">Patient</th>
-            <th scope="col" className="px-4 py-3">Date</th>
-            <th scope="col" className="px-4 py-3">Time</th>
-            <th scope="col" className="px-4 py-3">Type</th>
-            <th scope="col" className="px-4 py-3">Status</th>
-            <th scope="col" className="px-4 py-3 text-end"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredAppointments.map((a) => (
-            <tr key={a.appointmentID} className="border-bottom hover-table-row">
-              <td className="px-4 py-4 fw-medium text-dark fw-bold">
-                #{a.appointmentID}
-                {!viewedAppointments.includes(a.appointmentID) && (
-                  <span className="badge bg-success ms-2 small">NEW</span>
-                )}
-              </td>
-              <td className="px-4 py-4 text-dark">{a.patient?.fullName || 'Unknown Patient'}</td>
-              <td className="px-4 py-4 text-dark">
-                {new Date(a.appointmentTime).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-              </td>
-              <td className="px-4 py-4 text-dark">
-                {new Date(a.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </td>
-              <td className="px-4 py-4">
-                <span className={`type-badge ${a.consultationType === 'Video Call' ? 'type-video' :
-                  a.consultationType === 'Audio Call' ? 'type-audio' :
-                    a.consultationType === 'Chat' ? 'type-chat' :
-                      'type-video'
-                  }`}>
-                  <span className="material-symbols-outlined me-1" style={{ fontSize: '1rem' }}>
-                    {a.consultationType === 'Video Call' ? 'videocam' :
-                      a.consultationType === 'Audio Call' ? 'call' :
-                        a.consultationType === 'Chat' ? 'chat' :
-                          'videocam'}
-                  </span>
-                  {a.consultationType || 'N/A'}
-                </span>
-              </td>
-              <td className="px-4 py-4">
-                <span className={`badge ${a.status === 'Scheduled' ? 'bg-primary' :
-                  a.status === 'Completed' ? 'bg-success' :
-                    a.status === 'Cancelled' ? 'bg-danger' :
-                      'bg-secondary'
-                  }`}>
-                  {a.status}
-                </span>
-              </td>
-              <td className="px-4 py-4 text-end">
-                <div className="d-flex gap-2 align-items-center justify-content-end flex-nowrap">
-                  {a.consultationType === 'Chat' && a.status === 'Scheduled' && (
-                    <button
-                      className="btn btn-sm btn-primary flex-shrink-0"
-                      onClick={() => handleChat(a)}
-                      title="Start chat"
-                    >
-                      <i className="bi bi-chat-dots me-1"></i>
-                      Chat
-                    </button>
-                  )}
-
-                  {a.consultationType === 'Video Call' && a.status === 'Scheduled' && (
-                    <button
-                      className="btn btn-sm btn-success flex-shrink-0"
-                      onClick={() => handleVideoCall(a)}
-                      title="Start video call"
-                    >
-                      <i className="bi bi-camera-video me-1"></i>
-                      Call Now
-                    </button>
-                  )}
-                  
-                  <button
-                    className="btn btn-view d-flex align-items-center justify-content-center"
-                    onClick={() => onViewAppointment ? onViewAppointment(a) : navigate(`/appointment/${a.appointmentID}`)}
-                  >
-                    View
-                  </button>
-                </div>
-              </td>
+        <table className="table table-borderless align-middle mb-0">
+          <thead className="table-header">
+            <tr>
+              <th scope="col" className="px-4 py-3">ID</th>
+              <th scope="col" className="px-4 py-3">Patient</th>
+              <th scope="col" className="px-4 py-3">Date</th>
+              <th scope="col" className="px-4 py-3">Time</th>
+              <th scope="col" className="px-4 py-3">Type</th>
+              <th scope="col" className="px-4 py-3">Status</th>
+              <th scope="col" className="px-4 py-3 text-end"></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {filteredAppointments.map((a) => (
+              <tr key={a.appointmentID} className="border-bottom hover-table-row">
+                <td className="px-4 py-4 fw-medium text-dark fw-bold">
+                  #{a.appointmentID}
+                  {!viewedAppointments.includes(a.appointmentID) && (
+                    <span className="badge bg-success ms-2 small">NEW</span>
+                  )}
+                </td>
+                <td className="px-4 py-4 text-dark">{a.patient?.fullName || 'Unknown Patient'}</td>
+                <td className="px-4 py-4 text-dark">
+                  {new Date(a.appointmentTime).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </td>
+                <td className="px-4 py-4 text-dark">
+                  {new Date(a.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </td>
+                <td className="px-4 py-4">
+                  <span className={`type-badge ${a.consultationType === 'Video Call' ? 'type-video' :
+                    a.consultationType === 'Audio Call' ? 'type-audio' :
+                      a.consultationType === 'Chat' ? 'type-chat' :
+                        'type-video'
+                    }`}>
+                    <span className="material-symbols-outlined me-1" style={{ fontSize: '1rem' }}>
+                      {a.consultationType === 'Video Call' ? 'videocam' :
+                        a.consultationType === 'Audio Call' ? 'call' :
+                          a.consultationType === 'Chat' ? 'chat' :
+                            'videocam'}
+                    </span>
+                    {a.consultationType || 'N/A'}
+                  </span>
+                </td>
+                <td className="px-4 py-4">
+                  <span className={`badge ${a.status === 'Scheduled' ? 'bg-primary' :
+                    a.status === 'Completed' ? 'bg-success' :
+                      a.status === 'Cancelled' ? 'bg-danger' :
+                        'bg-secondary'
+                    }`}>
+                    {a.status}
+                  </span>
+                </td>
+                <td className="px-4 py-4 text-end">
+                  <div className="d-flex gap-2 align-items-center justify-content-end flex-nowrap">
+                    {a.consultationType === 'Chat' && a.status === 'Scheduled' && (
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => handleChat(a)}
+                        title={new Date(a.appointmentTime) < new Date() ? "Appointment time has passed" : "Start chat"}
+                        disabled={new Date(a.appointmentTime) < new Date()}
+                      >
+                        <i className="bi bi-chat-dots me-1"></i>
+                        Chat
+                      </button>
+                    )}
+
+                    {a.consultationType === 'Video Call' && a.status === 'Scheduled' && (
+                      <button
+                        className="btn btn-sm btn-success"
+                        onClick={() => handleVideoCall(a)}  // ← Truyền cả object "item"
+                        title={new Date(a.appointmentTime) < new Date() ? "Appointment time has passed" : "Start video call"}
+                        disabled={new Date(a.appointmentTime) < new Date()}
+                      >
+                        <i className="bi bi-camera-video me-1"></i>
+                        Call Now
+                      </button>
+                    )}
+
+                    <button
+                      className="btn btn-view d-flex align-items-center justify-content-center"
+                      onClick={() => onViewAppointment ? onViewAppointment(a) : navigate(`/appointment/${a.appointmentID}`)}
+                    >
+                      View
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }

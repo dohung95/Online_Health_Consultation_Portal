@@ -382,7 +382,7 @@ namespace OHCP_BK.Controllers
         // PUT: api/Prescription/header/{id}
         // PUT: api/Prescription/header/{id}
         [HttpPut("header/{id}")]
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "doctor")]
         public async Task<IActionResult> UpdatePrescription(int id, [FromBody] CreatePrescriptionDTO request)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -393,13 +393,26 @@ namespace OHCP_BK.Controllers
                     return BadRequest(ModelState);
                 }
 
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized();
+                }
+
                 var existingHeader = await _context.PrescriptionHeaders
                     .Include(ph => ph.PrescriptionItems)
+                    .Include(ph => ph.Appointment)
                     .FirstOrDefaultAsync(ph => ph.PrescriptionHeaderID == id);
 
                 if (existingHeader == null)
                 {
                     return NotFound($"Prescription with ID {id} not found");
+                }
+
+                // Verify the prescription belongs to this doctor
+                if (existingHeader.Appointment?.DoctorID != userId)
+                {
+                    return Forbid("You can only update your own prescriptions");
                 }
 
                 // Update header

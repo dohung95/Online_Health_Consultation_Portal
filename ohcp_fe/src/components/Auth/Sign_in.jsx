@@ -159,10 +159,6 @@ export function Sign_in() {
     // Redirect if already logged in with valid token
     useEffect(() => {
         if (token && roles && roles.length > 0) {
-            // User is already logged in, redirect to appropriate page
-            console.log('User already logged in, redirecting...');
-
-            // Navigate based on role
             if (roles.some(r => String(r).trim().toLowerCase() === 'admin')) {
                 navigate('/admin', { replace: true });
             } else if (roles.some(r => String(r).trim().toLowerCase() === 'doctor')) {

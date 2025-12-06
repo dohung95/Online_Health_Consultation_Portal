@@ -129,15 +129,15 @@ const MyAppointments = () => {
                 roomId += characters.charAt(Math.floor(Math.random() * characters.length));
             }
 
-            console.log('Video Call Info:', {
-                patientID,
-                doctorID,
-                patientName,
-                doctorName,
-                roomId,
-                targetUserId,
-                targetUserName
-            });
+            // console.log('Video Call Info:', {
+            //     patientID,
+            //     doctorID,
+            //     patientName,
+            //     doctorName,
+            //     roomId,
+            //     targetUserId,
+            //     targetUserName
+            // });
 
             // Gọi hàm initiateCall với thông tin đầy đủ
             initiateCall(targetUserId, roomId, targetUserName);
@@ -224,7 +224,8 @@ const MyAppointments = () => {
                                                     <button
                                                         className="btn btn-sm btn-primary"
                                                         onClick={() => handleChat(item)}
-                                                        title="Start chat"
+                                                        title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Start chat"}
+                                                        disabled={new Date(item.appointmentTime) < new Date()}
                                                     >
                                                         <i className="bi bi-chat-dots me-1"></i>
                                                         Chat
@@ -235,7 +236,8 @@ const MyAppointments = () => {
                                                     <button
                                                         className="btn btn-sm btn-success"
                                                         onClick={() => handleVideoCall(item)}  // ← Truyền cả object "item"
-                                                        title="Start video call"
+                                                        title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Start video call"}
+                                                        disabled={new Date(item.appointmentTime) < new Date()}
                                                     >
                                                         <i className="bi bi-camera-video me-1"></i>
                                                         Call Now
@@ -246,6 +248,8 @@ const MyAppointments = () => {
                                                     <button
                                                         className="btn btn-sm btn-outline-danger"
                                                         onClick={() => handleCancel(item.appointmentID)}
+                                                        title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Cancel appointment"}
+                                                        disabled={new Date(item.appointmentTime) < new Date()}
                                                     >
                                                         Cancel
                                                     </button>

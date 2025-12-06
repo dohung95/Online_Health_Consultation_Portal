@@ -262,14 +262,14 @@ export function AuthProvider({ children }) {
             // 3. Khởi động kết nối
             newConnection.start()
                 .then(() => {
-                    console.log("SignalR Connected!");
+                    // console.log("SignalR Connected!");
                     setConnection(newConnection);
 
                     // 4. LẮNG NGHE CÁC SỰ KIỆN TỪ SERVER
 
                     // A. Khi AI ĐÓ GỌI BẠN (Reng reng!)
                     newConnection.on("IncomingCall", (callerId, callerName, roomId) => {
-                        console.log(`Incoming call from ${callerName}`);
+                        // console.log(`Incoming call from ${callerName}`);
                         // Lưu thông tin cuộc gọi để hiển thị Pop-up
                         setIncomingCall({ callerId, callerName, roomId });
                     });
@@ -277,7 +277,7 @@ export function AuthProvider({ children }) {
                     // B. Khi NGƯỜI BẠN GỌI đã "Bắt máy" (Bác sĩ nhận được tin này)
                     // (Phiên bản ĐÃ SỬA LỖI - chỉ có 1 listener)
                     newConnection.on("CallAccepted", (receiverId, roomId) => {
-                        console.log("Call accepted, Doctor opening Zego...");
+                        // console.log("Call accepted, Doctor opening Zego...");
 
                         // Đọc token mới nhất từ localStorage để tránh lỗi "stale state"
                         const currentToken = localStorage.getItem('token');
@@ -305,7 +305,7 @@ export function AuthProvider({ children }) {
 
                     // C. Khi NGƯỜI BẠN GỌI đã "Từ chối"
                     newConnection.on("CallDeclined", () => {
-                        console.log("Call declined.");
+                        // console.log("Call declined.");
                         toast.info("User declined the call.");
                     });
 
@@ -347,13 +347,13 @@ export function AuthProvider({ children }) {
             const currentUserId = decodedUser.sub;
             const currentUserName = decodedUser.preferred_username || decodedUser.email || "User";
 
-            console.log('Initiating call:', {
-                currentUserId,
-                currentUserName,
-                targetUserId,
-                targetUserName,
-                roomId
-            });
+            // console.log('Initiating call:', {
+            //     currentUserId,
+            //     currentUserName,
+            //     targetUserId,
+            //     targetUserName,
+            //     roomId
+            // });
 
             // ===== KIỂM TRA VÀ GỬI THÔNG BÁO CHO NGƯỜI NHẬN =====
             if (!connection) {
@@ -372,7 +372,7 @@ export function AuthProvider({ children }) {
             try {
                 // Gửi thông báo qua SignalR cho bệnh nhân
                 await connection.invoke("InitiateCall", targetUserId, roomId);
-                console.log(`✓ Đã gửi thông báo cuộc gọi đến ${targetUserName}`);
+                // console.log(`✓ Đã gửi thông báo cuộc gọi đến ${targetUserName}`);
             } catch (invokeError) {
                 console.error("Error invoking InitiateCall:", invokeError);
                 toast.error("Error: Unable to send call notification. " + invokeError.message);
@@ -442,7 +442,7 @@ export function AuthProvider({ children }) {
 
             // 6. Báo cho server là bạn đã bắt máy
             await connection.invoke("AcceptCall", incomingCall.callerId, incomingCall.roomId);
-            console.log(`✓ Đã chấp nhận cuộc gọi từ ${incomingCall.callerName}`);
+            // console.log(`✓ Đã chấp nhận cuộc gọi từ ${incomingCall.callerName}`);
 
             // 7. Mở cửa sổ Zego (vì BẠN là người nhận)
             const callUrl = `/video-calling?roomID=${incomingCall.roomId}&userID=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
