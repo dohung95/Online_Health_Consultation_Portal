@@ -666,7 +666,7 @@ const HealthRecords = () => {
                                                 <div className="card-body p-3">
                                                     <div className="d-flex align-items-start">
                                                         {/* File Icon/Thumb */}
-                                                        <div className="me-3 flex-shrink-0" onClick={() => window.open(doc.fileUrl, '_blank')} style={{ cursor: 'pointer' }}>
+                                                        <div className="me-3 flex-shrink-0">
                                                             {doc.documentType?.toLowerCase().includes('pdf') ? (
                                                                 <div className="bg-danger-subtle text-danger rounded-3 d-flex align-items-center justify-content-center" style={{ width: 56, height: 56 }}>
                                                                     <i className="bi bi-file-pdf fs-2"></i>
