@@ -36,21 +36,6 @@ builder.WebHost.ConfigureKestrel(options =>
     });
 });
 
-// the manual .env reading code
-//var envFile = Path.Combine(AppContext.BaseDirectory, ".env");
-//if (File.Exists(envFile))
-//{
-//    var lines = File.ReadAllLines(envFile);
-//    foreach (var line in lines)
-//    {
-//        if (string.IsNullOrEmpty(line) || line.StartsWith("#")) continue;
-//        var parts = line.Split('=', 2, StringSplitOptions.TrimEntries);
-//        if (parts.Length == 2)
-//        {
-//            Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
-//        }
-//    }
-//}
 
 // Build connection string from environment variables
 var dbServer = Environment.GetEnvironmentVariable("DB_SERVER") ?? ".";

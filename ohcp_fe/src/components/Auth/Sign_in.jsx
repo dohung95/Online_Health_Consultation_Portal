@@ -232,6 +232,7 @@ export function Sign_in() {
                 keyboard={false}
                 centered
                 size="lg"
+                style={{padding:"230px"}}
             >
                 <Modal.Header closeButton className='modal-error-header'>
                     <Modal.Title className='modal-error-title'>
