@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { prescriptionService } from '../api/prescriptionApi';
 import consultationApi from '../api/consultationApi';
+import { toast } from 'react-toastify';
 import './Css/PrescriptionModal.css';
 
 const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
@@ -16,6 +17,40 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [existingPrescription, setExistingPrescription] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Load existing prescription when modal opens
+  useEffect(() => {
+    const loadExistingPrescription = async () => {
+      if (isOpen && appointment?.appointmentID) {
+        try {
+          const existing = await prescriptionService.getByAppointment(appointment.appointmentID);
+          if (existing) {
+            setExistingPrescription(existing);
+            setIsEditMode(true);
+            // Load prescription items
+            const header = await prescriptionService.getPrescriptionHeader(existing.prescriptionHeaderID);
+            if (header && header.medications) {
+              setPrescriptionItems(header.medications.map((med, index) => ({
+                id: med.prescriptionItemID || Date.now() + index,
+                medicationName: med.medicationName,
+                dosage: med.dosage,
+                quantity: med.quantity || '',
+                instructions: med.instructions,
+                totalSupplyDays: med.totalSupplyDays
+              })));
+            }
+          }
+        } catch (err) {
+          console.error('Error loading existing prescription:', err);
+        }
+      }
+    };
+    loadExistingPrescription();
+  }, [isOpen, appointment]);
 
   // Helper to calculate age
   const calculateAge = (dateOfBirth) => {
@@ -61,8 +96,16 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
       return;
     }
 
-    // Add to list
-    setPrescriptionItems(prev => [...prev, { ...currentMedicine, id: Date.now() }]);
+    // Update existing item or add new one
+    if (editingItemId) {
+      setPrescriptionItems(prev => prev.map(item => 
+        item.id === editingItemId ? { ...currentMedicine, id: editingItemId } : item
+      ));
+      setEditingItemId(null);
+    } else {
+      // Add to list
+      setPrescriptionItems(prev => [...prev, { ...currentMedicine, id: Date.now() }]);
+    }
     
     // Reset form
     setCurrentMedicine({
@@ -77,6 +120,41 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
 
   const handleRemoveMedicine = (id) => {
     setPrescriptionItems(prev => prev.filter(item => item.id !== id));
+    // If editing this item, cancel edit
+    if (editingItemId === id) {
+      setEditingItemId(null);
+      setCurrentMedicine({
+        medicationName: '',
+        dosage: '',
+        quantity: '',
+        instructions: '',
+        totalSupplyDays: 0
+      });
+    }
+  };
+
+  const handleEditMedicine = (item) => {
+    setCurrentMedicine({
+      medicationName: item.medicationName,
+      dosage: item.dosage,
+      quantity: item.quantity,
+      instructions: item.instructions,
+      totalSupplyDays: item.totalSupplyDays
+    });
+    setEditingItemId(item.id);
+    setError('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setCurrentMedicine({
+      medicationName: '',
+      dosage: '',
+      quantity: '',
+      instructions: '',
+      totalSupplyDays: 0
+    });
+    setError('');
   };
 
   const handleSubmit = async () => {
@@ -84,6 +162,13 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
       setError('Please add at least one medication');
       return;
     }
+
+    // Show confirmation modal
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    setShowConfirmModal(false);
 
     setIsSubmitting(true);
     setError('');
@@ -118,8 +203,20 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
 
       console.log('Sending prescription data:', prescriptionData);
 
-      // Create prescription
-      await prescriptionService.createPrescription(prescriptionData);
+      // Create or update prescription
+      if (isEditMode && existingPrescription) {
+        await prescriptionService.updatePrescription(existingPrescription.prescriptionHeaderID, prescriptionData);
+        toast.success('Prescription updated successfully!', {
+          position: 'top-right',
+          autoClose: 3000,
+        });
+      } else {
+        await prescriptionService.createPrescription(prescriptionData);
+        toast.success('Prescription created successfully!', {
+          position: 'top-right',
+          autoClose: 3000,
+        });
+      }
       
       // Create consultation if there are doctor notes
       if (additionalNotes.trim()) {
@@ -144,12 +241,15 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
       }
       
       // Success - close modal and reset
-      alert('Prescription created successfully!');
       handleClose();
     } catch (err) {
-      console.error('Error creating prescription:', err);
+      console.error('Error saving prescription:', err);
       console.error('Error response:', err.response?.data);
-      setError(err.response?.data?.title || err.response?.data?.message || 'Failed to create prescription. Please try again.');
+      toast.error(err.response?.data?.title || err.response?.data?.message || 'Failed to save prescription. Please try again.', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+      setError(err.response?.data?.title || err.response?.data?.message || 'Failed to save prescription. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -166,6 +266,8 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
     });
     setAdditionalNotes('');
     setError('');
+    setExistingPrescription(null);
+    setIsEditMode(false);
     onClose();
   };
 
@@ -173,13 +275,14 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content-custom" onClick={(e) => e.stopPropagation()}>
-        <div className="d-flex flex-column">
+      <div className="modal-content-custom" onClick={(e) => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
           
           {/* Modal Header */}
-          <div className="d-flex align-items-center justify-content-between p-4 border-bottom border-gray-200 prescription-modal-header">
+          <div className="d-flex align-items-center justify-content-between p-4 border-bottom border-gray-200 prescription-modal-header" style={{ flexShrink: 0 }}>
             <div className="d-flex flex-column gap-1">
-              <h1 className="fs-4 fw-bold text-gray-800 mb-0">Write Prescription</h1>
+              <h1 className="fs-4 fw-bold text-gray-800 mb-0">
+                {isEditMode ? 'Edit Prescription' : 'Write Prescription'}
+              </h1>
               <p className="small text-gray-500 mb-0">
                 Patient: {patient?.fullName || 'N/A'} - {calculateAge(patient?.dateOfBirth)} years - {appointment?.reason || 'N/A'}
               </p>
@@ -194,7 +297,7 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
           </div>
           
           {/* Modal Body */}
-          <div className="p-4 d-flex flex-column gap-4">
+          <div className="p-4 d-flex flex-column gap-4" style={{ flexGrow: 1, overflowY: 'auto', maxHeight: 'calc(90vh - 200px)' }}>
             
             {/* Error Message */}
             {error && (
@@ -279,16 +382,36 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
                   </label>
                 </div>
 
-                {/* Add button */}
+                {/* Add/Update button */}
                 <div className="col-12 col-lg-2 d-grid align-self-end">
-                  <button 
-                    className="btn btn-add-medicine d-flex align-items-center justify-content-center gap-2 px-3 fw-semibold"
-                    onClick={handleAddMedicine}
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined small">add_circle</span>
-                    <span>Add</span>
-                  </button>
+                  {editingItemId ? (
+                    <div className="d-flex flex-column gap-2">
+                      <button 
+                        className="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-3 fw-semibold"
+                        onClick={handleAddMedicine}
+                        type="button"
+                      >
+                        <span className="material-symbols-outlined small">check_circle</span>
+                        <span>Update</span>
+                      </button>
+                      <button 
+                        className="btn btn-secondary d-flex align-items-center justify-content-center gap-2 px-3 fw-semibold"
+                        onClick={handleCancelEdit}
+                        type="button"
+                      >
+                        <span>Cancel</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      className="btn btn-add-medicine d-flex align-items-center justify-content-center gap-2 px-3 fw-semibold"
+                      onClick={handleAddMedicine}
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined small">add_circle</span>
+                      <span>Add</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -311,20 +434,33 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
                     </thead>
                     <tbody>
                       {prescriptionItems.map((item, index) => (
-                        <tr key={item.id}>
+                        <tr key={item.id} className={editingItemId === item.id ? 'table-warning' : ''}>
                           <td className="px-3 py-3 prescription-table-body-row-medium">{index + 1}</td>
                           <td className="px-3 py-3 prescription-table-body-row-medium">{item.medicationName}</td>
                           <td className="px-3 py-3 text-gray-500">{item.dosage} - {item.quantity}</td>
                           <td className="px-3 py-3 text-gray-500">{item.totalSupplyDays} days</td>
                           <td className="px-3 py-3 text-gray-500">{item.instructions}</td>
                           <td className="px-3 py-3 text-end">
-                            <button 
-                              className="btn-delete-medicine"
-                              onClick={() => handleRemoveMedicine(item.id)}
-                              type="button"
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>delete</span>
-                            </button>
+                            <div className="d-flex gap-2 justify-content-end">
+                              <button 
+                                className="btn btn-sm p-1"
+                                onClick={() => handleEditMedicine(item)}
+                                type="button"
+                                disabled={editingItemId && editingItemId !== item.id}
+                                title="Edit"
+                                style={{ border: 'none', background: 'transparent', color: '#3b82f6' }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>edit</span>
+                              </button>
+                              <button 
+                                className="btn-delete-medicine"
+                                onClick={() => handleRemoveMedicine(item.id)}
+                                type="button"
+                                title="Delete"
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>delete</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -366,15 +502,84 @@ const CreatePrescriptionModal = ({ isOpen, onClose, appointment, patient }) => {
               {isSubmitting ? (
                 <>
                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Saving...
+                  {isEditMode ? 'Updating...' : 'Saving...'}
                 </>
               ) : (
-                'Save Prescription'
+                isEditMode ? 'Update Prescription' : 'Save Prescription'
               )}
             </button>
           </div>
-        </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div 
+          className="modal-overlay" 
+          style={{ 
+            zIndex: 1060,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }} 
+          onClick={() => setShowConfirmModal(false)}
+        >
+          <div 
+            className="modal-dialog" 
+            style={{ maxWidth: '600px', width: '90%', margin: '1.75rem auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div 
+              className="modal-content" 
+              style={{ 
+                backgroundColor: '#fff',
+                borderRadius: '12px',
+                overflow: 'hidden'
+              }}
+            >
+              <div className="modal-header border-0 pb-2 pt-4 px-4">
+                <h5 className="modal-title fw-bold">
+                  {isEditMode ? 'Confirm Update' : 'Confirm Create'}
+                </h5>
+              </div>
+              <div className="modal-body py-3 px-4">
+                <p className="mb-0 fs-6">
+                  Are you sure you want to {isEditMode ? 'update' : 'create'} this prescription with {prescriptionItems.length} medication{prescriptionItems.length > 1 ? 's' : ''}?
+                </p>
+              </div>
+              <div className="modal-footer border-0 pt-2 pb-4 px-4">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowConfirmModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary"
+                  onClick={handleConfirmSubmit}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      {isEditMode ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    'Confirm'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -35,5 +35,24 @@ export const prescriptionService = {
   getPrescriptionById: async (id) => {
     const response = await axios.get(`${API_URL}/Prescription/${id}`, getAuthHeader());
     return response.data;
+  },
+
+  // Get prescription by appointment ID
+  getByAppointment: async (appointmentId) => {
+    const response = await axios.get(`${API_URL}/Prescription`, getAuthHeader());
+    const prescriptions = response.data;
+    return prescriptions.find(p => p.appointmentID === appointmentId);
+  },
+
+  // Update prescription
+  updatePrescription: async (id, prescriptionData) => {
+    const response = await axios.put(`${API_URL}/Prescription/header/${id}`, prescriptionData, getAuthHeader());
+    return response.data;
+  },
+
+  // Delete prescription item (not the whole prescription)
+  deletePrescription: async (id) => {
+    const response = await axios.delete(`${API_URL}/Prescription/header/${id}`, getAuthHeader());
+    return response.data;
   }
 };
