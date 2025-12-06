@@ -263,10 +263,10 @@ export default function PrescriptionViewer({ patientId }) {
                                                 <thead style={{ backgroundColor: '#faf5ff' }}>
                                                     <tr>
                                                         <th style={{ fontSize: '13px', fontWeight: '600', color: '#7c3aed' }}>#</th>
-                                                        <th style={{ fontSize: '13px', fontWeight: '600', color: '#7c3aed' }}>Medication Name</th>
-                                                        <th style={{ fontSize: '13px', fontWeight: '600', color: '#7c3aed' }}>Dosage</th>
-                                                        <th style={{ fontSize: '13px', fontWeight: '600', color: '#7c3aed' }}>Instructions</th>
-                                                        <th style={{ fontSize: '13px', fontWeight: '600', color: '#7c3aed' }}>Supply Days</th>
+                                                        <th style={{ fontSize: '13px', fontWeight: '600', color: '#7c3aed',minWidth:"140px"  }}>Medication Name</th>
+                                                        <th style={{ fontSize: '13px', fontWeight: '600', color: '#7c3aed', minWidth:"140px" }}>Dosage - Quantity</th>
+                                                        <th style={{ fontSize: '13px', fontWeight: '600', color: '#7c3aed', textAlign:"center" }}>Instructions</th>
+                                                        <th style={{ fontSize: '13px', fontWeight: '600', color: '#7c3aed',minWidth:"140px"  }}>Supply Days</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
