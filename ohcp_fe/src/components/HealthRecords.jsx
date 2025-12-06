@@ -239,15 +239,21 @@ const HealthRecords = () => {
 
     const totalPages = Math.ceil(getCompletedAppointmentsCount() / itemsPerPage);
 
+    const getViewUrl = (documentID) => {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7267';
+    const token = localStorage.getItem('token');
+    return `${apiBaseUrl}/api/HealthRecord/document/${documentID}?token=${encodeURIComponent(token)}`;
+};
+
     return (
         <div className='Background_Doctors'>
             <style>
-            {`
+                {`
                 .nav-pills .nav-link.active {
                     color: #ffffff !important;
                 }
             `}
-        </style>
+            </style>
             <div className="container">
                 {/* --- HEADER --- */}
                 <div className="d-flex align-items-center mb-5 animate__animated animate__fadeInDown">
@@ -270,47 +276,44 @@ const HealthRecords = () => {
                             </h5>
 
                             <div className="nav nav-pills bg-light rounded-pill p-1">
-    {/* Nút Summary */}
-    <button
-        type="button"
-        className={`nav-link rounded-pill px-4 fw-medium ${
-            historyView === 'summary' 
-            ? 'active shadow-sm text-white' // <--- Thêm text-white vào đây
-            : 'text-muted'
-        }`}
-        onClick={() => setHistoryView('summary')}
-    >
-        <i className="bi bi-file-text me-2"></i>Summary
-    </button>
-    
-    {/* Nút History */}
-    <button
-        type="button"
-        className={`nav-link rounded-pill px-4 fw-medium ${
-            historyView === 'appointments' 
-            ? 'active shadow-sm text-white' // <--- Thêm text-white vào đây
-            : 'text-muted'
-        }`}
-        onClick={() => {
-            setHistoryView('appointments');
-            setCurrentPage(1);
-        }}
-    >
-        <i className="bi bi-clock-history me-2"></i>History
-        
-        {/* Xử lý Badge: 
-           - Nếu cha Active (xanh) -> Badge nền trắng, chữ xanh 
-           - Nếu cha Inactive (xám) -> Badge nền xám đậm, chữ trắng 
-        */}
-        <span className={`badge ms-2 rounded-pill shadow-sm ${
-            historyView === 'appointments' 
-            ? 'bg-white text-primary' 
-            : 'bg-secondary text-white'
-        }`}>
-            {medicalHistory?.totalAppointments || 0}
-        </span>
-    </button>
-</div>
+                                {/* Nút Summary */}
+                                <button
+                                    type="button"
+                                    className={`nav-link rounded-pill px-4 fw-medium ${historyView === 'summary'
+                                            ? 'active shadow-sm text-white' // <--- Thêm text-white vào đây
+                                            : 'text-muted'
+                                        }`}
+                                    onClick={() => setHistoryView('summary')}
+                                >
+                                    <i className="bi bi-file-text me-2"></i>Summary
+                                </button>
+
+                                {/* Nút History */}
+                                <button
+                                    type="button"
+                                    className={`nav-link rounded-pill px-4 fw-medium ${historyView === 'appointments'
+                                            ? 'active shadow-sm text-white' // <--- Thêm text-white vào đây
+                                            : 'text-muted'
+                                        }`}
+                                    onClick={() => {
+                                        setHistoryView('appointments');
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <i className="bi bi-clock-history me-2"></i>History
+
+                                    {/* Xử lý Badge: 
+                                        - Nếu cha Active (xanh) -> Badge nền trắng, chữ xanh 
+                                        - Nếu cha Inactive (xám) -> Badge nền xám đậm, chữ trắng 
+                                    */}
+                                    <span className={`badge ms-2 rounded-pill shadow-sm ${historyView === 'appointments'
+                                            ? 'bg-white text-primary'
+                                            : 'bg-secondary text-white'
+                                        }`}>
+                                        {medicalHistory?.totalAppointments || 0}
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -367,63 +370,63 @@ const HealthRecords = () => {
                                 ) : (
                                     <div>
                                         {/* --- 1. OPTIMIZED SECTION: YOUR DOCTORS (Horizontal Scroll) --- */}
-{medicalHistory?.doctorVisits?.length > 0 && (
-    <div className="mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-2">
-            <h6 className="fw-bold text-secondary mb-0">
-                <i className="bi bi-person-badge-fill me-2"></i>My Doctors ({medicalHistory.doctorVisits.length})
-            </h6>
-            {/* Mũi tên gợi ý cuộn nếu cần (chỉ để trang trí) */}
-            {medicalHistory.doctorVisits.length > 2 && (
-                <small className="text-muted"><i className="bi bi-arrow-right"></i> Scroll for more</small>
-            )}
-        </div>
+                                        {medicalHistory?.doctorVisits?.length > 0 && (
+                                            <div className="mb-4">
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <h6 className="fw-bold text-secondary mb-0">
+                                                        <i className="bi bi-person-badge-fill me-2"></i>My Doctors ({medicalHistory.doctorVisits.length})
+                                                    </h6>
+                                                    {/* Mũi tên gợi ý cuộn nếu cần (chỉ để trang trí) */}
+                                                    {medicalHistory.doctorVisits.length > 2 && (
+                                                        <small className="text-muted"><i className="bi bi-arrow-right"></i> Scroll for more</small>
+                                                    )}
+                                                </div>
 
-        {/* Horizontal Scroll Container */}
-        <div 
-            className="d-flex gap-3 overflow-auto pb-3" 
-            style={{ scrollbarWidth: 'thin' }} // Tạo thanh cuộn mảnh cho Firefox/Modern Browsers
-        >
-            {medicalHistory.doctorVisits.map(doctor => (
-                <div 
-                    key={doctor.doctorID} 
-                    className="card border-0 shadow-sm rounded-3 flex-shrink-0"
-                    style={{ minWidth: '280px', maxWidth: '280px' }} // Đặt chiều rộng cố định để tạo hiệu ứng cuộn
-                >
-                    <div className="card-body p-3">
-                        {/* Header: Avatar + Info */}
-                        <div className="d-flex align-items-center mb-3">
-                            <div className="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style={{width: 42, height: 42}}>
-                                <i className="bi bi-person-fill fs-5"></i>
-                            </div>
-                            <div className="overflow-hidden">
-                                <h6 className="fw-bold text-dark mb-0 text-truncate" title={doctor.doctorName}>
-                                    {doctor.doctorName}
-                                </h6>
-                                <p className="text-muted small mb-0 text-truncate" title={doctor.doctorSpecialty}>
-                                    {doctor.doctorSpecialty}
-                                </p>
-                            </div>
-                        </div>
-                        
-                        {/* Footer: Stats */}
-                        <div className="bg-light rounded p-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <span className="text-muted d-block text-uppercase" style={{fontSize: '0.65rem', letterSpacing: '0.5px'}}>Last Visit</span>
-                                <span className="fw-bold text-dark small">
-                                    {new Date(doctor.lastVisit).toLocaleDateString('en-GB')}
-                                </span>
-                            </div>
-                            <span className="badge bg-white text-primary border shadow-sm rounded-pill">
-                                {doctor.visitCount} visits
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
-    </div>
-)}
+                                                {/* Horizontal Scroll Container */}
+                                                <div
+                                                    className="d-flex gap-3 overflow-auto pb-3"
+                                                    style={{ scrollbarWidth: 'thin' }} // Tạo thanh cuộn mảnh cho Firefox/Modern Browsers
+                                                >
+                                                    {medicalHistory.doctorVisits.map(doctor => (
+                                                        <div
+                                                            key={doctor.doctorID}
+                                                            className="card border-0 shadow-sm rounded-3 flex-shrink-0"
+                                                            style={{ minWidth: '280px', maxWidth: '280px' }} // Đặt chiều rộng cố định để tạo hiệu ứng cuộn
+                                                        >
+                                                            <div className="card-body p-3">
+                                                                {/* Header: Avatar + Info */}
+                                                                <div className="d-flex align-items-center mb-3">
+                                                                    <div className="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style={{ width: 42, height: 42 }}>
+                                                                        <i className="bi bi-person-fill fs-5"></i>
+                                                                    </div>
+                                                                    <div className="overflow-hidden">
+                                                                        <h6 className="fw-bold text-dark mb-0 text-truncate" title={doctor.doctorName}>
+                                                                            {doctor.doctorName}
+                                                                        </h6>
+                                                                        <p className="text-muted small mb-0 text-truncate" title={doctor.doctorSpecialty}>
+                                                                            {doctor.doctorSpecialty}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Footer: Stats */}
+                                                                <div className="bg-light rounded p-2 d-flex justify-content-between align-items-center">
+                                                                    <div>
+                                                                        <span className="text-muted d-block text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>Last Visit</span>
+                                                                        <span className="fw-bold text-dark small">
+                                                                            {new Date(doctor.lastVisit).toLocaleDateString('en-GB')}
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className="badge bg-white text-primary border shadow-sm rounded-pill">
+                                                                        {doctor.visitCount} visits
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* --- 2. APPOINTMENT HISTORY TIMELINE --- */}
                                         <h6 className="fw-bold text-secondary mb-3">
@@ -669,7 +672,7 @@ const HealthRecords = () => {
                                                                     <i className="bi bi-file-pdf fs-2"></i>
                                                                 </div>
                                                             ) : (
-                                                                <img src={doc.fileUrl} alt="thumb" className="rounded-3 object-fit-cover border" style={{ width: 56, height: 56 }} />
+                                                                <img src={getViewUrl(doc.documentID)} alt="thumb" className="rounded-3 object-fit-cover border" style={{ width: 56, height: 56 }} />
                                                             )}
                                                         </div>
 
@@ -684,7 +687,7 @@ const HealthRecords = () => {
                                                                 </span>
                                                                 {doc.testStatus && (
                                                                     <span className={`badge rounded-pill small ${doc.testStatus === 'Normal' ? 'bg-success-subtle text-success' :
-                                                                            doc.testStatus === 'Abnormal' ? 'bg-warning-subtle text-warning-emphasis' : 'bg-danger-subtle text-danger'
+                                                                        doc.testStatus === 'Abnormal' ? 'bg-warning-subtle text-warning-emphasis' : 'bg-danger-subtle text-danger'
                                                                         }`}>
                                                                         {doc.testStatus}
                                                                     </span>
