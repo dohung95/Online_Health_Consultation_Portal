@@ -42,8 +42,8 @@ const DoctorProfile = () => {
     fetchNotifications();
     
     // Connect to SignalR
-    signalRService.startConnection();
-    
+    // signalRService.startConnection();
+
     // Listen for new appointments
     const handleNewAppointment = (appointment) => {
       console.log('📅 New appointment received:', appointment);

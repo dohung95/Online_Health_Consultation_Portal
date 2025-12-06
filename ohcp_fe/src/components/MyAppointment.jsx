@@ -129,15 +129,15 @@ const MyAppointments = () => {
                 roomId += characters.charAt(Math.floor(Math.random() * characters.length));
             }
 
-            console.log('Video Call Info:', {
-                patientID,
-                doctorID,
-                patientName,
-                doctorName,
-                roomId,
-                targetUserId,
-                targetUserName
-            });
+            // console.log('Video Call Info:', {
+            //     patientID,
+            //     doctorID,
+            //     patientName,
+            //     doctorName,
+            //     roomId,
+            //     targetUserId,
+            //     targetUserName
+            // });
 
             // Gọi hàm initiateCall với thông tin đầy đủ
             initiateCall(targetUserId, roomId, targetUserName);

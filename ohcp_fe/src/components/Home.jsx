@@ -149,7 +149,6 @@ function Home() {
             <div className="service-icon-large">
               <svg xmlns="http://www.w3.org/2000/svg"
                 width="30"
-                height="auto"
                 viewBox="0 0 87.22 139.998"
                 preserveAspectRatio="xMidYMid meet"
                 fill="none" stroke="#ffffffff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="6">

@@ -147,15 +147,15 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
         roomId += characters.charAt(Math.floor(Math.random() * characters.length));
       }
 
-      console.log('Video Call Info:', {
-        patientID,
-        doctorID,
-        patientName,
-        doctorName,
-        roomId,
-        targetUserId,
-        targetUserName
-      });
+      // console.log('Video Call Info:', {
+      //   patientID,
+      //   doctorID,
+      //   patientName,
+      //   doctorName,
+      //   roomId,
+      //   targetUserId,
+      //   targetUserName
+      // });
 
       // Lấy tên bác sĩ hiện tại
       const currentDoctorName = doctorName || "Doctor";
