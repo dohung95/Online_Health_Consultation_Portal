@@ -143,26 +143,26 @@ namespace OHCP_BK.Data
             var random = new Random();
             var medications = new[]
             {
-                new { Name = "Amoxicillin", Dosage = "500mg", Instructions = "Take 3 times daily with food. Complete full course even if feeling better.", SupplyDays = 7 },
-                new { Name = "Ibuprofen", Dosage = "400mg", Instructions = "Take as needed for pain. Do not exceed 1200mg per day. Take with food.", SupplyDays = 14 },
-                new { Name = "Lisinopril", Dosage = "10mg", Instructions = "Take once daily in the morning. Monitor blood pressure regularly.", SupplyDays = 30 },
-                new { Name = "Metformin", Dosage = "500mg", Instructions = "Take twice daily with meals to reduce stomach upset.", SupplyDays = 30 },
-                new { Name = "Omeprazole", Dosage = "20mg", Instructions = "Take once daily before breakfast. Swallow whole, do not crush.", SupplyDays = 30 },
-                new { Name = "Atorvastatin", Dosage = "20mg", Instructions = "Take once daily at bedtime. Avoid grapefruit juice.", SupplyDays = 30 },
-                new { Name = "Levothyroxine", Dosage = "50mcg", Instructions = "Take once daily on empty stomach, 30 minutes before breakfast.", SupplyDays = 30 },
-                new { Name = "Amlodipine", Dosage = "5mg", Instructions = "Take once daily at the same time each day. May cause swelling.", SupplyDays = 30 },
-                new { Name = "Sertraline", Dosage = "50mg", Instructions = "Take once daily, may take with or without food. May cause drowsiness initially.", SupplyDays = 30 },
-                new { Name = "Acetaminophen", Dosage = "500mg", Instructions = "Take as needed for pain or fever. Maximum 4000mg per day. Avoid alcohol.", SupplyDays = 7 },
-                new { Name = "Cetirizine", Dosage = "10mg", Instructions = "Take once daily for allergy symptoms. May cause drowsiness.", SupplyDays = 30 },
-                new { Name = "Albuterol Inhaler", Dosage = "90mcg", Instructions = "Use as needed for breathing difficulties. Shake well before use. Rinse mouth after.", SupplyDays = 30 },
-                new { Name = "Prednisone", Dosage = "20mg", Instructions = "Take once daily with food. Taper as directed by doctor. Do not stop abruptly.", SupplyDays = 5 },
-                new { Name = "Ciprofloxacin", Dosage = "500mg", Instructions = "Take twice daily. Drink plenty of water. Avoid dairy products within 2 hours.", SupplyDays = 7 },
-                new { Name = "Gabapentin", Dosage = "300mg", Instructions = "Take three times daily for nerve pain. Do not stop suddenly.", SupplyDays = 30 },
-                new { Name = "Pantoprazole", Dosage = "40mg", Instructions = "Take once daily before first meal. For acid reflux treatment.", SupplyDays = 30 },
-                new { Name = "Losartan", Dosage = "50mg", Instructions = "Take once daily for high blood pressure. May cause dizziness initially.", SupplyDays = 30 },
-                new { Name = "Montelukast", Dosage = "10mg", Instructions = "Take once daily in evening for asthma control.", SupplyDays = 30 },
-                new { Name = "Fluticasone Nasal Spray", Dosage = "50mcg", Instructions = "Use 2 sprays in each nostril once daily for allergies.", SupplyDays = 30 },
-                new { Name = "Amoxicillin-Clavulanate", Dosage = "875mg", Instructions = "Take twice daily with food. Complete full course of antibiotics.", SupplyDays = 10 }
+                new { Name = "Amoxicillin", Dosage = "500mg/21 tabs", Instructions = "Take 3 times daily with food. Complete full course even if feeling better.", SupplyDays = 7 },
+                new { Name = "Ibuprofen", Dosage = "400mg/42 tabs", Instructions = "Take as needed for pain. Do not exceed 1200mg per day. Take with food.", SupplyDays = 14 },
+                new { Name = "Lisinopril", Dosage = "10mg/30 tabs", Instructions = "Take once daily in the morning. Monitor blood pressure regularly.", SupplyDays = 30 },
+                new { Name = "Metformin", Dosage = "500mg/60 tabs", Instructions = "Take twice daily with meals to reduce stomach upset.", SupplyDays = 30 },
+                new { Name = "Omeprazole", Dosage = "20mg/30 tabs", Instructions = "Take once daily before breakfast. Swallow whole, do not crush.", SupplyDays = 30 },
+                new { Name = "Atorvastatin", Dosage = "20mg/30 tabs", Instructions = "Take once daily at bedtime. Avoid grapefruit juice.", SupplyDays = 30 },
+                new { Name = "Levothyroxine", Dosage = "50mcg/30 tabs", Instructions = "Take once daily on empty stomach, 30 minutes before breakfast.", SupplyDays = 30 },
+                new { Name = "Amlodipine", Dosage = "5mg/30 tabs", Instructions = "Take once daily at the same time each day. May cause swelling.", SupplyDays = 30 },
+                new { Name = "Sertraline", Dosage = "50mg/30 tabs", Instructions = "Take once daily, may take with or without food. May cause drowsiness initially.", SupplyDays = 30 },
+                new { Name = "Acetaminophen", Dosage = "500mg/21 tabs", Instructions = "Take as needed for pain or fever. Maximum 4000mg per day. Avoid alcohol.", SupplyDays = 7 },
+                new { Name = "Cetirizine", Dosage = "10mg/30 tabs", Instructions = "Take once daily for allergy symptoms. May cause drowsiness.", SupplyDays = 30 },
+                new { Name = "Albuterol Inhaler", Dosage = "90mcg/1 inhaler", Instructions = "Use as needed for breathing difficulties. Shake well before use. Rinse mouth after.", SupplyDays = 30 },
+                new { Name = "Prednisone", Dosage = "20mg/5 tabs", Instructions = "Take once daily with food. Taper as directed by doctor. Do not stop abruptly.", SupplyDays = 5 },
+                new { Name = "Ciprofloxacin", Dosage = "500mg/14 tabs", Instructions = "Take twice daily. Drink plenty of water. Avoid dairy products within 2 hours.", SupplyDays = 7 },
+                new { Name = "Gabapentin", Dosage = "300mg/90 tabs", Instructions = "Take three times daily for nerve pain. Do not stop suddenly.", SupplyDays = 30 },
+                new { Name = "Pantoprazole", Dosage = "40mg/30 tabs", Instructions = "Take once daily before first meal. For acid reflux treatment.", SupplyDays = 30 },
+                new { Name = "Losartan", Dosage = "50mg/30 tabs", Instructions = "Take once daily for high blood pressure. May cause dizziness initially.", SupplyDays = 30 },
+                new { Name = "Montelukast", Dosage = "10mg/30 tabs", Instructions = "Take once daily in evening for asthma control.", SupplyDays = 30 },
+                new { Name = "Fluticasone Nasal Spray", Dosage = "50mcg/1 bottle", Instructions = "Use 2 sprays in each nostril once daily for allergies.", SupplyDays = 30 },
+                new { Name = "Amoxicillin-Clavulanate", Dosage = "875mg/20 tabs", Instructions = "Take twice daily with food. Complete full course of antibiotics.", SupplyDays = 10 }
             };
             var appointmentsWithPrescriptions = appointmentsNeedingPrescriptions
                 .OrderBy(x => random.Next())
