@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { notificationService } from '../services/notificationService';
 import { useAuth } from './AuthContext';
+import { audioService } from '../utils/audioService';
 
 const NotificationContext = createContext();
 
@@ -66,13 +67,7 @@ export const NotificationProvider = ({ children }) => {
     };
 
     const playNotificationSound = () => {
-        try {
-            const audio = new Audio('/notification.mp3');
-            audio.volume = 0.5;
-            audio.play().catch(e => console.log('Could not play sound:', e));
-        } catch (error) {
-            console.log('Notification sound error:', error);
-        }
+        audioService.playNotification();
     };
 
     const markAsRead = (notificationId) => {

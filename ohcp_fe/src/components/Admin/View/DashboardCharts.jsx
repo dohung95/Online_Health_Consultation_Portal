@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { analyticsApi } from '../../services/adminAnalyticsApi';
-import './DashboardCharts.css';
+import { BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { analyticsApi } from '../../../services/adminApi';
+import '../Css/DashboardCharts.css';
 
 const DashboardCharts = () => {
     const currentYear = new Date().getFullYear();
@@ -103,7 +103,7 @@ const DashboardCharts = () => {
             </div>
 
             <div className="row g-4">
-                {/* Patient Registrations Chart */}
+                {/* Patient Registrations Chart - Area Chart */}
                 <div className="col-lg-6">
                     <div className="admin-card chart-card">
                         <div className="chart-header">
@@ -115,7 +115,13 @@ const DashboardCharts = () => {
                         </div>
                         <div className="chart-container">
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={patientData}>
+                                <AreaChart data={patientData}>
+                                    <defs>
+                                        <linearGradient id="colorPatients" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#0891b2" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="#0891b2" stopOpacity={0.1}/>
+                                        </linearGradient>
+                                    </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                     <XAxis dataKey="month" stroke="#6b7280" style={{ fontSize: '12px' }} />
                                     <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
@@ -127,14 +133,21 @@ const DashboardCharts = () => {
                                             boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                                         }}
                                     />
-                                    <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-                                </BarChart>
+                                    <Area
+                                        type="monotone"
+                                        dataKey="count"
+                                        stroke="#0891b2"
+                                        strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorPatients)"
+                                    />
+                                </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
 
-                {/* Appointments by Week Chart */}
+                {/* Appointments by Week Chart - Line Chart */}
                 <div className="col-lg-6">
                     <div className="admin-card chart-card">
                         <div className="chart-header">
@@ -161,10 +174,10 @@ const DashboardCharts = () => {
                                     <Line
                                         type="monotone"
                                         dataKey="count"
-                                        stroke="#10b981"
+                                        stroke="#059669"
                                         strokeWidth={3}
-                                        dot={{ fill: '#10b981', r: 5 }}
-                                        activeDot={{ r: 7 }}
+                                        dot={{ fill: '#059669', r: 6, strokeWidth: 2, stroke: '#fff' }}
+                                        activeDot={{ r: 8, strokeWidth: 2 }}
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
@@ -172,7 +185,7 @@ const DashboardCharts = () => {
                     </div>
                 </div>
 
-                {/* Appointments by Month Chart */}
+                {/* Appointments by Month Chart - Bar Chart */}
                 <div className="col-lg-6">
                     <div className="admin-card chart-card">
                         <div className="chart-header">
@@ -185,6 +198,12 @@ const DashboardCharts = () => {
                         <div className="chart-container">
                             <ResponsiveContainer width="100%" height={300}>
                                 <BarChart data={monthlyAppointments}>
+                                    <defs>
+                                        <linearGradient id="colorAppointments" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9}/>
+                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0.6}/>
+                                        </linearGradient>
+                                    </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                     <XAxis dataKey="month" stroke="#6b7280" style={{ fontSize: '12px' }} />
                                     <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
@@ -196,29 +215,68 @@ const DashboardCharts = () => {
                                             boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                                         }}
                                     />
-                                    <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+                                    <Bar dataKey="count" fill="url(#colorAppointments)" radius={[8, 8, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
 
-                {/* Revenue by Month Chart */}
+                {/* Revenue by Status - Pie Chart */}
                 <div className="col-lg-6">
                     <div className="admin-card chart-card">
                         <div className="chart-header">
                             <h5 className="chart-title">
-                                <i className="bi bi-currency-dollar me-2"></i>
-                                Revenue by Month
+                                <i className="bi bi-pie-chart me-2"></i>
+                                Revenue by Status
                             </h5>
                             <span className="chart-subtitle">Year {selectedYear}</span>
                         </div>
                         <div className="chart-container">
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={revenueData}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                    <XAxis dataKey="month" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                                    <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
+                                <PieChart>
+                                    <Pie
+                                        data={(() => {
+                                            // Calculate total revenue by status
+                                            const totals = revenueData.reduce((acc, month) => {
+                                                acc.paid += month.paid || 0;
+                                                acc.pending += month.pending || 0;
+                                                acc.cancelled += month.cancelled || 0;
+                                                return acc;
+                                            }, { paid: 0, pending: 0, cancelled: 0 });
+
+                                            return [
+                                                { name: 'Paid', value: totals.paid, color: '#10b981' },
+                                                { name: 'Pending', value: totals.pending, color: '#f59e0b' },
+                                                { name: 'Cancelled', value: totals.cancelled, color: '#ef4444' }
+                                            ].filter(item => item.value > 0); // Only show non-zero values
+                                        })()}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={100}
+                                        paddingAngle={3}
+                                        dataKey="value"
+                                        label={({ name, value, percent }) => `${name}: $${value.toFixed(0)} (${(percent * 100).toFixed(1)}%)`}
+                                        labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
+                                    >
+                                        {(() => {
+                                            const totals = revenueData.reduce((acc, month) => {
+                                                acc.paid += month.paid || 0;
+                                                acc.pending += month.pending || 0;
+                                                acc.cancelled += month.cancelled || 0;
+                                                return acc;
+                                            }, { paid: 0, pending: 0, cancelled: 0 });
+
+                                            return [
+                                                { name: 'Paid', value: totals.paid, color: '#10b981' },
+                                                { name: 'Pending', value: totals.pending, color: '#f59e0b' },
+                                                { name: 'Cancelled', value: totals.cancelled, color: '#ef4444' }
+                                            ].filter(item => item.value > 0).map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ));
+                                        })()}
+                                    </Pie>
                                     <Tooltip
                                         contentStyle={{
                                             backgroundColor: '#fff',
@@ -228,11 +286,17 @@ const DashboardCharts = () => {
                                         }}
                                         formatter={(value) => `$${value.toFixed(2)}`}
                                     />
-                                    <Legend />
-                                    <Bar dataKey="paid" stackId="a" fill="#10b981" name="Paid" radius={[0, 0, 0, 0]} />
-                                    <Bar dataKey="pending" stackId="a" fill="#f59e0b" name="Pending" radius={[0, 0, 0, 0]} />
-                                    <Bar dataKey="cancelled" stackId="a" fill="#ef4444" name="Cancelled" radius={[8, 8, 0, 0]} />
-                                </BarChart>
+                                    <Legend
+                                        verticalAlign="bottom"
+                                        height={36}
+                                        formatter={(value, entry) => {
+                                            const total = revenueData.reduce((sum, month) =>
+                                                sum + (month.paid || 0) + (month.pending || 0) + (month.cancelled || 0), 0);
+                                            const percent = total > 0 ? (entry.payload.value / total * 100).toFixed(1) : 0;
+                                            return `${value} ($${entry.payload.value.toFixed(0)} - ${percent}%)`;
+                                        }}
+                                    />
+                                </PieChart>
                             </ResponsiveContainer>
                         </div>
                     </div>

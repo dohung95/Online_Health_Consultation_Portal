@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://localhost:7267/api'; 
+const API_URL = 'https://localhost:7267/api';
 
 const getAuthConfig = () => {
     const token = localStorage.getItem('token');
@@ -34,6 +34,16 @@ export const appointmentService = {
 
     cancelAppointment: async (id, reason) => {
         const response = await axios.put(`${API_URL}/Appointment/${id}/cancel`, { reason }, getAuthConfig());
+        return response.data;
+    },
+
+    getMedicalHistory: async () => {
+        const response = await axios.get(`${API_URL}/Appointment/medical-history`, getAuthConfig());
+        return response.data;
+    },
+
+    getAppointmentDetail: async (appointmentId) => {
+        const response = await axios.get(`${API_URL}/Appointment/medical-history/${appointmentId}`, getAuthConfig());
         return response.data;
     }
 };

@@ -157,6 +157,21 @@ export const medicalRecordsApi = {
   getByPatientId: async (patientId) => {
     const response = await adminApi.get(`/adminmedicalrecords/patient/${patientId}`);
     return response.data;
+  },
+
+  // New: Get patient list for patient-centric view
+  getPatients: async (params = {}) => {
+    const { pageNumber = 1, pageSize = 10, searchTerm = '' } = params;
+    const response = await adminApi.get('/adminmedicalrecords/patients', {
+      params: { pageNumber, pageSize, searchTerm }
+    });
+    return response.data;
+  },
+
+  // New: Get comprehensive patient medical history
+  getPatientMedicalHistory: async (patientId) => {
+    const response = await adminApi.get(`/adminmedicalrecords/patient/${patientId}/details`);
+    return response.data;
   }
 };
 
@@ -188,6 +203,38 @@ export const invoicesApi = {
 
   delete: async (id) => {
     const response = await adminApi.delete(`/admininvoices/${id}`);
+    return response.data;
+  }
+};
+
+// ==================== ANALYTICS API ====================
+
+export const analyticsApi = {
+  getPatientRegistrations: async (year = 0) => {
+    const response = await adminApi.get('/analytics/patient-registrations', {
+      params: { year }
+    });
+    return response.data;
+  },
+
+  getAppointmentsByWeek: async (year = 0, month = 0) => {
+    const response = await adminApi.get('/analytics/appointments-by-week', {
+      params: { year, month }
+    });
+    return response.data;
+  },
+
+  getAppointmentsByMonth: async (year = 0) => {
+    const response = await adminApi.get('/analytics/appointments-by-month', {
+      params: { year }
+    });
+    return response.data;
+  },
+
+  getRevenueByMonth: async (year = 0) => {
+    const response = await adminApi.get('/analytics/revenue-by-month', {
+      params: { year }
+    });
     return response.data;
   }
 };

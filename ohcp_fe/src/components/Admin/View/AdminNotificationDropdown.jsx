@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import './AdminNotificationDropdown.css';
+import '../Css/AdminNotificationDropdown.css';
+import AdminNotificationModal from './AdminNotificationModal';
 
 const AdminNotificationDropdown = () => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const dropdownRef = useRef(null);
 
     const API_URL = 'https://localhost:7267/api/admin/notifications';
@@ -16,11 +18,11 @@ const AdminNotificationDropdown = () => {
         return token ? { Authorization: `Bearer ${token}` } : {};
     };
 
-    // Fetch notifications
+    // Fetch notifications (limit to 10 for dropdown)
     const fetchNotifications = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(API_URL, {
+            const response = await axios.get(`${API_URL}?limit=10`, {
                 headers: getAuthHeader()
             });
 
@@ -67,6 +69,31 @@ const AdminNotificationDropdown = () => {
         }
     };
 
+    // Delete notification
+    const deleteNotification = async (notificationId, event) => {
+        // Prevent triggering markAsRead
+        event.stopPropagation();
+
+        try {
+            await axios.delete(`${API_URL}/${notificationId}`, {
+                headers: getAuthHeader()
+            });
+
+            // Update local state - remove notification
+            setNotifications(prevNotifications =>
+                prevNotifications.filter(n => n.notificationID !== notificationId)
+            );
+
+            // Update unread count if it was unread
+            const notification = notifications.find(n => n.notificationID === notificationId);
+            if (notification && !notification.isRead) {
+                setUnreadCount(prev => Math.max(0, prev - 1));
+            }
+        } catch (error) {
+            console.error('Error deleting notification:', error);
+        }
+    };
+
     // Toggle dropdown
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
@@ -87,12 +114,12 @@ const AdminNotificationDropdown = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Initial fetch and hourly refresh
+    // Initial fetch and auto-refresh every 3 seconds
     useEffect(() => {
         fetchNotifications();
 
-        // Refresh every hour (3600000 ms)
-        const intervalId = setInterval(fetchNotifications, 3600000);
+        // Refresh every 3 seconds (3000 ms)
+        const intervalId = setInterval(fetchNotifications, 3000);
 
         return () => clearInterval(intervalId);
     }, []);
@@ -176,6 +203,13 @@ const AdminNotificationDropdown = () => {
                                     {!notification.isRead && (
                                         <div className="admin-notification-unread-dot"></div>
                                     )}
+                                    <button
+                                        className="admin-notification-delete-btn"
+                                        onClick={(e) => deleteNotification(notification.notificationID, e)}
+                                        aria-label="Delete notification"
+                                    >
+                                        <i className="bi bi-x"></i>
+                                    </button>
                                 </div>
                             ))
                         )}
@@ -185,7 +219,10 @@ const AdminNotificationDropdown = () => {
                         <div className="admin-notification-footer">
                             <button
                                 className="admin-notification-view-all"
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    setIsModalOpen(true);
+                                }}
                             >
                                 View all notifications
                             </button>
@@ -193,6 +230,14 @@ const AdminNotificationDropdown = () => {
                     )}
                 </div>
             )}
+
+            <AdminNotificationModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    fetchNotifications(); // Refresh dropdown when modal closes
+                }}
+            />
         </div>
     );
 };

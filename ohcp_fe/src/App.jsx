@@ -15,12 +15,12 @@ import Payment from './components/Payment';
 
 import ProfilePatient from './pages/profilePatient';
 
-import Admin from './components/Admin/Admin';
-import Patients from './components/Admin/Patients';
-import AdminDoctors from './components/Admin/Doctors';
-import Appointments from './components/Admin/Appointments';
-import MedicalRecords from './components/Admin/MedicalRecords';
-import Invoices from './components/Admin/Invoices';
+import Admin from './components/Admin/View/Admin';
+import Patients from './components/Admin/View/Patients';
+import AdminDoctors from './components/Admin/View/Doctors';
+import Appointments from './components/Admin/View/Appointments';
+import MedicalRecords from './components/Admin/View/MedicalRecords';
+import Invoices from './components/Admin/View/Invoices';
 
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
@@ -44,11 +44,13 @@ import PatientPrescriptionView from './components/PatientPrescriptionView';
 
 import DoctorPage from './components/DoctorPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import ExcludeRolesRoute from './components/ExcludeRolesRoute';
 
 import AdminRoute from './components/Admin/AdminRoute';
 import HealthRecords from './components/HealthRecords';
 import ShareHealthRecords from './components/ShareHealthRecords';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import { Toaster } from 'sonner';
 
 function App() {
   return (
@@ -74,6 +76,7 @@ function AppContent() {
 
   return (
     <>
+      <Toaster position="top-right" richColors />
       {!isVideoCallPage && !isAdminPage && <IncomingCallModal />}
       {!isVideoCallPage && !isAdminPage && <PrescriptionNotificationModal />}
       <div className="App">
@@ -93,9 +96,10 @@ function AppContent() {
             <Route path="/health-records" element={<HealthRecords />} />
             <Route path="/share-records" element={<ShareHealthRecords />} />
             <Route path="/profile-patient" element={<ProfilePatient />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/book/:doctorId" element={<Schedule />} />
-            <Route path="/my-appointments" element={<MyAppointments />} />
+            
+            {/* <Route path="/schedule" element={<Schedule />} /> */}
+            {/* <Route path="/book/:doctorId" element={<Schedule />} /> */}
+            {/* <Route path="/my-appointments" element={<MyAppointments />} /> */}
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/doctor/:id" element={<DoctorProfile />} />
             {/* Doctor only */}
@@ -105,32 +109,33 @@ function AppContent() {
               </ProtectedRoute>
             } />
             
-            {/* Patient only routes */}
-            {/* <Route path="/schedule" element={
-              <ProtectedRoute allowedRoles={['Patient']}>
+            <Route path="/schedule" element={
+              <ExcludeRolesRoute excludedRoles={['Admin', 'Doctor']}>
                 <Schedule />
-              </ProtectedRoute>
+              </ExcludeRolesRoute>
             } />
             <Route path="/book/:doctorId" element={
-              <ProtectedRoute allowedRoles={['Patient']}>
+              <ExcludeRolesRoute excludedRoles={['Admin', 'Doctor']}>
                 <Schedule />
-              </ProtectedRoute>
+              </ExcludeRolesRoute>
             } />
             <Route path="/my-appointments" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <MyAppointments />
               </ProtectedRoute>
             } />
-            <Route path="/doctors" element={
+            {/* <Route path="/doctors" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <Doctors />
               </ProtectedRoute>
-            } />
-            <Route path="/doctor/:id" element={
+            } /> */}
+            {/* <Route path="/doctor/:id" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <DoctorProfile />
               </ProtectedRoute>
             } /> */}
+
+            
             <Route path="/records" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <Records />

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Toast from './Toast';
+import Toast from './View/Toast';
 
 const AdminRoute = ({ children }) => {
   const { isAuthenticated, roles, loading } = useAuth();

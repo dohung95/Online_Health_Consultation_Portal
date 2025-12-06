@@ -242,14 +242,6 @@ namespace OHCP_BK.Controllers
                     return BadRequest("Appointment time must be in the future");
                 }
 
-                // Validate work hour (7h-11h, 13h-17h)
-                var hour = dto.AppointmentTime.Hour;
-                var isValidTimeSlot = (hour >= 7 && hour <= 11) || (hour >= 13 && hour <= 17);
-                if (!isValidTimeSlot)
-                {
-                    return BadRequest("Appointment time must be within working hours (7-11 AM or 1-5 PM)");
-                }
-
                 // Conflict Check
                 // Logic: A slot is considered busy if there is an appointment at the same time AND the status is NOT "Cancelled"
                 // (Avoid the case where the user re-booked the canceled slot but the old code still reports busy)
@@ -485,6 +477,192 @@ namespace OHCP_BK.Controllers
             {
                 _logger.LogError($"Error sending appointment notification: {ex.Message}");
                 return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("medical-history")]
+        [Authorize(Roles = "patient")]
+        public async Task<ActionResult<MedicalHistoryDTO>> GetMedicalHistory()
+        {
+            try
+            {
+                // 1. Get PatientID from JWT token
+                var patientId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(patientId))
+                {
+                    return Unauthorized(new { message = "Patient not authenticated" });
+                }
+                // 2. Get info patient
+                var patient = await _context.Patients
+                    .FirstOrDefaultAsync(p => p.PatientID == patientId);
+                if (patient == null)
+                {
+                    return NotFound(new { message = "Patient not found" });
+                }
+                // 3. Get all appointments for this patient (with related data)
+                var appointments = await _context.Appointments
+                    .Include(a => a.Doctor)
+                    .Include(a => a.Consultation)
+                    .Include(a => a.Invoice)
+                    .Where(a => a.PatientID == patientId)
+                    .OrderByDescending(a => a.AppointmentTime)
+                    .ToListAsync();
+                // 4. Get all prescriptions related to these appointments
+                var appointmentIds = appointments.Select(a => a.AppointmentID).ToList();
+                var prescriptions = await _context.PrescriptionHeaders
+                    .Include(ph => ph.PrescriptionItems)
+                    .Where(ph => appointmentIds.Contains(ph.AppointmentID))
+                    .ToListAsync();
+                // 5. Map to DTO
+                var appointmentHistories = appointments.Select(a =>
+                {
+                    var prescription = prescriptions.FirstOrDefault(p => p.AppointmentID == a.AppointmentID);
+
+                    return new AppointmentHistoryDTO
+                    {
+                        AppointmentID = a.AppointmentID,
+                        AppointmentTime = a.AppointmentTime,
+                        ConsultationType = a.ConsultationType,
+                        Status = a.Status,
+                        DoctorID = a.DoctorID,
+                        DoctorName = a.Doctor?.FullName ?? "Unknown",
+                        DoctorSpecialty = a.Doctor?.Specialty ?? "N/A",
+
+                        // Consultation details
+                        Consultation = a.Consultation != null ? new ConsultationDetailsDTO
+                        {
+                            ConsultationID = a.Consultation.ConsultationID,
+                            StartTime = a.Consultation.StartTime,
+                            EndTime = a.Consultation.EndTime,
+                            DoctorNotes = a.Consultation.DoctorNotes,
+                            FollowUpDate = a.Consultation.FollowUpDate
+                        } : null,
+
+                        // Prescription summary
+                        Prescription = prescription != null ? new PrescriptionSummaryDTO
+                        {
+                            PrescriptionHeaderID = prescription.PrescriptionHeaderID,
+                            IssueDate = prescription.IssueDate,
+                            MedicationCount = prescription.PrescriptionItems.Count,
+                            MedicationNames = prescription.PrescriptionItems
+                                .Select(pi => pi.MedicationName)
+                                .ToList()
+                        } : null,
+
+                        // Invoice summary
+                        Invoice = a.Invoice != null ? new InvoiceSummaryDTO
+                        {
+                            InvoiceID = a.Invoice.InvoiceID,
+                            TotalAmount = a.Invoice.Amount,
+                            PaymentStatus = a.Invoice.Status,
+                            PaymentDate = a.Invoice.IssueDate
+                        } : null
+                    };
+                }).ToList();
+                // 6. Calculate doctor visit summary
+                var doctorVisits = appointments
+                    .Where(a => a.Doctor != null && a.Status == "Completed")
+                    .GroupBy(a => new { a.DoctorID, a.Doctor!.FullName, a.Doctor.Specialty })
+                    .Select(g => new DoctorVisitSummaryDTO
+                    {
+                        DoctorID = g.Key.DoctorID,
+                        DoctorName = g.Key.FullName,
+                        DoctorSpecialty = g.Key.Specialty,
+                        VisitCount = g.Count(),
+                        LastVisit = g.Max(a => a.AppointmentTime),
+                        FirstVisit = g.Min(a => a.AppointmentTime)
+                    })
+                    .OrderByDescending(d => d.VisitCount)
+                    .ToList();
+                // 7. Create response
+                var result = new MedicalHistoryDTO
+                {
+                    PatientID = patientId,
+                    PatientName = patient.FullName,
+                    TotalAppointments = appointments.Count,
+                    Appointments = appointmentHistories,
+                    DoctorVisits = doctorVisits
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting medical history");
+                return StatusCode(500, new { message = "Error retrieving medical history", detail = ex.Message });
+            }
+        }
+
+        [HttpGet("medical-history/{appointmentId}")]
+        [Authorize(Roles = "patient")]
+        public async Task<ActionResult<AppointmentHistoryDTO>> GetAppointmentDetail(int appointmentId)
+        {
+            try
+            {
+                var patientId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(patientId))
+                {
+                    return Unauthorized(new { message = "Patient not authenticated" });
+                }
+                // Get appointment
+                var appointment = await _context.Appointments
+                    .Include(a => a.Doctor)
+                    .Include(a => a.Consultation)
+                    .Include(a => a.Invoice)
+                    .FirstOrDefaultAsync(a => a.AppointmentID == appointmentId && a.PatientID == patientId);
+                if (appointment == null)
+                {
+                    return NotFound(new { message = "Appointment not found" });
+                }
+                // Lấy prescription nếu có
+                var prescription = await _context.PrescriptionHeaders
+                    .Include(ph => ph.PrescriptionItems)
+                    .FirstOrDefaultAsync(ph => ph.AppointmentID == appointmentId);
+                // Map sang DTO
+                var result = new AppointmentHistoryDTO
+                {
+                    AppointmentID = appointment.AppointmentID,
+                    AppointmentTime = appointment.AppointmentTime,
+                    ConsultationType = appointment.ConsultationType,
+                    Status = appointment.Status,
+                    DoctorID = appointment.DoctorID,
+                    DoctorName = appointment.Doctor?.FullName ?? "Unknown",
+                    DoctorSpecialty = appointment.Doctor?.Specialty ?? "N/A",
+
+                    Consultation = appointment.Consultation != null ? new ConsultationDetailsDTO
+                    {
+                        ConsultationID = appointment.Consultation.ConsultationID,
+                        StartTime = appointment.Consultation.StartTime,
+                        EndTime = appointment.Consultation.EndTime,
+                        DoctorNotes = appointment.Consultation.DoctorNotes,
+                        FollowUpDate = appointment.Consultation.FollowUpDate
+                    } : null,
+
+                    Prescription = prescription != null ? new PrescriptionSummaryDTO
+                    {
+                        PrescriptionHeaderID = prescription.PrescriptionHeaderID,
+                        IssueDate = prescription.IssueDate,
+                        MedicationCount = prescription.PrescriptionItems.Count,
+                        MedicationNames = prescription.PrescriptionItems
+                            .Select(pi => pi.MedicationName)
+                            .ToList()
+                    } : null,
+
+                    Invoice = appointment.Invoice != null ? new InvoiceSummaryDTO
+                    {
+                        InvoiceID = appointment.Invoice.InvoiceID,
+                        TotalAmount = appointment.Invoice.Amount,
+                        PaymentStatus = appointment.Invoice.Status,
+                        PaymentDate = appointment.Invoice.IssueDate
+                    } : null
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting appointment detail");
+                return StatusCode(500, new { message = "Error retrieving appointment detail", detail = ex.Message });
             }
         }
     }

@@ -1,10 +1,10 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import AdminNotificationDropdown from "./AdminNotificationDropdown";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "./Admin.css";
+import "../Css/Admin.css";
 
 export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, children }) {
   const navigate = useNavigate();
@@ -36,19 +36,27 @@ export default function NavbarAdmin({ sidebarCollapsed, onToggleSidebar, childre
 
   return (
     <div className="admin-dashboard-wrapper">
+      {/* Mobile Overlay Backdrop */}
+      {!sidebarCollapsed && (
+        <div
+          className="admin-sidebar-overlay d-md-none"
+          onClick={onToggleSidebar}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className={`admin-sidebar vh-100 position-fixed top-0 start-0 d-flex flex-column ${sidebarCollapsed ? "collapsed" : ""
           }`}
       >
         {/* Logo */}
-        <div className="admin-logo p-4">
+        <div className={`admin-logo ${sidebarCollapsed ? 'p-2' : 'p-4'} transition-all`}>
           <div className="d-flex align-items-center justify-content-center">
             <div className="admin-logo-icon">
               <i className="bi bi-heart-pulse-fill"></i>
             </div>
             {!sidebarCollapsed && (
-              <div className="admin-logo-text ms-3">
+              <div className="admin-logo-text ms-3" style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>
                 <h5 className="mb-0" style={{ fontWeight: '700', letterSpacing: '-0.5px' }}>
                   Health Portal
                 </h5>

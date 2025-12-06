@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import NavbarAdmin from "./NavbarAdmin";
-import { appointmentsApi } from "../../services/adminApi";
+import { appointmentsApi } from "../../../services/adminApi";
 import Toast from "./Toast";
-import useToast from "./useToast";
+import useToast from "../useToast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "./Admin.css";
+import "../Css/Admin.css";
 
 export default function Appointments() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -199,8 +199,77 @@ export default function Appointments() {
       onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
     >
       <main className="admin-content p-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>Appointments</h2>
+          {/* Appointments Page Header with Visual Distinction */}
+          <div className="admin-page-header-appointments-v2 mb-4">
+            <div className="d-flex justify-content-between align-items-start">
+              <div className="admin-page-title-section">
+                <div className="d-flex align-items-center gap-3 mb-2">
+                  <div className="admin-page-icon-appointments-v2">
+                    <i className="bi bi-calendar2-event-fill"></i>
+                  </div>
+                  <div>
+                    <h2 className="admin-page-title mb-1">
+                      Appointments Management
+                    </h2>
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="admin-page-badge-appointments-v2">
+                        <i className="bi bi-calendar-check-fill me-1"></i>
+                        Scheduling Dashboard
+                      </span>
+                      <span className="admin-page-count">
+                        {pagination.totalCount} Total {pagination.totalCount === 1 ? 'Appointment' : 'Appointments'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p className="admin-page-subtitle-appointments-v2 mb-0">
+                  Manage appointment schedules, track bookings, and monitor consultation status
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Stats Inline */}
+          <div className="appointments-stats-inline mb-4">
+            <div className="stat-inline-item stat-today">
+              <div className="stat-inline-icon">
+                <i className="bi bi-calendar-check-fill"></i>
+              </div>
+              <div className="stat-inline-content">
+                <div className="stat-inline-value">{stats.todayAppointments}</div>
+                <div className="stat-inline-label">Today</div>
+              </div>
+            </div>
+
+            <div className="stat-inline-item stat-pending">
+              <div className="stat-inline-icon">
+                <i className="bi bi-hourglass-split"></i>
+              </div>
+              <div className="stat-inline-content">
+                <div className="stat-inline-value">{stats.pendingApproval}</div>
+                <div className="stat-inline-label">Pending</div>
+              </div>
+            </div>
+
+            <div className="stat-inline-item stat-completed">
+              <div className="stat-inline-icon">
+                <i className="bi bi-check-circle-fill"></i>
+              </div>
+              <div className="stat-inline-content">
+                <div className="stat-inline-value">{stats.completed}</div>
+                <div className="stat-inline-label">Completed</div>
+              </div>
+            </div>
+
+            <div className="stat-inline-item stat-cancelled">
+              <div className="stat-inline-icon">
+                <i className="bi bi-x-circle-fill"></i>
+              </div>
+              <div className="stat-inline-content">
+                <div className="stat-inline-value">{stats.cancelled}</div>
+                <div className="stat-inline-label">Cancelled</div>
+              </div>
+            </div>
           </div>
 
           {error && (
@@ -209,30 +278,6 @@ export default function Appointments() {
               {error}
             </div>
           )}
-
-          {/* Stats Cards */}
-          <div className="row g-4 mb-4">
-            {[
-              { title: "Today's Appointments", value: stats.todayAppointments, icon: "bi-calendar-check", color: "success" },
-              { title: "Pending Approval", value: stats.pendingApproval, icon: "bi-hourglass-split", color: "warning" },
-              { title: "Completed", value: stats.completed, icon: "bi-check-circle", color: "info" },
-              { title: "Cancelled", value: stats.cancelled, icon: "bi-x-circle", color: "danger" },
-            ].map((stat) => (
-              <div key={stat.title} className="col-lg-3 col-md-6">
-                <div className="admin-stat-card h-100">
-                  <div className="d-flex align-items-center">
-                    <div className={`admin-stat-icon ${stat.color} me-3`}>
-                      <i className={`bi ${stat.icon}`}></i>
-                    </div>
-                    <div>
-                      <p className="text-muted mb-1" style={{fontSize: '13px'}}>{stat.title}</p>
-                      <h3 className="mb-0" style={{fontSize: '28px', fontWeight: 700}}>{stat.value}</h3>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
 
           {/* Filter and Search */}
           <div className="admin-card mb-4">
@@ -301,82 +346,114 @@ export default function Appointments() {
             </div>
           </div>
 
-          {/* Appointments Table */}
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-0">
-              {loading ? (
-                <div className="text-center p-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
+          {/* Appointments Card Grid */}
+          <div className="appointments-container">
+            {loading ? (
+              <div className="appointments-loading">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-3">Loading appointments...</p>
+              </div>
+            ) : appointments.length === 0 ? (
+              <div className="appointments-empty">
+                <i className="bi bi-calendar-x"></i>
+                <h5>No Appointments Found</h5>
+                <p>There are no appointments matching your criteria</p>
+              </div>
+            ) : (
+              <div className="appointments-grid">
+                {appointments.map((appointment) => (
+                  <div key={appointment.appointmentID} className={`appointment-card status-${appointment.status.toLowerCase().replace(' ', '-')}`}>
+                    {/* Status Bar */}
+                    <div className="appointment-status-bar"></div>
+
+                    {/* Card Header */}
+                    <div className="appointment-card-header">
+                      <div className="appointment-id">
+                        <i className="bi bi-hash"></i>
+                        <span>{appointment.appointmentID}</span>
+                      </div>
+                      <span className={`appointment-status-badge badge-${appointment.status.toLowerCase().replace(' ', '-')}`}>
+                        {appointment.status}
+                      </span>
+                    </div>
+
+                    {/* Date & Time Section */}
+                    <div className="appointment-datetime">
+                      <div className="datetime-item">
+                        <i className="bi bi-calendar3"></i>
+                        <span>{appointment.date}</span>
+                      </div>
+                      <div className="datetime-item time">
+                        <i className="bi bi-clock"></i>
+                        <span>{appointment.time}</span>
+                      </div>
+                    </div>
+
+                    {/* Patient Info */}
+                    <div className="appointment-section">
+                      <div className="section-label">
+                        <i className="bi bi-person"></i>
+                        Patient
+                      </div>
+                      <div className="section-value patient-name">
+                        {appointment.patientName}
+                      </div>
+                    </div>
+
+                    {/* Doctor Info */}
+                    <div className="appointment-section">
+                      <div className="section-label">
+                        <i className="bi bi-person-badge"></i>
+                        Doctor
+                      </div>
+                      <div className="section-value doctor-info">
+                        <div className="doctor-avatar">
+                          {appointment.doctorName.charAt(0)}
+                        </div>
+                        <span>{appointment.doctorName}</span>
+                      </div>
+                    </div>
+
+                    {/* Department */}
+                    <div className="appointment-section">
+                      <div className="section-label">
+                        <i className="bi bi-hospital"></i>
+                        Department
+                      </div>
+                      <div className="section-value">
+                        <span className="department-badge">{appointment.department}</span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="appointment-actions">
+                      <button
+                        className="action-btn view-btn"
+                        title="View Details"
+                        onClick={() => handleViewAppointment(appointment)}
+                      >
+                        <i className="bi bi-eye"></i>
+                        <span>View</span>
+                      </button>
+                      <button
+                        className="action-btn edit-btn"
+                        title="Edit Appointment"
+                        onClick={() => handleEditAppointment(appointment)}
+                      >
+                        <i className="bi bi-pencil"></i>
+                        <span>Edit</span>
+                      </button>
+                    </div>
                   </div>
-                  <p className="mt-2">Loading appointments...</p>
-                </div>
-              ) : appointments.length === 0 ? (
-                <div className="admin-empty-state">
-                  <i className="bi bi-inbox"></i>
-                  <p className="mt-2">No appointments found</p>
-                </div>
-              ) : (
-                <div className="table-responsive">
-                  <table className="admin-table table mb-0 align-middle">
-                    <thead className="table-light">
-                      <tr>
-                        <th>ID</th>
-                        <th>Patient Name</th>
-                        <th>Doctor</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Department</th>
-                        <th>Status</th>
-                        <th className="text-center">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {appointments.map((appointment) => (
-                        <tr key={appointment.appointmentID}>
-                          <td><strong>{appointment.appointmentID}</strong></td>
-                          <td>{appointment.patientName}</td>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-2" style={{width: "30px", height: "30px", fontSize: "12px"}}>
-                                {appointment.doctorName.charAt(0)}
-                              </div>
-                              {appointment.doctorName}
-                            </div>
-                          </td>
-                          <td>{appointment.date}</td>
-                          <td><strong>{appointment.time}</strong></td>
-                          <td>{appointment.department}</td>
-                          <td>
-                            <span className={`badge bg-${getStatusBadgeClass(appointment.status)}`}>
-                              {appointment.status}
-                            </span>
-                          </td>
-                          <td className="text-center">
-                            <div className="admin-btn-group">
-                              <button
-                                className="btn btn-outline-slate btn-sm"
-                                title="View Details"
-                                onClick={() => handleViewAppointment(appointment)}
-                              >
-                                <i className="bi bi-eye"></i>
-                              </button>
-                              <button
-                                className="btn btn-outline-info btn-sm"
-                                title="Edit"
-                                onClick={() => handleEditAppointment(appointment)}
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          <div className="appointments-pagination-wrapper">
             {!loading && appointments.length > 0 && (
               <div className="card-footer bg-white">
                 <div className="d-flex justify-content-between align-items-center">
