@@ -295,7 +295,8 @@ namespace OHCP_BK.Controllers.Admin
                     changesMade = true;
                 }
 
-                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && doctor.User.PhoneNumber != dto.PhoneNumber)
+                // Allow updating phone number even if it's empty (to clear it)
+                if (dto.PhoneNumber != null && doctor.User.PhoneNumber != dto.PhoneNumber)
                 {
                     doctor.User.PhoneNumber = dto.PhoneNumber;
                     changesMade = true;
@@ -310,7 +311,13 @@ namespace OHCP_BK.Controllers.Admin
                     });
                 }
 
+                // Mark both entities as modified to ensure EF Core tracks all changes
                 _context.Entry(doctor).State = EntityState.Modified;
+                if (doctor.User != null)
+                {
+                    _context.Entry(doctor.User).State = EntityState.Modified;
+                }
+                
                 var affectedRows = await _context.SaveChangesAsync();
 
                 if (affectedRows == 0)

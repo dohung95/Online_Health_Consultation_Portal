@@ -240,7 +240,7 @@ function AboutUs() {
                   <div className='aboutus-service-icon'>
                     <svg xmlns="http://www.w3.org/2000/svg"
                       width="32"
-                      height="auto"
+                      height="64"
                       viewBox="0 0 87.22 139.998"
                       preserveAspectRatio="xMidYMid meet"
                       fill="none" stroke="#3EB7E9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="6">

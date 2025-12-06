@@ -13,6 +13,8 @@ namespace OHCP_BK.DTOs.Admin
         public string Time { get; set; } = string.Empty;
         public string ConsultationType { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public string? DoctorNotes { get; set; }
+        public DateTime? FollowUpDate { get; set; }
     }
 
     public class AppointmentListResponseDto
@@ -38,6 +40,8 @@ namespace OHCP_BK.DTOs.Admin
         public DateTime? AppointmentTime { get; set; }
         public string? ConsultationType { get; set; }
         public string? Status { get; set; }
+        public string? DoctorNotes { get; set; }
+        public DateTime? FollowUpDate { get; set; }
     }
 
     public class AppointmentStatsDto
