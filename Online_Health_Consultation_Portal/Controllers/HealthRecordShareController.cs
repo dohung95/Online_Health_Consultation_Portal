@@ -164,6 +164,7 @@ namespace OHCP_BK.Controllers
                 var sharesData = await _context.HealthRecordShares
                     .Include(s => s.SharedWithDoctor)
                     .Include(s => s.HealthRecord)
+                    .Include(s => s.SharedByPatient)
                     .Where(s => s.SharedByPatientID == patientId && !s.IsRevoked)
                     .ToListAsync();
                 var shares = sharesData.Select(s => new ShareResponseDTO
@@ -177,7 +178,8 @@ namespace OHCP_BK.Controllers
                     PermissionLevel = s.PermissionLevel,
                     ConsentGivenAt = s.ConsentGivenAt,
                     ExpiryDate = s.ExpiryDate,
-                    IsRevoked = s.IsRevoked
+                    IsRevoked = s.IsRevoked,
+                    MedicalHistorySummary = s.SharedByPatient.MedicalHistorySummary
                 }).ToList();
                 return Ok(shares);
             }
@@ -216,6 +218,7 @@ namespace OHCP_BK.Controllers
                         s.PermissionLevel,
                         s.ConsentGivenAt,
                         s.ExpiryDate,
+                        MedicalHistorySummary = s.SharedByPatient.MedicalHistorySummary,
                         // Filter documents if specific IDs are shared
                         Documents = sharedDocIds != null ?
                             s.HealthRecord.MedicalDocuments

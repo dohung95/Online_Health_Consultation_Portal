@@ -166,6 +166,24 @@ const SharedRecordsView = () => {
                                             </strong>
                                         </div>
                                     </div>
+                                    <div className="mt-3 pt-3 border-top">
+                                        <h6 className="mb-2">
+                                            <i className="bi bi-file-medical-fill text-primary me-2"></i>
+                                            Medical History Summary
+                                        </h6>
+                                        <div className="bg-white p-3 rounded border">
+                                            {share.medicalHistorySummary ? (
+                                                <p className="mb-0 text-dark" style={{ whiteSpace: 'pre-wrap' }}>
+                                                    {share.medicalHistorySummary}
+                                                </p>
+                                            ) : (
+                                                <p className="mb-0 text-muted fst-italic">
+                                                    <i className="bi bi-info-circle me-2"></i>
+                                                    No medical history summary available for this patient.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                                 {/* Documents */}
                                 {share.sharedDocumentIDs && share.sharedDocumentIDs.length > 0 ? (

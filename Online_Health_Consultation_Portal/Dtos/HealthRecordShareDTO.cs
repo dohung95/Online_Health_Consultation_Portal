@@ -20,6 +20,7 @@
         public DateTime ConsentGivenAt { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public bool IsRevoked { get; set; }
+        public string? MedicalHistorySummary { get; set; }
     }
 
     public class RevokeShareDTO

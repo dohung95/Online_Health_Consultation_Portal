@@ -101,7 +101,8 @@ const ShareHealthRecords = () => {
                 documentIDs: shareAll ? null : selectedDocuments,
                 doctorID: selectedDoctor,
                 permissionLevel,
-                expiryDate: expiryDate || null
+                expiryDate: expiryDate || null,
+                shareMedicalHistory: true
             }; 
             await shareApi.shareWithDoctor(data);
 
@@ -581,6 +582,10 @@ const ShareHealthRecords = () => {
                                                             <div className="d-flex justify-content-between mb-1">
                                                                 <span className="text-muted"><i className="bi bi-clock me-1"></i>Shared On:</span>
                                                                 <span>{new Date(share.consentGivenAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                            <div className="d-flex justify-content-between mb-1">
+                                                                <span className="text-success"><i className="bi bi-file-medical-fill me-1"></i>Medical History:</span>
+                                                                <span className="badge bg-success">Included</span>
                                                             </div>
                                                             {share.expiryDate && (
                                                                 <div className="d-flex justify-content-between text-danger fw-semibold">
