@@ -72,6 +72,7 @@ namespace OHCP_BK.Controllers.Admin
                 var query = _context.Appointments
                     .Include(a => a.Patient)
                     .Include(a => a.Doctor)
+                    .Include(a => a.Consultation)
                     .AsQueryable();
 
                 // Search filter
@@ -123,7 +124,9 @@ namespace OHCP_BK.Controllers.Admin
                         Date = a.AppointmentTime.ToString("yyyy-MM-dd"),
                         Time = a.AppointmentTime.ToString("HH:mm"),
                         ConsultationType = a.ConsultationType,
-                        Status = a.Status
+                        Status = a.Status,
+                        DoctorNotes = a.Consultation != null ? a.Consultation.DoctorNotes : null,
+                        FollowUpDate = a.Consultation != null ? a.Consultation.FollowUpDate : null
                     })
                     .ToListAsync();
 
@@ -151,6 +154,7 @@ namespace OHCP_BK.Controllers.Admin
                 var appointment = await _context.Appointments
                     .Include(a => a.Patient)
                     .Include(a => a.Doctor)
+                    .Include(a => a.Consultation)
                     .FirstOrDefaultAsync(a => a.AppointmentID == id);
 
                 if (appointment == null)
@@ -170,7 +174,9 @@ namespace OHCP_BK.Controllers.Admin
                     Date = appointment.AppointmentTime.ToString("yyyy-MM-dd"),
                     Time = appointment.AppointmentTime.ToString("HH:mm"),
                     ConsultationType = appointment.ConsultationType,
-                    Status = appointment.Status
+                    Status = appointment.Status,
+                    DoctorNotes = appointment.Consultation?.DoctorNotes,
+                    FollowUpDate = appointment.Consultation?.FollowUpDate
                 };
 
                 return Ok(appointmentDto);
@@ -260,7 +266,9 @@ namespace OHCP_BK.Controllers.Admin
         {
             try
             {
-                var appointment = await _context.Appointments.FindAsync(id);
+                var appointment = await _context.Appointments
+                    .Include(a => a.Consultation)
+                    .FirstOrDefaultAsync(a => a.AppointmentID == id);
 
                 if (appointment == null)
                 {
@@ -294,6 +302,35 @@ namespace OHCP_BK.Controllers.Admin
                 if (!string.IsNullOrWhiteSpace(dto.Status))
                 {
                     appointment.Status = dto.Status;
+                }
+
+                // Handle Consultation data (DoctorNotes and FollowUpDate)
+                if (dto.DoctorNotes != null || dto.FollowUpDate.HasValue)
+                {
+                    if (appointment.Consultation == null)
+                    {
+                        // Create new Consultation if it doesn't exist
+                        appointment.Consultation = new Consultation
+                        {
+                            AppointmentID = appointment.AppointmentID,
+                            DoctorNotes = dto.DoctorNotes,
+                            FollowUpDate = dto.FollowUpDate
+                        };
+                        _context.Consultations.Add(appointment.Consultation);
+                    }
+                    else
+                    {
+                        // Update existing Consultation
+                        if (dto.DoctorNotes != null)
+                        {
+                            appointment.Consultation.DoctorNotes = dto.DoctorNotes;
+                        }
+                        if (dto.FollowUpDate.HasValue)
+                        {
+                            appointment.Consultation.FollowUpDate = dto.FollowUpDate;
+                        }
+                        _context.Entry(appointment.Consultation).State = EntityState.Modified;
+                    }
                 }
 
                 // Mark entity as modified to ensure EF Core tracks changes
