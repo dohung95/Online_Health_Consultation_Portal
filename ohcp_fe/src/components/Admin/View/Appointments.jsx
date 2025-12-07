@@ -44,7 +44,8 @@ export default function Appointments() {
     consultationType: '',
     status: '',
     reason: '',
-    notes: ''
+    notes: '',
+    diagnosis: ''
   });
 
   // Fetch stats
@@ -132,7 +133,8 @@ export default function Appointments() {
       reason: appointment.followUpDate
         ? new Date(appointment.followUpDate).toISOString().split('T')[0]
         : '',
-      notes: appointment.doctorNotes || ''
+      notes: appointment.doctorNotes || '',
+      diagnosis: appointment.diagnosis || ''
     });
     setShowEditModal(true);
   };
@@ -151,7 +153,8 @@ export default function Appointments() {
         consultationType: editForm.consultationType,
         status: editForm.status,
         followUpDate: editForm.reason ? new Date(editForm.reason).toISOString() : null,
-        doctorNotes: editForm.notes || null
+        doctorNotes: editForm.notes || null,
+        diagnosis: editForm.diagnosis || null
       };
 
       await appointmentsApi.update(selectedAppointment.appointmentID, updateData);
@@ -640,6 +643,15 @@ export default function Appointments() {
                           </span>
                         </div>
                         <div className="admin-info-row">
+                          <strong>Diagnosis:</strong>
+                          <span style={{
+                            color: selectedAppointment.diagnosis ? '#0f766e' : '#6b7280',
+                            fontWeight: selectedAppointment.diagnosis ? '600' : 'normal'
+                          }}>
+                            {selectedAppointment.diagnosis || 'No diagnosis recorded'}
+                          </span>
+                        </div>
+                        <div className="admin-info-row">
                           <strong>Doctor Notes:</strong>
                           <span>{selectedAppointment.doctorNotes || 'No notes'}</span>
                         </div>
@@ -768,10 +780,31 @@ export default function Appointments() {
                             />
                           </div>
                           <div className="mb-3">
+                            <label className="admin-form-label" style={{
+                              color: '#0f766e',
+                              fontWeight: '600',
+                              fontSize: '14px'
+                            }}>
+                              <i className="bi bi-clipboard2-pulse-fill me-2"></i>
+                              Diagnosis
+                            </label>
+                            <textarea
+                              className="form-control admin-form-control"
+                              rows="4"
+                              value={editForm.diagnosis}
+                              onChange={(e) => setEditForm({ ...editForm, diagnosis: e.target.value })}
+                              placeholder="Enter diagnosis..."
+                              style={{
+                                borderColor: '#99f6e4',
+                                backgroundColor: '#f0fdfa'
+                              }}
+                            ></textarea>
+                          </div>
+                          <div className="mb-3">
                             <label className="admin-form-label">Doctor Notes</label>
                             <textarea
                               className="form-control admin-form-control"
-                              rows="8"
+                              rows="4"
                               value={editForm.notes}
                               onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
                               placeholder="Enter doctor's notes..."

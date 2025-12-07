@@ -15,6 +15,7 @@ namespace OHCP_BK.DTOs.Admin
         public string Status { get; set; } = string.Empty;
         public string? DoctorNotes { get; set; }
         public DateTime? FollowUpDate { get; set; }
+        public string? Diagnosis { get; set; }
     }
 
     public class AppointmentListResponseDto
@@ -42,6 +43,7 @@ namespace OHCP_BK.DTOs.Admin
         public string? Status { get; set; }
         public string? DoctorNotes { get; set; }
         public DateTime? FollowUpDate { get; set; }
+        public string? Diagnosis { get; set; }
     }
 
     public class AppointmentStatsDto

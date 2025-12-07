@@ -27,9 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="NewFolder\" />
-
     <Folder Include="Migrations\" />
+    <Folder Include="NewFolder\" />
 
     <Folder Include="wwwroot\uploads\medical-documents\" />
   </ItemGroup>
