@@ -11,7 +11,6 @@ const DashboardCharts = () => {
     const [patientData, setPatientData] = useState([]);
     const [weeklyAppointments, setWeeklyAppointments] = useState([]);
     const [monthlyAppointments, setMonthlyAppointments] = useState([]);
-    const [revenueData, setRevenueData] = useState([]);
     const [selectedYear, setSelectedYear] = useState(currentYear);
 
     // Generate year options from current year to 2030
@@ -27,17 +26,15 @@ const DashboardCharts = () => {
     const fetchAllData = async (year) => {
         try {
             setLoading(true);
-            const [patients, weekly, monthly, revenue] = await Promise.all([
+            const [patients, weekly, monthly] = await Promise.all([
                 analyticsApi.getPatientRegistrations(year),
                 analyticsApi.getAppointmentsByWeek(year, 0), // 0 = current month
-                analyticsApi.getAppointmentsByMonth(year),
-                analyticsApi.getRevenueByMonth(year)
+                analyticsApi.getAppointmentsByMonth(year)
             ]);
 
             setPatientData(patients.data || []);
             setWeeklyAppointments(weekly.data || []);
             setMonthlyAppointments(monthly.data || []);
-            setRevenueData(revenue.data || []);
         } catch (error) {
             console.error('Error fetching analytics data:', error);
         } finally {
@@ -118,8 +115,8 @@ const DashboardCharts = () => {
                                 <AreaChart data={patientData}>
                                     <defs>
                                         <linearGradient id="colorPatients" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#0891b2" stopOpacity={0.8}/>
-                                            <stop offset="95%" stopColor="#0891b2" stopOpacity={0.1}/>
+                                            <stop offset="5%" stopColor="#0891b2" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#0891b2" stopOpacity={0.1} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -200,8 +197,8 @@ const DashboardCharts = () => {
                                 <BarChart data={monthlyAppointments}>
                                     <defs>
                                         <linearGradient id="colorAppointments" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9}/>
-                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0.6}/>
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9} />
+                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0.6} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -217,86 +214,6 @@ const DashboardCharts = () => {
                                     />
                                     <Bar dataKey="count" fill="url(#colorAppointments)" radius={[8, 8, 0, 0]} />
                                 </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Revenue by Status - Pie Chart */}
-                <div className="col-lg-6">
-                    <div className="admin-card chart-card">
-                        <div className="chart-header">
-                            <h5 className="chart-title">
-                                <i className="bi bi-pie-chart me-2"></i>
-                                Revenue by Status
-                            </h5>
-                            <span className="chart-subtitle">Year {selectedYear}</span>
-                        </div>
-                        <div className="chart-container">
-                            <ResponsiveContainer width="100%" height={300}>
-                                <PieChart>
-                                    <Pie
-                                        data={(() => {
-                                            // Calculate total revenue by status
-                                            const totals = revenueData.reduce((acc, month) => {
-                                                acc.paid += month.paid || 0;
-                                                acc.pending += month.pending || 0;
-                                                acc.cancelled += month.cancelled || 0;
-                                                return acc;
-                                            }, { paid: 0, pending: 0, cancelled: 0 });
-
-                                            return [
-                                                { name: 'Paid', value: totals.paid, color: '#10b981' },
-                                                { name: 'Pending', value: totals.pending, color: '#f59e0b' },
-                                                { name: 'Cancelled', value: totals.cancelled, color: '#ef4444' }
-                                            ].filter(item => item.value > 0); // Only show non-zero values
-                                        })()}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={100}
-                                        paddingAngle={3}
-                                        dataKey="value"
-                                        label={({ name, value, percent }) => `${name}: $${value.toFixed(0)} (${(percent * 100).toFixed(1)}%)`}
-                                        labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
-                                    >
-                                        {(() => {
-                                            const totals = revenueData.reduce((acc, month) => {
-                                                acc.paid += month.paid || 0;
-                                                acc.pending += month.pending || 0;
-                                                acc.cancelled += month.cancelled || 0;
-                                                return acc;
-                                            }, { paid: 0, pending: 0, cancelled: 0 });
-
-                                            return [
-                                                { name: 'Paid', value: totals.paid, color: '#10b981' },
-                                                { name: 'Pending', value: totals.pending, color: '#f59e0b' },
-                                                { name: 'Cancelled', value: totals.cancelled, color: '#ef4444' }
-                                            ].filter(item => item.value > 0).map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ));
-                                        })()}
-                                    </Pie>
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#fff',
-                                            border: '1px solid #e5e7eb',
-                                            borderRadius: '8px',
-                                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                                        }}
-                                        formatter={(value) => `$${value.toFixed(2)}`}
-                                    />
-                                    <Legend
-                                        verticalAlign="bottom"
-                                        height={36}
-                                        formatter={(value, entry) => {
-                                            const total = revenueData.reduce((sum, month) =>
-                                                sum + (month.paid || 0) + (month.pending || 0) + (month.cancelled || 0), 0);
-                                            const percent = total > 0 ? (entry.payload.value / total * 100).toFixed(1) : 0;
-                                            return `${value} ($${entry.payload.value.toFixed(0)} - ${percent}%)`;
-                                        }}
-                                    />
-                                </PieChart>
                             </ResponsiveContainer>
                         </div>
                     </div>

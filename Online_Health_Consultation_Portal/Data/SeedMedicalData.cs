@@ -361,24 +361,59 @@ namespace OHCP_BK.Data
             var appointmentCount = 0;
             var targetAppointments = 180;
 
-            // Each doctor gets 3-4 appointments
+            // Define date range for 2025 (entire year)
+            var startDate = new DateTime(2025, 1, 1);
+            var endDate = new DateTime(2025, 12, 31);
+            var totalDays = (endDate - startDate).Days;
+            var today = DateTime.Now.Date;
+
+            // Each doctor gets 8-13 appointments
             foreach (var doctor in doctors)
             {
                 var appointmentsForDoctor = random.Next(3, 5);
 
                 for (int i = 0; i < appointmentsForDoctor && appointmentCount < targetAppointments; i++)
                 {
+<<<<<<< Updated upstream
                     var patient = patients[random.Next(patients.Count)];
                     var daysOffset = random.Next(-60, 60); // Appointments from 60 days ago to 60 days in future
                     var hour = random.Next(8, 17); // Working hours 8 AM to 5 PM
                     var status = daysOffset < 0 ? (random.Next(10) > 2 ? "Completed" : "Cancelled") : "Scheduled";
                     if (daysOffset == 0) status = "In Progress";
+=======
+                    var patientIndex = appointmentCount % patients.Count;
+                    var patient = patients[patientIndex];
+
+                    // Generate random date throughout 2025
+                    var randomDays = random.Next(0, totalDays);
+                    var appointmentDate = startDate.AddDays(randomDays);
+                    var hour = random.Next(8, 17);
+                    var appointmentTime = appointmentDate.AddHours(hour);
+
+                    // Determine status based on date
+                    string status;
+                    if (appointmentDate < today)
+                    {
+                        // Past appointments: 80% Completed, 20% Cancelled
+                        status = random.Next(10) > 1 ? "Completed" : "Cancelled";
+                    }
+                    else if (appointmentDate == today)
+                    {
+                        // Today: In Progress
+                        status = "In Progress";
+                    }
+                    else
+                    {
+                        // Future appointments: Scheduled
+                        status = "Scheduled";
+                    }
+>>>>>>> Stashed changes
 
                     var appointment = new Appointment
                     {
                         PatientID = patient.PatientID,
                         DoctorID = doctor.DoctorID,
-                        AppointmentTime = DateTime.Now.AddDays(daysOffset).Date.AddHours(hour),
+                        AppointmentTime = appointmentTime,
                         ConsultationType = consultationTypes[random.Next(consultationTypes.Length)],
                         Status = status
                     };
@@ -390,6 +425,7 @@ namespace OHCP_BK.Data
 
             await context.SaveChangesAsync();
             Console.WriteLine($"Seeded {appointmentCount} appointments successfully!");
+            Console.WriteLine($"Date range: {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
         }
 
         private static async Task SeedReviews(OHCPContext context)
