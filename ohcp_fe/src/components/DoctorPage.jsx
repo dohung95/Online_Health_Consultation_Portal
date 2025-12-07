@@ -10,7 +10,6 @@ import DoctorProfileView from './DoctorProfileView';
 import DoctorAppointmentsView from './DoctorAppointmentsView';
 import DoctorReviewView from './DoctorReviewView';
 import DoctorAppointmentDetail from './DoctorAppointmentDetail';
-import SharedRecordsView from './SharedRecordsView';
 
 const DoctorProfile = () => {
   const navigate = useNavigate();
@@ -347,14 +346,6 @@ const DoctorProfile = () => {
               <span className="material-symbols-outlined">star</span>
               <p className="mb-0 small fw-bold">Reviews</p>
             </a>
-            <a 
-              className={`nav-link-custom ${view === 'sharedRecords' ? 'nav-link-active' : ''}`} 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); setView('sharedRecords'); }}
-            >
-              <span className="material-symbols-outlined">folder_shared</span>
-              <p className="mb-0 small">Shared Records</p>
-            </a>
           </div>
         </div>
         
@@ -377,12 +368,11 @@ const DoctorProfile = () => {
             <div className="mb-4">
               <div>
                 <h2 className="fs-3 fw-bold mb-1 text-dark">
-                  {view === 'profile' ? 'Doctor Profile' : view === 'appointments' ? 'Appointments' : view === 'sharedRecords' ? 'Shared Health Records' : view === 'appointmentDetail' ? 'Appointment Details' : 'Reviews'}
+                  {view === 'profile' ? 'Doctor Profile' : view === 'appointments' ? 'Appointments' : view === 'appointmentDetail' ? 'Appointment Details' : 'Reviews'}
                 </h2>
                 <p className="text-secondary mb-0">
                   {view === 'profile' ? 'Manage your personal information.' : 
                    view === 'appointments' ? 'List of your appointments with patients.' :
-                    view === 'sharedRecords' ? 'Health records shared with you by patients.' :
                    view === 'appointmentDetail' ? 'Detailed information about the selected appointment.' : 
                    'Patient reviews and ratings.'}
                 </p>
@@ -400,7 +390,6 @@ const DoctorProfile = () => {
                 />
               )}
               {view === 'reviews' && <DoctorReviewView doctorId={doctorData?.doctorID} />}
-              {view === 'sharedRecords' && <SharedRecordsView />}
               {view === 'appointmentDetail' && (
                 <DoctorAppointmentDetail 
                   appointment={selectedAppointment}
