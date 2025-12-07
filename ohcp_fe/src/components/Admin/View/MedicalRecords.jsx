@@ -681,15 +681,13 @@ export default function MedicalRecords() {
                           {completedAppointments.map((appointment, index) => {
                             const appointmentPrescriptions = prescriptionsByAppointment[appointment.appointmentID] || [];
 
-                            // Define cycling color themes
-                            const themes = [
-                              { main: '#10b981', light: '#ecfdf5', border: '#6ee7b7', icon: '#059669' }, // Emerald - darker border
-                              { main: '#3b82f6', light: '#eff6ff', border: '#93c5fd', icon: '#2563eb' }, // Blue - darker border
-                              { main: '#8b5cf6', light: '#f5f3ff', border: '#c4b5fd', icon: '#7c3aed' }, // Violet - darker border
-                              { main: '#f59e0b', light: '#fffbeb', border: '#fcd34d', icon: '#d97706' }, // Amber - darker border
-                              { main: '#f43f5e', light: '#fff1f2', border: '#fda4af', icon: '#e11d48' }  // Rose - darker border
-                            ];
-                            const theme = themes[index % themes.length];
+                            // Single professional medical theme - deep blue
+                            const theme = {
+                              main: '#006492',      // Deep blue - professional medical
+                              light: '#e6f4f9',     // Very light blue background
+                              border: '#66b3d4',    // Soft blue border
+                              icon: '#004d73'       // Darker blue icon
+                            };
 
                             return (
                               <div
@@ -741,8 +739,8 @@ export default function MedicalRecords() {
                                             #{appointment.appointmentID}
                                           </span>
                                         </h6>
-                                        <p className="mb-1" style={{ fontSize: '13px', color: '#64748b' }}>
-                                          <i className="bi bi-person-badge me-1" style={{ color: '#64748b' }}></i>
+                                        <p className="mb-1" style={{ fontSize: '15px', color: theme.main, fontWeight: '600' }}>
+                                          <i className="bi bi-person-badge me-1" style={{ color: theme.main }}></i>
                                           Dr. {appointment.doctorName}
                                         </p>
                                         <div className="d-flex flex-wrap gap-2 mt-2">
