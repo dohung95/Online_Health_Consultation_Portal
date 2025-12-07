@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://localhost:7267/api'; 
+const API_URL = 'https://localhost:7267/api';
 
 // Helper to get auth header
 const getAuthHeader = () => {
@@ -12,7 +12,7 @@ export const doctorService = {
     // 1. Search (pagination for Doctors)
     searchDoctors: async (params) => {
         const response = await axios.get(`${API_URL}/Doctor/search`, { params });
-        return response.data; 
+        return response.data;
     },
 
     getSpecialties: async () => {
@@ -54,5 +54,5 @@ export const doctorService = {
     getPatientById: async (patientId) => {
         const response = await axios.get(`${API_URL}/Patient/${patientId}`, getAuthHeader());
         return response.data;
-    }
+    },
 };

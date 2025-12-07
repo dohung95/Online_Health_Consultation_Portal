@@ -37,8 +37,18 @@ export const appointmentService = {
         return response.data;
     },
 
+    completeAppointment: async (id) => {
+        const response = await axios.put(`${API_URL}/Appointment/${id}/complete`, {}, getAuthConfig());
+        return response.data;
+    },
+
     getMedicalHistory: async () => {
         const response = await axios.get(`${API_URL}/Appointment/medical-history`, getAuthConfig());
+        return response.data;
+    },
+
+    getPatientMedicalHistory: async (patientId) => {
+        const response = await axios.get(`${API_URL}/Appointment/patient/${patientId}/medical-history`, getAuthConfig());
         return response.data;
     },
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { healthRecordApi } from '../api/healthRecordApi';
 import DocumentViewerModal from './DocumentViewerModal';
 import { appointmentService } from '../api/appointmentApi';
@@ -11,18 +11,17 @@ const HealthRecords = () => {
     const [showUploadForm, setShowUploadForm] = useState(false);
     const [files, setFiles] = useState([]);
     const [loadingDocs, setLoadingDocs] = useState(false);
+    const timelineRef = useRef(null);
 
     // State for Medical History
     const [history, setHistory] = useState("");
-    const [isEditingHistory, setIsEditingHistory] = useState(false);
-    const [tempHistory, setTempHistory] = useState("");
-    const [historyView, setHistoryView] = useState('summary');
     const [medicalHistory, setMedicalHistory] = useState(null);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [itemsPerPage] = useState(5);
     const [currentPage, setCurrentPage] = useState(1);
+    const [expandedCards, setExpandedCards] = useState({});
 
     // States for upload form
     const [documentCategory, setDocumentCategory] = useState('');
@@ -31,6 +30,7 @@ const HealthRecords = () => {
     const [testResults, setTestResults] = useState('');
     const [referenceRange, setReferenceRange] = useState('');
     const [testStatus, setTestStatus] = useState('Normal');
+    const [includeHistory, setIncludeHistory] = useState(true); // Mặc định checked
     // States for filters & search
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
@@ -56,7 +56,6 @@ const HealthRecords = () => {
             ]);
             setRecords(docsData);
             setHistory(profileData.medicalHistorySummary || "");
-            setTempHistory(profileData.medicalHistorySummary || "");
             setMedicalHistory(historyData);
         } catch (error) {
             console.error("Error loading data", error);
@@ -128,18 +127,6 @@ const HealthRecords = () => {
         setSelectedDocument(null);
     };
 
-    // --- HANDLE SAVE HISTORY ---
-    const handleSaveHistory = async () => {
-        try {
-            await healthRecordApi.updateMedicalHistory(tempHistory);
-            setHistory(tempHistory);
-            setIsEditingHistory(false);
-            toast.success("Medical history updated!");
-        } catch (error) {
-            toast.error("Failed to update history");
-        }
-    };
-
     const handleViewAppointmentDetail = async (appointmentId) => {
         try {
             const detail = await appointmentService.getAppointmentDetail(appointmentId);
@@ -196,6 +183,16 @@ const HealthRecords = () => {
             data.append('ReferenceRange', referenceRange || '');
             data.append('TestStatus', testStatus);
         }
+
+        // Save medical history summary if user wants to include it
+        if (includeHistory && history.trim()) {
+            try {
+                await healthRecordApi.updateMedicalHistory(history);
+            } catch (err) {
+                console.error("Failed to update medical history:", err);
+                // Continue with document upload even if history update fails
+            }
+        }
         try {
             await healthRecordApi.createMedicalDocument(data);
             toast.success("✅ Uploaded successfully!");
@@ -240,10 +237,17 @@ const HealthRecords = () => {
     const totalPages = Math.ceil(getCompletedAppointmentsCount() / itemsPerPage);
 
     const getViewUrl = (documentID) => {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7267';
-    const token = localStorage.getItem('token');
-    return `${apiBaseUrl}/api/HealthRecord/document/${documentID}?token=${encodeURIComponent(token)}`;
-};
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7267';
+        const token = localStorage.getItem('token');
+        return `${apiBaseUrl}/api/HealthRecord/document/${documentID}?token=${encodeURIComponent(token)}`;
+    };
+
+    const toggleCardExpand = (appointmentID) => {
+        setExpandedCards(prev => ({
+            ...prev,
+            [appointmentID]: !prev[appointmentID]
+        }));
+    };
 
     return (
         <div className='Background_Doctors'>
@@ -256,11 +260,11 @@ const HealthRecords = () => {
             </style>
             <div className="container">
                 {/* --- HEADER --- */}
-                <div className="d-flex align-items-center mb-5 animate__animated animate__fadeInDown">
+                <div className="d-flex align-items-center justify-content-center mb-5 animate__animated animate__fadeInDown">
                     <div className="bg-primary text-white rounded-4 shadow-sm d-flex align-items-center justify-content-center me-3" style={{ width: 56, height: 56 }}>
                         <i className="bi bi-heart-pulse fs-3"></i>
                     </div>
-                    <div>
+                    <div className="text-center">
                         <h2 className="mb-0 fw-bold text-dark">My Health Records</h2>
                         <p className="text-muted mb-0 small">Manage your medical history and personal documents</p>
                     </div>
@@ -268,224 +272,249 @@ const HealthRecords = () => {
 
                 {/* --- 1. MEDICAL HISTORY SECTION --- */}
                 <div className="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden animate__animated animate__fadeInUp">
-                    {/* Header Tabs */}
+                    {/* Header */}
                     <div className="card-header bg-white border-bottom p-4">
-                        <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                            <h5 className="mb-0 fw-bold text-primary">
-                                <i className="bi bi-journal-medical me-2"></i>Medical History
-                            </h5>
-
-                            <div className="nav nav-pills bg-light rounded-pill p-1">
-                                {/* Nút Summary */}
-                                <button
-                                    type="button"
-                                    className={`nav-link rounded-pill px-4 fw-medium ${historyView === 'summary'
-                                            ? 'active shadow-sm text-white' // <--- Thêm text-white vào đây
-                                            : 'text-muted'
-                                        }`}
-                                    onClick={() => setHistoryView('summary')}
-                                >
-                                    <i className="bi bi-file-text me-2"></i>Summary
-                                </button>
-
-                                {/* Nút History */}
-                                <button
-                                    type="button"
-                                    className={`nav-link rounded-pill px-4 fw-medium ${historyView === 'appointments'
-                                            ? 'active shadow-sm text-white' // <--- Thêm text-white vào đây
-                                            : 'text-muted'
-                                        }`}
-                                    onClick={() => {
-                                        setHistoryView('appointments');
-                                        setCurrentPage(1);
-                                    }}
-                                >
-                                    <i className="bi bi-clock-history me-2"></i>History
-
-                                    {/* Xử lý Badge: 
-                                        - Nếu cha Active (xanh) -> Badge nền trắng, chữ xanh 
-                                        - Nếu cha Inactive (xám) -> Badge nền xám đậm, chữ trắng 
-                                    */}
-                                    <span className={`badge ms-2 rounded-pill shadow-sm ${historyView === 'appointments'
-                                            ? 'bg-white text-primary'
-                                            : 'bg-secondary text-white'
-                                        }`}>
-                                        {medicalHistory?.totalAppointments || 0}
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
+                        <h5 className="mb-0 fw-bold text-primary">
+                            <i className="bi bi-file-medical me-2"></i>Medical Record
+                        </h5>
                     </div>
 
                     <div className="card-body p-4">
-                        {/* VIEW: SUMMARY */}
-                        {historyView === 'summary' && (
-                            <div className="animate__animated animate__fadeIn">
-                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 className="fw-bold text-secondary mb-0">History Summary</h6>
-                                    {!isEditingHistory && (
-                                        <button className="btn btn-sm btn-light text-primary hover-shadow" onClick={() => setIsEditingHistory(true)}>
-                                            <i className="bi bi-pencil-square me-1"></i> Edit
-                                        </button>
-                                    )}
+                        <div className="animate__animated animate__fadeIn">
+                            {loadingHistory ? (
+                                <div className="text-center py-5">
+                                    <div className="spinner-border text-primary mb-2"></div>
+                                    <p className="text-muted small">Loading data...</p>
                                 </div>
+                            ) : !medicalHistory || medicalHistory.totalAppointments === 0 ? (
+                                <div className="text-center py-5 bg-light rounded-3">
+                                    <i className="bi bi-calendar-x fs-1 text-muted mb-2 d-block"></i>
+                                    <p className="text-muted">You haven't had any appointments yet.</p>
+                                </div>
+                            ) : (
+                                <div>
+                                    {/* --- 1. OPTIMIZED SECTION: YOUR DOCTORS (Horizontal Scroll) --- */}
+                                    {medicalHistory?.doctorVisits?.length > 0 && (
+                                        <div className="mb-4">
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 className="fw-bold text-secondary mb-0">
+                                                    <i className="bi bi-person-badge-fill me-2"></i>My Doctors ({medicalHistory.doctorVisits.length})
+                                                </h6>
+                                                {/* Mũi tên gợi ý cuộn nếu cần (chỉ để trang trí) */}
+                                                {medicalHistory.doctorVisits.length > 2 && (
+                                                    <small className="text-muted"><i className="bi bi-arrow-right"></i> Scroll for more</small>
+                                                )}
+                                            </div>
 
-                                {isEditingHistory ? (
-                                    <div className="bg-light p-3 rounded-3 border">
-                                        <textarea
-                                            className="form-control border-0 bg-white shadow-none mb-3"
-                                            rows="5"
-                                            value={tempHistory}
-                                            onChange={(e) => setTempHistory(e.target.value)}
-                                            placeholder="E.g. Drug allergies, past surgeries, chronic conditions..."
-                                        ></textarea>
-                                        <div className="d-flex justify-content-end gap-2">
-                                            <button className="btn btn-sm btn-secondary px-3 rounded-pill" onClick={() => setIsEditingHistory(false)}>Cancel</button>
-                                            <button className="btn btn-sm btn-success px-3 rounded-pill" onClick={handleSaveHistory}>Save</button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="p-4 rounded-3 bg-primary-subtle border border-primary-subtle text-dark">
-                                        <p className="mb-0" style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
-                                            {history || <span className="text-muted fst-italic opacity-75">No information yet. Click Edit to add details.</span>}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* VIEW: APPOINTMENTS */}
-                        {historyView === 'appointments' && (
-                            <div className="animate__animated animate__fadeIn">
-                                {loadingHistory ? (
-                                    <div className="text-center py-5">
-                                        <div className="spinner-border text-primary mb-2"></div>
-                                        <p className="text-muted small">Loading data...</p>
-                                    </div>
-                                ) : !medicalHistory || medicalHistory.totalAppointments === 0 ? (
-                                    <div className="text-center py-5 bg-light rounded-3">
-                                        <i className="bi bi-calendar-x fs-1 text-muted mb-2 d-block"></i>
-                                        <p className="text-muted">You haven't had any appointments yet.</p>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        {/* --- 1. OPTIMIZED SECTION: YOUR DOCTORS (Horizontal Scroll) --- */}
-                                        {medicalHistory?.doctorVisits?.length > 0 && (
-                                            <div className="mb-4">
-                                                <div className="d-flex justify-content-between align-items-center mb-2">
-                                                    <h6 className="fw-bold text-secondary mb-0">
-                                                        <i className="bi bi-person-badge-fill me-2"></i>My Doctors ({medicalHistory.doctorVisits.length})
-                                                    </h6>
-                                                    {/* Mũi tên gợi ý cuộn nếu cần (chỉ để trang trí) */}
-                                                    {medicalHistory.doctorVisits.length > 2 && (
-                                                        <small className="text-muted"><i className="bi bi-arrow-right"></i> Scroll for more</small>
-                                                    )}
-                                                </div>
-
-                                                {/* Horizontal Scroll Container */}
-                                                <div
-                                                    className="d-flex gap-3 overflow-auto pb-3"
-                                                    style={{ scrollbarWidth: 'thin' }} // Tạo thanh cuộn mảnh cho Firefox/Modern Browsers
-                                                >
-                                                    {medicalHistory.doctorVisits.map(doctor => (
-                                                        <div
-                                                            key={doctor.doctorID}
-                                                            className="card border-0 shadow-sm rounded-3 flex-shrink-0"
-                                                            style={{ minWidth: '280px', maxWidth: '280px' }} // Đặt chiều rộng cố định để tạo hiệu ứng cuộn
-                                                        >
-                                                            <div className="card-body p-3">
-                                                                {/* Header: Avatar + Info */}
-                                                                <div className="d-flex align-items-center mb-3">
-                                                                    <div className="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style={{ width: 42, height: 42 }}>
-                                                                        <i className="bi bi-person-fill fs-5"></i>
-                                                                    </div>
-                                                                    <div className="overflow-hidden">
-                                                                        <h6 className="fw-bold text-dark mb-0 text-truncate" title={doctor.doctorName}>
-                                                                            {doctor.doctorName}
-                                                                        </h6>
-                                                                        <p className="text-muted small mb-0 text-truncate" title={doctor.doctorSpecialty}>
-                                                                            {doctor.doctorSpecialty}
-                                                                        </p>
-                                                                    </div>
+                                            {/* Horizontal Scroll Container */}
+                                            <div
+                                                className="d-flex gap-3 overflow-auto pb-3"
+                                                style={{ scrollbarWidth: 'thin' }} // Tạo thanh cuộn mảnh cho Firefox/Modern Browsers
+                                            >
+                                                {medicalHistory.doctorVisits.map(doctor => (
+                                                    <div
+                                                        key={doctor.doctorID}
+                                                        className="card border-0 shadow-sm rounded-3 flex-shrink-0"
+                                                        style={{ minWidth: '280px', maxWidth: '280px' }} // Đặt chiều rộng cố định để tạo hiệu ứng cuộn
+                                                    >
+                                                        <div className="card-body p-3">
+                                                            {/* Header: Avatar + Info */}
+                                                            <div className="d-flex align-items-center mb-3">
+                                                                <div className="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style={{ width: 42, height: 42 }}>
+                                                                    <i className="bi bi-person-fill fs-5"></i>
                                                                 </div>
+                                                                <div className="overflow-hidden">
+                                                                    <h6 className="fw-bold text-dark mb-0 text-truncate" title={doctor.doctorName}>
+                                                                        {doctor.doctorName}
+                                                                    </h6>
+                                                                    <p className="text-muted small mb-0 text-truncate" title={doctor.doctorSpecialty}>
+                                                                        {doctor.doctorSpecialty}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
 
-                                                                {/* Footer: Stats */}
-                                                                <div className="bg-light rounded p-2 d-flex justify-content-between align-items-center">
-                                                                    <div>
-                                                                        <span className="text-muted d-block text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>Last Visit</span>
-                                                                        <span className="fw-bold text-dark small">
-                                                                            {new Date(doctor.lastVisit).toLocaleDateString('en-GB')}
-                                                                        </span>
-                                                                    </div>
-                                                                    <span className="badge bg-white text-primary border shadow-sm rounded-pill">
-                                                                        {doctor.visitCount} visits
+                                                            {/* Footer: Stats */}
+                                                            <div className="bg-light rounded p-2 d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <span className="text-muted d-block text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>Last Visit</span>
+                                                                    <span className="fw-bold text-dark small">
+                                                                        {new Date(doctor.lastVisit).toLocaleDateString('en-GB')}
                                                                     </span>
                                                                 </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* --- 2. APPOINTMENT HISTORY TIMELINE --- */}
-                                        <h6 className="fw-bold text-secondary mb-3">
-                                            <i className="bi bi-clock-history me-2"></i>Appointment History
-                                        </h6>
-                                        <div className="d-flex flex-column gap-3">
-                                            {getPaginatedAppointments().map((apt) => (
-                                                <div key={apt.appointmentID} className="card border hover-shadow transition-all rounded-3">
-                                                    <div className="card-body">
-                                                        <div className="row align-items-center g-3">
-                                                            {/* Date */}
-                                                            <div className="col-md-3 border-end-md">
-                                                                <h5 className="fw-bold text-dark mb-1">{formatDate(apt.appointmentTime).split(' ')[0]}</h5>
-                                                                <span className="text-muted small d-block mb-2">{formatDate(apt.appointmentTime).split(' ')[1]}</span>
-                                                                <span className={`badge rounded-pill ${getStatusBadge(apt.status)}`}>{apt.status}</span>
-                                                            </div>
-
-                                                            {/* Doctor Info */}
-                                                            <div className="col-md-4">
-                                                                <h6 className="fw-bold text-primary mb-1">{apt.doctorName}</h6>
-                                                                <p className="text-muted small mb-2">{apt.doctorSpecialty}</p>
-                                                                <span className="badge bg-light text-dark border">
-                                                                    {apt.consultationType}
+                                                                <span className="badge bg-white text-primary border shadow-sm rounded-pill">
+                                                                    {doctor.visitCount} visits
                                                                 </span>
-                                                            </div>
-
-                                                            {/* Quick Stats */}
-                                                            <div className="col-md-3">
-                                                                <div className="d-flex flex-column gap-1 small">
-                                                                    {apt.prescription && (
-                                                                        <span className="text-success"><i className="bi bi-capsule me-2"></i>{apt.prescription.medicationCount} meds</span>
-                                                                    )}
-                                                                    {apt.invoice && (
-                                                                        <span className="text-warning"><i className="bi bi-receipt me-2"></i>${apt.invoice.totalAmount}</span>
-                                                                    )}
-                                                                    {apt.consultation && (
-                                                                        <span className="text-info"><i className="bi bi-journal-text me-2"></i>Has notes</span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Action */}
-                                                            <div className="col-md-2 text-md-end">
-                                                                <button
-                                                                    className="btn btn-outline-primary btn-sm rounded-pill px-3"
-                                                                    onClick={() => handleViewAppointmentDetail(apt.appointmentID)}
-                                                                >
-                                                                    Details <i className="bi bi-chevron-right ms-1 small"></i>
-                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
+                                    )}
+
+                                    {/* --- 2. APPOINTMENT HISTORY TIMELINE --- */}
+                                    <h6 className="fw-bold text-secondary mb-3">
+                                        <i className="bi bi-clipboard2-pulse me-2"></i>Medical Record Timeline
+                                    </h6>
+                                    <div ref={timelineRef} className="d-flex flex-column gap-3" style={{ scrollMarginTop: '100px' }}>
+                                        {getPaginatedAppointments().map((apt) => (
+                                            <div key={apt.appointmentID} className="card border hover-shadow transition-all rounded-3">
+                                                <div className="card-body">
+                                                    {/* Header row: Date + Doctor + Action */}
+                                                    <div className="row align-items-center g-3 mb-3">
+                                                        {/* Date */}
+                                                        <div className="col-auto">
+                                                            <h5 className="fw-bold text-dark mb-1">{formatDate(apt.appointmentTime).split(' ')[0]}</h5>
+                                                            <span className="text-muted small d-block mb-2">{formatDate(apt.appointmentTime).split(' ')[1]}</span>
+                                                            <span className={`badge rounded-pill ${getStatusBadge(apt.status)}`}>{apt.status}</span>
+                                                        </div>
+
+                                                        {/* Doctor Info */}
+                                                        <div className="col">
+                                                            <h6 className="fw-bold text-primary mb-1">{apt.doctorName}</h6>
+                                                            <p className="text-muted small mb-2">{apt.doctorSpecialty}</p>
+                                                            <span className="badge bg-light text-dark border">
+                                                                {apt.consultationType}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Action Button */}
+                                                        <div className="col-auto">
+                                                            <button
+                                                                className="btn btn-outline-primary btn-sm rounded-pill px-3"
+                                                                onClick={() => handleViewAppointmentDetail(apt.appointmentID)}
+                                                            >
+                                                                More Info <i className="bi bi-chevron-right ms-1 small"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Diagnosis - Large & Prominent */}
+                                                    {apt.consultation && apt.consultation.diagnosis && (
+                                                        <div className="mb-3 p-3 bg-info-subtle rounded-3 border-start border-info border-4">
+                                                            <div className="d-flex align-items-center mb-2">
+                                                                <i className="bi bi-clipboard2-pulse fs-5 text-info me-2"></i>
+                                                                <strong className="text-info text-uppercase small">Diagnosis</strong>
+                                                            </div>
+                                                            <p className="mb-0 fs-5 fw-semibold text-dark">
+                                                                {apt.consultation.diagnosis.length > 100 && !expandedCards[apt.appointmentID]
+                                                                    ? apt.consultation.diagnosis.substring(0, 100) + '...'
+                                                                    : apt.consultation.diagnosis
+                                                                }
+                                                            </p>
+                                                            {apt.consultation.diagnosis.length > 100 && (
+                                                                <button
+                                                                    className="btn btn-link btn-sm p-0 mt-1 text-info text-decoration-none"
+                                                                    onClick={() => toggleCardExpand(apt.appointmentID)}
+                                                                >
+                                                                    {expandedCards[apt.appointmentID] ? (
+                                                                        <><i className="bi bi-chevron-up me-1"></i>Show less</>
+                                                                    ) : (
+                                                                        <><i className="bi bi-chevron-down me-1"></i>Show more</>
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Prescription - Full List */}
+                                                    {apt.prescription && apt.prescription.medicationNames && apt.prescription.medicationNames.length > 0 && (
+                                                        <div className="p-3 bg-success-subtle rounded-3 border-start border-success border-4">
+                                                            <div className="d-flex align-items-center mb-2">
+                                                                <i className="bi bi-capsule fs-5 text-success me-2"></i>
+                                                                <strong className="text-success text-uppercase small">
+                                                                    Prescription ({apt.prescription.medicationCount} medications)
+                                                                </strong>
+                                                            </div>
+                                                            <ul className="list-unstyled mb-0">
+                                                                {(expandedCards[apt.appointmentID]
+                                                                    ? (apt.prescription.medications || apt.prescription.medicationNames)
+                                                                    : (apt.prescription.medications || apt.prescription.medicationNames).slice(0, 5)
+                                                                ).map((med, i) => (
+                                                                    <li key={i} className="text-dark mb-2 pb-2 border-bottom border-success border-opacity-25">
+                                                                        <div className="d-flex align-items-start">
+                                                                            <i className="bi bi-capsule-pill text-success me-2 mt-1"></i>
+                                                                            <div className="flex-grow-1">
+                                                                                {typeof med === 'string' ? (
+                                                                                    // Backward compatible: nếu là string (old data)
+                                                                                    <span className="fw-semibold">{med}</span>
+                                                                                ) : (
+                                                                                    // New format: object với đầy đủ thông tin
+                                                                                    <>
+                                                                                        <div className="fw-semibold text-dark">{med.medicationName}</div>
+                                                                                        <div className="small text-muted mt-1">
+                                                                                            <span className="badge bg-success-subtle text-success me-2">
+                                                                                                {med.dosage}
+                                                                                            </span>
+                                                                                            <span>{med.instructions}</span>
+                                                                                        </div>
+                                                                                        <div className="small text-muted mt-1">
+                                                                                            <i className="bi bi-calendar-check me-1"></i>
+                                                                                            {med.totalSupplyDays} days supply
+                                                                                        </div>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                            {apt.prescription.medicationNames.length > 5 && (
+                                                                <button
+                                                                    className="btn btn-link btn-sm p-0 mt-2 text-success text-decoration-none"
+                                                                    onClick={() => toggleCardExpand(apt.appointmentID)}
+                                                                >
+                                                                    {expandedCards[apt.appointmentID] ? (
+                                                                        <><i className="bi bi-chevron-up me-1"></i>Show less ({apt.prescription.medicationNames.length - 5} more hidden)</>
+                                                                    ) : (
+                                                                        <><i className="bi bi-chevron-down me-1"></i>Show all {apt.prescription.medicationCount} medications</>
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                )}
-                            </div>
-                        )}
+
+                                    {/* Pagination Controls */}
+                                    {medicalHistory?.appointments?.length > itemsPerPage && (
+                                        <div className="d-flex justify-content-center align-items-center gap-3 mt-4">
+                                            <button
+                                                className="btn btn-outline-primary btn-sm px-3"
+                                                onClick={() => {
+                                                    setCurrentPage(prev => Math.max(1, prev - 1));
+                                                    timelineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                }}
+                                                disabled={currentPage === 1}
+                                            >
+                                                <i className="bi bi-chevron-left me-1"></i>
+                                                Previous
+                                            </button>
+                                            
+                                            <span className="text-muted small">
+                                                Page <strong>{currentPage}</strong> of <strong>{Math.ceil((medicalHistory?.appointments?.length || 0) / itemsPerPage)}</strong>
+                                            </span>
+                                            
+                                            <button
+                                                className="btn btn-outline-primary btn-sm px-3"
+                                                onClick={() => {
+                                                    setCurrentPage(prev => Math.min(Math.ceil((medicalHistory?.appointments?.length || 0) / itemsPerPage), prev + 1));
+                                                    setTimeout(() => {
+                                                        timelineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                    }, 100);
+                                                }}
+                                                disabled={currentPage >= Math.ceil((medicalHistory?.appointments?.length || 0) / itemsPerPage)}
+                                            >
+                                                Next
+                                                <i className="bi bi-chevron-right ms-1"></i>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -561,6 +590,47 @@ const HealthRecords = () => {
                                                 onChange={e => setDescription(e.target.value)}
                                                 placeholder="E.g., Chest X-ray due to persistent cough..."
                                             ></textarea>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label small fw-bold text-muted text-uppercase d-flex align-items-center justify-content-between">
+                                                <span>
+                                                    <i className="bi bi-journal-medical me-2"></i>Medical History Summary
+                                                </span>
+                                                <small className="text-info fw-normal" style={{ fontSize: '0.7rem' }}>
+                                                    Optional - Share with doctors
+                                                </small>
+                                            </label>
+                                            <textarea
+                                                className="form-control bg-light border-0"
+                                                rows="4"
+                                                value={includeHistory ? history : ""}
+                                                onChange={(e) => {
+                                                    setHistory(e.target.value);
+                                                    if (e.target.value && !includeHistory) {
+                                                        setIncludeHistory(true);
+                                                    }
+                                                }}
+                                                placeholder="E.g., Drug allergies (penicillin), past surgeries (appendectomy 2020), chronic conditions (diabetes type 2)..."
+                                                disabled={!includeHistory}
+                                            />
+                                            <div className="form-check mt-2">
+                                                <input
+                                                    className="form-check-input"
+                                                    type="checkbox"
+                                                    id="includeHistoryCheck"
+                                                    checked={includeHistory}
+                                                    onChange={(e) => setIncludeHistory(e.target.checked)}
+                                                />
+                                                <label className="form-check-label small text-muted" htmlFor="includeHistoryCheck">
+                                                    Include this summary when uploading documents
+                                                </label>
+                                            </div>
+                                            {history && includeHistory && (
+                                                <div className="alert alert-success py-2 px-3 mt-2 mb-0 small">
+                                                    <i className="bi bi-check-circle me-1"></i>
+                                                    This summary will be saved to your profile and shared with doctors.
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Conditional Lab Results Inputs */}
@@ -721,30 +791,7 @@ const HealthRecords = () => {
                     </div>
                 </div>
 
-                {/* --- 4. PAGINATION --- */}
-                {totalPages > 1 && (
-                    <div className="d-flex justify-content-center pb-5">
-                        <nav>
-                            <ul className="pagination shadow-sm">
-                                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                                    <button className="page-link border-0 rounded-start-pill px-3 py-2 text-dark" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}>
-                                        <i className="bi bi-chevron-left"></i> Previous
-                                    </button>
-                                </li>
-                                <li className="page-item disabled">
-                                    <span className="page-link border-0 bg-white fw-bold px-3 py-2 text-primary">
-                                        {currentPage} / {totalPages}
-                                    </span>
-                                </li>
-                                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                                    <button className="page-link border-0 rounded-end-pill px-3 py-2 text-dark" onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}>
-                                        Next <i className="bi bi-chevron-right"></i>
-                                    </button>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                )}
+
 
                 {/* --- MODALS --- */}
 
@@ -796,35 +843,6 @@ const HealthRecords = () => {
                                                         <i className="bi bi-calendar-event me-2"></i>Follow-up: <strong>{new Date(selectedAppointment.consultation.followUpDate).toLocaleDateString('en-GB')}</strong>
                                                     </div>
                                                 )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {selectedAppointment.prescription && (
-                                        <div className="card border-0 shadow-sm rounded-3 mb-3">
-                                            <div className="card-body">
-                                                <h6 className="fw-bold text-danger mb-3">Prescription</h6>
-                                                <ul className="list-group list-group-flush rounded-3">
-                                                    {selectedAppointment.prescription.medicationNames.map((med, i) => (
-                                                        <li key={i} className="list-group-item px-0"><i className="bi bi-dot"></i> {med}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {selectedAppointment.invoice && (
-                                        <div className="card border-0 shadow-sm rounded-3">
-                                            <div className="card-body d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <h6 className="fw-bold text-warning mb-1">Payment</h6>
-                                                    <span className={`badge ${selectedAppointment.invoice.paymentStatus === 'Paid' ? 'bg-success' : 'bg-warning text-dark'}`}>
-                                                        {selectedAppointment.invoice.paymentStatus}
-                                                    </span>
-                                                </div>
-                                                <div className="text-end">
-                                                    <span className="fs-4 fw-bold text-dark">${selectedAppointment.invoice.totalAmount}</span>
-                                                </div>
                                             </div>
                                         </div>
                                     )}

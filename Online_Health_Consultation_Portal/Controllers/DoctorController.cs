@@ -293,5 +293,18 @@ namespace OHCP_BK.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("locations")]
+        public async Task<ActionResult<List<string>>> GetLocations()
+        {
+            var locations = await _context.Doctors
+                .Where(d => !string.IsNullOrEmpty(d.Location))
+                .Select(d => d.Location)
+                .Distinct()
+                .OrderBy(l => l)
+                .ToListAsync();
+
+            return Ok(locations);
+        }
     }
 }
