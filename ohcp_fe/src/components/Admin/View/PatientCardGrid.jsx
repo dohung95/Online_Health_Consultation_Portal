@@ -75,7 +75,6 @@ export default function PatientCardGrid({ patients, onViewPatient, formatDate })
                             </div>
 
                             {/* Stats Section */}
-                            {/* Stats Section */}
                             <div
                                 className="row pt-3 text-center"
                                 style={{ borderTop: '1px solid #e0f2fe', margin: '0' }}
