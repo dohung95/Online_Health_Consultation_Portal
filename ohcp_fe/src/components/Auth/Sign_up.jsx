@@ -8,17 +8,13 @@ export function Sign_up() {
     const navigate = useNavigate();
     const { register, token, roles } = useAuth();
     const [username, setUsername] = useState('');
-    const [phonenumber, setPhonenumber] = useState('');
     const [email, setEmail] = useState('');
+    const [phonenumber, setPhonenumber] = useState('');
+    const [DateOfBirth, setDateOfBirth] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    // const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
-    // const [showUsernameTooltip, setShowUsernameTooltip] = useState(false);
-    // const [showEmailTooltip, setShowEmailTooltip] = useState(false);
-    // const [showPhoneTooltip, setShowPhoneTooltip] = useState(false);
-    // const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const role = "patient";
 
@@ -38,7 +34,7 @@ export function Sign_up() {
     useEffect(() => {
         if (token && roles && roles.length > 0) {
             // User is already logged in, redirect to appropriate page
-            console.log('User already logged in, redirecting from register...');
+            // console.log('User already logged in, redirecting from register...');
 
             // Navigate based on role
             if (roles.some(r => String(r).trim().toLowerCase() === 'admin')) {
@@ -57,6 +53,7 @@ export function Sign_up() {
         setUsername('');
         setEmail('');
         setPhonenumber('');
+        setDateOfBirth('');
         setPassword('');
         setConfirmPassword('');
         // Hoặc navigate về login page
@@ -67,13 +64,18 @@ export function Sign_up() {
         e.preventDefault();
         setError('');
 
-        if (password !== confirmPassword) {
-            setError('Passwords do not match');
+        if (!username && !email && !phonenumber && !password && !confirmPassword) {
+            setError('All fields are required');
             return;
         }
 
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters');
+        if (username.length < 2) {
+            setError('Username must be at least 2 characters');
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+            setError('Invalid email format');
             return;
         }
 
@@ -82,19 +84,25 @@ export function Sign_up() {
             return;
         }
 
-        if (!/^[0-9]+$/.test(phonenumber)) {
-            setError('Phone number must contain only digits');
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
             return;
         }
 
         setLoading(true);
 
         try {
-            await register(username, phonenumber, email, password, confirmPassword, role);
+            await register(username, phonenumber, email, password, confirmPassword, role, DateOfBirth || null);
             // Hiển thị modal thay vì navigate ngay
             setShowSuccessModal(true);
         } catch (err) {
-            setError(err.message || 'Registration failed');
+            setError('Registration failed');
+            console.log(err);
         } finally {
             setLoading(false);
         }
@@ -185,30 +193,30 @@ export function Sign_up() {
                                     Email:
                                     <span className='tooltip-container'>
                                         <span style={{ color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>*</span>
-                                            <div className='tooltip'>
-                                                <div className='tooltip-arrow'></div>
-                                                <div>
-                                                    <strong style={{ display: 'block', marginBottom: '6px' }}>Email Requirements:</strong>
-                                                    <span style={{ fontSize: '12px', lineHeight: '1.6' }}>
-                                                        Please provide a valid email address.
-                                                        <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
-                                                            <li>Must be in format: <code style={{ backgroundColor: '#f0f0f0', padding: '2px 4px', borderRadius: '3px' }}>user@domain.com</code></li>
-                                                            <li>Used for account verification</li>
-                                                            <li>Used for important notifications</li>
-                                                            <li>Used for password recovery</li>
-                                                        </ul>
-                                                        {email.length > 0 && (
-                                                            <div style={{
-                                                                marginTop: '8px',
-                                                                fontSize: '11px',
-                                                                color: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '#4caf50' : '#dc3545'
-                                                            }}>
-                                                                Format: {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'Valid ✓' : 'Invalid ✗'}
-                                                            </div>
-                                                        )}
-                                                    </span>
-                                                </div>
+                                        <div className='tooltip'>
+                                            <div className='tooltip-arrow'></div>
+                                            <div>
+                                                <strong style={{ display: 'block', marginBottom: '6px' }}>Email Requirements:</strong>
+                                                <span style={{ fontSize: '12px', lineHeight: '1.6' }}>
+                                                    Please provide a valid email address.
+                                                    <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+                                                        <li>Must be in format: <code style={{ backgroundColor: '#f0f0f0', padding: '2px 4px', borderRadius: '3px' }}>user@domain.com</code></li>
+                                                        <li>Used for account verification</li>
+                                                        <li>Used for important notifications</li>
+                                                        <li>Used for password recovery</li>
+                                                    </ul>
+                                                    {email.length > 0 && (
+                                                        <div style={{
+                                                            marginTop: '8px',
+                                                            fontSize: '11px',
+                                                            color: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '#4caf50' : '#dc3545'
+                                                        }}>
+                                                            Format: {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'Valid ✓' : 'Invalid ✗'}
+                                                        </div>
+                                                    )}
+                                                </span>
                                             </div>
+                                        </div>
                                     </span>
                                 </label>
                                 <input
@@ -249,7 +257,7 @@ export function Sign_up() {
                             </div>
                         </div>
 
-                        {/* Row 2: Phone + Password */}
+                        {/* Row 2: Phone + Date of Birth*/}
                         <div className='form-row'>
                             <div>
                                 <label>
@@ -324,6 +332,23 @@ export function Sign_up() {
                                     </div>
                                 )}
                             </div>
+                            <div>
+                                <label>
+                                    Date of Birth:
+                                </label>
+                                <input
+                                    type="date"
+                                    required
+                                    value={DateOfBirth}
+                                    onChange={(e) => setDateOfBirth(e.target.value)}
+                                    disabled={loading}
+                                    className='signup-input'
+                                />
+                            </div>
+                        </div>
+
+                        {/* Row 3: Password + Confirm Password */}
+                        <div className='form-row'>
                             <div>
                                 <label>
                                     Password:
@@ -423,15 +448,12 @@ export function Sign_up() {
                                     </div>
                                 )}
                             </div>
-                        </div>
-
-                        {/* Row 3: Confirm Password (full width) */}
-                        <div>
                             <div>
-                                <label>
-                                    Confirm Password:
-                                    <span className='tooltip-container'>
-                                        <span style={{ color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>*</span>
+                                <div>
+                                    <label>
+                                        Confirm Password:
+                                        <span className='tooltip-container'>
+                                            <span style={{ color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>*</span>
                                             <div className='tooltip'>
                                                 <div className='tooltip-arrow'></div>
                                                 <strong style={{ display: 'block', marginBottom: '8px' }}>Confirm Password:</strong>
@@ -452,45 +474,48 @@ export function Sign_up() {
                                                     </span>
                                                 )}
                                             </div>
-                                    </span>
-                                </label>
-                                <input
-                                    type="password"
-                                    required
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    disabled={loading}
-                                    className='signup-input'
-                                />
-                                {/* Real-time confirm password validation */}
-                                {confirmPassword.length > 0 && !passwordRequirements.hasMatch && (
-                                    <div style={{
-                                        color: '#dc3545',
-                                        fontSize: '12px',
-                                        marginTop: '4px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
-                                    }}>
-                                        <i className="bi bi-x-circle"></i>
-                                        <span>Passwords do not match</span>
-                                    </div>
-                                )}
-                                {confirmPassword.length > 0 && passwordRequirements.hasMatch && (
-                                    <div style={{
-                                        color: '#4caf50',
-                                        fontSize: '12px',
-                                        marginTop: '4px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
-                                    }}>
-                                        <i className="bi bi-check-circle-fill"></i>
-                                        <span>Passwords match ✓</span>
-                                    </div>
-                                )}
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        disabled={loading}
+                                        className='signup-input'
+                                    />
+                                    {/* Real-time confirm password validation */}
+                                    {confirmPassword.length > 0 && !passwordRequirements.hasMatch && (
+                                        <div style={{
+                                            color: '#dc3545',
+                                            fontSize: '12px',
+                                            marginTop: '4px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px'
+                                        }}>
+                                            <i className="bi bi-x-circle"></i>
+                                            <span>Passwords do not match</span>
+                                        </div>
+                                    )}
+                                    {confirmPassword.length > 0 && passwordRequirements.hasMatch && (
+                                        <div style={{
+                                            color: '#4caf50',
+                                            fontSize: '12px',
+                                            marginTop: '4px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px'
+                                        }}>
+                                            <i className="bi bi-check-circle-fill"></i>
+                                            <span>Passwords match ✓</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
+
+                        {/* button */}
                         <button type="submit" disabled={loading} className='signup-button'>
                             {loading ? 'Loading...' : 'Register'}
                         </button>

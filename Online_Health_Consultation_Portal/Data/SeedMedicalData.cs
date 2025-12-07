@@ -374,13 +374,6 @@ namespace OHCP_BK.Data
 
                 for (int i = 0; i < appointmentsForDoctor && appointmentCount < targetAppointments; i++)
                 {
-<<<<<<< Updated upstream
-                    var patient = patients[random.Next(patients.Count)];
-                    var daysOffset = random.Next(-60, 60); // Appointments from 60 days ago to 60 days in future
-                    var hour = random.Next(8, 17); // Working hours 8 AM to 5 PM
-                    var status = daysOffset < 0 ? (random.Next(10) > 2 ? "Completed" : "Cancelled") : "Scheduled";
-                    if (daysOffset == 0) status = "In Progress";
-=======
                     var patientIndex = appointmentCount % patients.Count;
                     var patient = patients[patientIndex];
 
@@ -407,7 +400,7 @@ namespace OHCP_BK.Data
                         // Future appointments: Scheduled
                         status = "Scheduled";
                     }
->>>>>>> Stashed changes
+
 
                     var appointment = new Appointment
                     {

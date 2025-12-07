@@ -38,6 +38,7 @@ namespace OHCP_BK.Dtos
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public string? DoctorNotes { get; set; }
+        public string? Diagnosis { get; set; }
         public DateTime? FollowUpDate { get; set; }
     }
     // DTO for prescription summary
@@ -47,6 +48,15 @@ namespace OHCP_BK.Dtos
         public DateTime IssueDate { get; set; }
         public int MedicationCount { get; set; }
         public List<string> MedicationNames { get; set; } = new List<string>();
+        public List<MedicationItemDTO> Medications { get; set; } = new List<MedicationItemDTO>();
+    }
+    // DTO for individual medication item
+    public class MedicationItemDTO
+    {
+        public string MedicationName { get; set; } = null!;
+        public string Dosage { get; set; } = null!;
+        public string Instructions { get; set; } = null!;
+        public int TotalSupplyDays { get; set; }
     }
     // DTO for invoice summary
     public class InvoiceSummaryDTO

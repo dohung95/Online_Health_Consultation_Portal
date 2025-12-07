@@ -4,8 +4,9 @@ import { useAuth } from "../../context/AuthContext";
 export default function AuthForm({ isRegister = false, onSuccess }) {
     const { login, register } = useAuth();
     const [username, setUsername] = useState('');
-    const [phonenumber, setPhonenumber] = useState('');
     const [email, setEmail] = useState('');
+    const [phonenumber, setPhonenumber] = useState('');
+    const [DateOfBirth, setDateOfBirth] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
@@ -19,7 +20,7 @@ export default function AuthForm({ isRegister = false, onSuccess }) {
         try {
             if (isRegister) {
                 // For register, use password as confirmPassword if not provided
-                const ok = await register(email, password, confirmPassword || password);
+                const ok = await register(email, password, confirmPassword || password, DateOfBirth);
                 if (!ok) {
                     setError('Registration failed')
                 } else {
@@ -70,6 +71,15 @@ export default function AuthForm({ isRegister = false, onSuccess }) {
                     required
                     value={phonenumber}
                     onChange={(e) => setPhonenumber(e.target.value)}
+                />
+            </div>
+            <div>
+                <label htmlFor="DateOfBirth">Date of Birth:</label>
+                <input
+                    id="DateOfBirth"
+                    type="date"
+                    value={DateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
                 />
             </div>
             <div>
