@@ -317,7 +317,7 @@
 
 .home-page .open-hours-title {
     color: #3EB7E9;
-    font-size: 1.8vw;
+    font-size: clamp(16px, 1.8vw, 24px);
     padding: 3vw 2vw 1.2vw 2vw;
     font-weight: bold;
 }
@@ -342,13 +342,13 @@
 .home-page .hours-row .col-md-6:first-child {
     font-weight: 600;
     color: #3EB7E9;
-    font-size: 1.1vw;
+    font-size: clamp(12px, 1.1vw, 16px);
 }
 
 .home-page .hours-row .col-md-6:last-child {
     color: #fff;
     text-align: right;
-    font-size: 1.05vw;
+    font-size: clamp(12px, 1.05vw, 15px);
 }
 
 /* ==================== SECTION 3: WHY CHOOSE US ==================== */
@@ -570,24 +570,24 @@
     }
 
     .home-page .open-hours-title {
-        font-size: 2vw;
-        padding: 2.5vw 2vw 1.2vw 2vw;
+        font-size: 18px;
+        padding: 20px 15px 10px 15px;
     }
 
     .home-page .open-hours-list {
-        padding: 0 2vw 1.5vw 2vw;
+        padding: 0 15px 15px 15px;
     }
 
     .home-page .hours-row {
-        padding-bottom: 0.9vw;
+        padding-bottom: 8px;
     }
 
     .home-page .hours-row .col-md-6:first-child {
-        font-size: 1.15vw;
+        font-size: 13px;
     }
 
     .home-page .hours-row .col-md-6:last-child {
-        font-size: 1.1vw;
+        font-size: 13px;
     }
 
     .home-page .why-choose-section {
@@ -708,29 +708,25 @@
     }
 
     .home-page .open-hours-title {
-        font-size: 2vw;
-        padding: 4vw 3vw 1.5vw 2vw;
-    }
-
-    .home-page .open-hours-title {
-        font-size: 2.2vw;
+        font-size: 18px;
+        padding: 25px 20px 12px 15px;
     }
 
     .home-page .open-hours-list {
-        padding-left: 2vw;
-        padding-right: 1.5vw;
+        padding-left: 15px;
+        padding-right: 12px;
     }
 
     .home-page .hours-row {
-        padding-bottom: 1vw;
+        padding-bottom: 9px;
     }
 
     .home-page .hours-row .col-md-6:first-child {
-        font-size: 1.25vw;
+        font-size: 13px;
     }
 
     .home-page .hours-row .col-md-6:last-child {
-        font-size: 1.2vw;
+        font-size: 12px;
     }
 
     .home-page .why-choose-section {

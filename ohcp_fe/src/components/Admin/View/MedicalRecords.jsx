@@ -785,19 +785,38 @@ export default function MedicalRecords() {
                                     </span>
                                   </div>
 
-                                  {/* Doctor Notes */}
-                                  {appointment.doctorNotes && (
+                                  {/* Diagnosis - PRIORITY DISPLAY */}
+                                  {appointment.diagnosis && (
                                     <div className="mt-3 p-3" style={{
-                                      background: '#fffbeb',
-                                      borderLeft: '3px solid #f59e0b',
-                                      borderRadius: '6px',
-                                      border: '1px solid #fde68a'
+                                      background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)',
+                                      borderLeft: '4px solid #14b8a6',
+                                      borderRadius: '8px',
+                                      border: '2px solid #5eead4',
+                                      boxShadow: '0 2px 8px rgba(20, 184, 166, 0.15)'
                                     }}>
                                       <div className="d-flex align-items-center gap-2 mb-2">
-                                        <i className="bi bi-journal-medical" style={{ color: '#d97706', fontSize: '15px' }}></i>
-                                        <strong style={{ color: '#92400e', fontSize: '13px' }}>Doctor's Notes</strong>
+                                        <i className="bi bi-clipboard2-pulse-fill" style={{ color: '#0f766e', fontSize: '18px' }}></i>
+                                        <strong style={{ color: '#134e4a', fontSize: '15px', fontWeight: '700' }}>Diagnosis</strong>
                                       </div>
-                                      <p className="mb-0" style={{ fontSize: '13px', color: '#78350f', lineHeight: '1.6' }}>
+                                      <p className="mb-0" style={{ fontSize: '14px', color: '#115e59', lineHeight: '1.7', fontWeight: '500' }}>
+                                        {appointment.diagnosis}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {/* Doctor Notes - Secondary */}
+                                  {appointment.doctorNotes && (
+                                    <div className="mt-3 p-2" style={{
+                                      background: '#f9fafb',
+                                      borderLeft: '2px solid #d1d5db',
+                                      borderRadius: '6px',
+                                      border: '1px solid #e5e7eb'
+                                    }}>
+                                      <div className="d-flex align-items-center gap-2 mb-1">
+                                        <i className="bi bi-journal-text" style={{ color: '#6b7280', fontSize: '13px' }}></i>
+                                        <strong style={{ color: '#6b7280', fontSize: '12px', fontWeight: '600' }}>Doctor's Notes</strong>
+                                      </div>
+                                      <p className="mb-0" style={{ fontSize: '12px', color: '#6b7280', lineHeight: '1.5' }}>
                                         {appointment.doctorNotes}
                                       </p>
                                     </div>
@@ -1494,43 +1513,55 @@ export default function MedicalRecords() {
                     </div>
                   )}
 
-                  {/* Doctor Notes */}
-                  {selectedAppointment.doctorNotes && (
+                  {/* Diagnosis - PRIORITY DISPLAY */}
+                  {selectedAppointment.diagnosis && (
                     <div className="admin-card mb-3">
-                      <div className="card-body">
-                        <h6 className="mb-3">
-                          <i className="bi bi-clipboard-pulse me-2 text-primary"></i>
-                          Doctor's Notes
+                      <div className="card-body" style={{ padding: '20px' }}>
+                        <h6 className="mb-3" style={{ fontSize: '16px', fontWeight: '700' }}>
+                          <i className="bi bi-clipboard2-pulse-fill me-2" style={{ color: '#14b8a6', fontSize: '20px' }}></i>
+                          Diagnosis
                         </h6>
-                        <div className="alert alert-info mb-0" style={{
-                          backgroundColor: '#e0f2fe',
-                          borderColor: '#0891b2',
-                          color: '#0f172a'
+                        <div className="alert mb-0" style={{
+                          background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)',
+                          borderColor: '#14b8a6',
+                          borderLeft: '5px solid #14b8a6',
+                          color: '#0f172a',
+                          fontSize: '15px',
+                          fontWeight: '500',
+                          lineHeight: '1.7',
+                          padding: '16px',
+                          boxShadow: '0 2px 8px rgba(20, 184, 166, 0.15)'
                         }}>
-                          <i className="bi bi-journal-medical me-2"></i>
-                          {selectedAppointment.doctorNotes}
+                          <i className="bi bi-clipboard2-pulse-fill me-2" style={{ color: '#0f766e', fontSize: '16px' }}></i>
+                          {selectedAppointment.diagnosis}
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Additional Information */}
-                  <div className="admin-card">
-                    <div className="card-body">
-                      <h6 className="mb-3">
-                        <i className="bi bi-info-circle me-2 text-success"></i>
-                        Additional Information
-                      </h6>
-                      <div className="alert alert-info mb-0">
-                        <i className="bi bi-lightbulb me-2"></i>
-                        <strong>Consultation Type:</strong> {selectedAppointment.consultationType}
-                        <br />
-                        <small className="text-muted">
-                          This appointment is scheduled for {selectedAppointment.consultationType.toLowerCase()} consultation.
-                        </small>
+                  {/* Doctor Notes - Secondary */}
+                  {selectedAppointment.doctorNotes && (
+                    <div className="admin-card mb-3">
+                      <div className="card-body" style={{ padding: '16px' }}>
+                        <h6 className="mb-2" style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>
+                          <i className="bi bi-journal-text me-2" style={{ fontSize: '14px' }}></i>
+                          Doctor's Notes
+                        </h6>
+                        <div className="alert mb-0" style={{
+                          backgroundColor: '#f9fafb',
+                          borderColor: '#e5e7eb',
+                          borderLeft: '3px solid #d1d5db',
+                          color: '#6b7280',
+                          fontSize: '13px',
+                          lineHeight: '1.5',
+                          padding: '12px'
+                        }}>
+                          <i className="bi bi-journal-text me-2" style={{ fontSize: '13px' }}></i>
+                          {selectedAppointment.doctorNotes}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
                 <div className="admin-modal-footer">
                   <button

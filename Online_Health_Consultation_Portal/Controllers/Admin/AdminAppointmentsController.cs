@@ -126,7 +126,8 @@ namespace OHCP_BK.Controllers.Admin
                         ConsultationType = a.ConsultationType,
                         Status = a.Status,
                         DoctorNotes = a.Consultation != null ? a.Consultation.DoctorNotes : null,
-                        FollowUpDate = a.Consultation != null ? a.Consultation.FollowUpDate : null
+                        FollowUpDate = a.Consultation != null ? a.Consultation.FollowUpDate : null,
+                        Diagnosis = a.Consultation != null ? a.Consultation.Diagnosis : null
                     })
                     .ToListAsync();
 
@@ -176,7 +177,8 @@ namespace OHCP_BK.Controllers.Admin
                     ConsultationType = appointment.ConsultationType,
                     Status = appointment.Status,
                     DoctorNotes = appointment.Consultation?.DoctorNotes,
-                    FollowUpDate = appointment.Consultation?.FollowUpDate
+                    FollowUpDate = appointment.Consultation?.FollowUpDate,
+                    Diagnosis = appointment.Consultation?.Diagnosis
                 };
 
                 return Ok(appointmentDto);
@@ -304,8 +306,8 @@ namespace OHCP_BK.Controllers.Admin
                     appointment.Status = dto.Status;
                 }
 
-                // Handle Consultation data (DoctorNotes and FollowUpDate)
-                if (dto.DoctorNotes != null || dto.FollowUpDate.HasValue)
+                // Handle Consultation data (DoctorNotes, FollowUpDate, and Diagnosis)
+                if (dto.DoctorNotes != null || dto.FollowUpDate.HasValue || dto.Diagnosis != null)
                 {
                     if (appointment.Consultation == null)
                     {
@@ -314,7 +316,8 @@ namespace OHCP_BK.Controllers.Admin
                         {
                             AppointmentID = appointment.AppointmentID,
                             DoctorNotes = dto.DoctorNotes,
-                            FollowUpDate = dto.FollowUpDate
+                            FollowUpDate = dto.FollowUpDate,
+                            Diagnosis = dto.Diagnosis
                         };
                         _context.Consultations.Add(appointment.Consultation);
                     }
@@ -328,6 +331,10 @@ namespace OHCP_BK.Controllers.Admin
                         if (dto.FollowUpDate.HasValue)
                         {
                             appointment.Consultation.FollowUpDate = dto.FollowUpDate;
+                        }
+                        if (dto.Diagnosis != null)
+                        {
+                            appointment.Consultation.Diagnosis = dto.Diagnosis;
                         }
                         _context.Entry(appointment.Consultation).State = EntityState.Modified;
                     }

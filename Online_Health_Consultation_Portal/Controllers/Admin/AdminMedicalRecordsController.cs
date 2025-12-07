@@ -341,7 +341,8 @@ namespace OHCP_BK.Controllers.Admin
                         DoctorSpecialty = a.Doctor.Specialty,
                         ConsultationType = a.ConsultationType,
                         Status = a.Status,
-                        DoctorNotes = a.Consultation != null ? a.Consultation.DoctorNotes : null
+                        DoctorNotes = a.Consultation != null ? a.Consultation.DoctorNotes : null,
+                        Diagnosis = a.Consultation != null ? a.Consultation.Diagnosis : null
                     })
                     .ToList();
 

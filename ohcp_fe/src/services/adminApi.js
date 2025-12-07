@@ -175,38 +175,6 @@ export const medicalRecordsApi = {
   }
 };
 
-// ==================== INVOICES API ====================
-
-export const invoicesApi = {
-  getStats: async () => {
-    const response = await adminApi.get('/admininvoices/stats');
-    return response.data;
-  },
-
-  getAll: async (params = {}) => {
-    const { pageNumber = 1, pageSize = 10, searchTerm = '', status = '', sortBy = 'newest' } = params;
-    const response = await adminApi.get('/admininvoices', {
-      params: { pageNumber, pageSize, searchTerm, status, sortBy }
-    });
-    return response.data;
-  },
-
-  getById: async (id) => {
-    const response = await adminApi.get(`/admininvoices/${id}`);
-    return response.data;
-  },
-
-  updateStatus: async (id, status) => {
-    const response = await adminApi.put(`/admininvoices/${id}/status`, { status });
-    return response.data;
-  },
-
-  delete: async (id) => {
-    const response = await adminApi.delete(`/admininvoices/${id}`);
-    return response.data;
-  }
-};
-
 // ==================== ANALYTICS API ====================
 
 export const analyticsApi = {

@@ -553,7 +553,7 @@ export function Sign_up() {
                             Account Created Successfully
                         </h5>
                         <p className="modal-success-message">
-                            Your account has been created. Please wait for admin approval to activate your account.
+                            Your account has been created. An activation email has been sent to your registered email. Please confirm to log in.
                         </p>
                     </div>
                     <div className="modal-support-text">
