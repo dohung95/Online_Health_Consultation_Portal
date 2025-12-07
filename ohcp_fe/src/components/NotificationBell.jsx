@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import signalRService from '../services/signalrService';
 import notificationApi from '../api/notificationApi';
 import './Css/NotificationBell.css';
 
 function NotificationBell() {
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [reminderCount, setReminderCount] = useState(0);
@@ -13,24 +15,27 @@ function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [loadingReminders, setLoadingReminders] = useState(false);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [hasNewReminder, setHasNewReminder] = useState(false);
+  const [hasNewNotification, setHasNewNotification] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    // Load initial unread count
-    loadUnreadCount();
+    // Load initial counts
+    loadAllCounts();
 
     // Initialize SignalR connection
     signalRService.startConnection();
 
     // Listen for medication reminders
     const handleMedicationReminder = (reminder) => {
-      console.log('Received medication reminder:', reminder);
+      console.log('📬 Received medication reminder:', reminder);
       setReminderCount(prev => prev + 1);
       setUnreadCount(prev => prev + 1);
+      setHasNewReminder(true);
       
       // Show browser notification if supported
       if (Notification.permission === 'granted') {
-        new Notification('Medication Reminder', {
+        new Notification('💊 Medication Reminder', {
           body: `Time to take ${reminder.medicationName}. ${reminder.dosage}`,
           icon: '/medication-icon.png'
         });
@@ -39,14 +44,15 @@ function NotificationBell() {
 
     // Listen for appointment notifications
     const handleAppointmentNotification = (notification) => {
-      console.log('Received appointment notification:', notification);
+      console.log('📅 Received appointment notification:', notification);
       setNotificationCount(prev => prev + 1);
       setUnreadCount(prev => prev + 1);
+      setHasNewNotification(true);
       
       // Show browser notification if supported
       if (Notification.permission === 'granted') {
-        new Notification('Appointment Reminder', {
-          body: `You have an appointment with Dr. ${notification.doctorName}`,
+        new Notification('📅 Appointment Notification', {
+          body: notification.message || `You have an appointment`,
           icon: '/appointment-icon.png'
         });
       }
@@ -76,12 +82,43 @@ function NotificationBell() {
     };
   }, []);
 
-  const loadUnreadCount = async () => {
+  const loadAllCounts = async () => {
     try {
-      const data = await notificationApi.getUnreadCount();
-      setUnreadCount(data.unreadCount || 0);
+      // Load all notifications and count by type
+      const data = await notificationApi.getMyNotifications();
+      
+      // Medication reminders
+      const medicationReminders = data.filter(n => {
+        const msg = n.message.toLowerCase();
+        return msg.includes('days remaining') || 
+               msg.includes(' - ') && msg.includes(': use') ||
+               msg.includes('prescription today');
+      });
+      const unreadReminders = medicationReminders.filter(n => !n.isRead).length;
+      setReminderCount(unreadReminders);
+      
+      // Appointment notifications
+      const appointmentNotifs = data.filter(n => {
+        const msg = n.message.toLowerCase();
+        const isMedication = msg.includes('days remaining') || 
+                            (msg.includes(' - ') && msg.includes(': use')) ||
+                            msg.includes('prescription today');
+        return !isMedication && (
+          msg.includes('appointment') || 
+          msg.includes('dr.') ||
+          msg.includes('doctor')
+        );
+      });
+      const unreadNotifs = appointmentNotifs.filter(n => !n.isRead).length;
+      setNotificationCount(unreadNotifs);
+      
+      // Total unread
+      const totalUnread = unreadReminders + unreadNotifs;
+      setUnreadCount(totalUnread);
+      
+      console.log('📊 Loaded counts - Reminders:', unreadReminders, 'Notifications:', unreadNotifs, 'Total:', totalUnread);
     } catch (error) {
-      console.error('Error loading unread count:', error);
+      console.error('Error loading notification counts:', error);
     }
   };
 
@@ -91,10 +128,11 @@ function NotificationBell() {
       const data = await notificationApi.getMyNotifications();
       console.log('All notifications:', data);
       
-      // Filter for medication reminders - check for "days remaining" or medicine format
+      // Filter for medication reminders - check for "days remaining", "prescription today" or medicine format
       const medicationReminders = data.filter(n => {
         const msg = n.message.toLowerCase();
         return msg.includes('days remaining') || 
+               msg.includes('prescription today') ||
                msg.includes(' - ') && msg.includes(': use'); // Format: "name - dosage: use instructions"
       });
       
@@ -120,6 +158,7 @@ function NotificationBell() {
       const appointmentNotifs = data.filter(n => {
         const msg = n.message.toLowerCase();
         const isMedication = msg.includes('days remaining') || 
+                            msg.includes('prescription today') ||
                             (msg.includes(' - ') && msg.includes(': use'));
         
         return !isMedication && (
@@ -154,22 +193,29 @@ function NotificationBell() {
     } else {
       setActiveTab(tab);
       if (tab === 'reminders') {
+        setHasNewReminder(false); // Clear animation
         loadReminders();
-        // Mark all reminders as read
-        markRemindersAsRead();
+        // Mark reminders as read after loading
+        setTimeout(() => markRemindersAsRead(), 500);
       } else if (tab === 'notifications') {
+        setHasNewNotification(false); // Clear animation
         loadNotifications();
-        // Mark all notifications as read
-        markNotificationsAsRead();
+        // Mark notifications as read after loading
+        setTimeout(() => markNotificationsAsRead(), 500);
       }
     }
   };
 
   const markRemindersAsRead = async () => {
     try {
-      await notificationApi.markAllAsRead();
-      setReminderCount(0);
-      setUnreadCount(prev => Math.max(0, prev - reminderCount));
+      // Only mark if there are unread reminders
+      if (reminderCount > 0) {
+        const currentReminderCount = reminderCount;
+        await notificationApi.markAllAsRead();
+        setReminderCount(0);
+        setUnreadCount(prev => Math.max(0, prev - currentReminderCount));
+        console.log('✅ Marked', currentReminderCount, 'reminders as read');
+      }
     } catch (error) {
       console.error('Error marking reminders as read:', error);
     }
@@ -177,11 +223,26 @@ function NotificationBell() {
 
   const markNotificationsAsRead = async () => {
     try {
-      await notificationApi.markAllAsRead();
-      setNotificationCount(0);
-      setUnreadCount(prev => Math.max(0, prev - notificationCount));
+      // Only mark if there are unread notifications
+      if (notificationCount > 0) {
+        const currentNotificationCount = notificationCount;
+        await notificationApi.markAllAsRead();
+        setNotificationCount(0);
+        setUnreadCount(prev => Math.max(0, prev - currentNotificationCount));
+        console.log('✅ Marked', currentNotificationCount, 'notifications as read');
+      }
     } catch (error) {
       console.error('Error marking notifications as read:', error);
+    }
+  };
+
+  const handleReminderClick = (reminder) => {
+    // Close dropdown
+    setDropdownOpen(false);
+    
+    // Navigate to prescription detail if prescriptionId exists
+    if (reminder.prescriptionId) {
+      navigate(`/prescription/${reminder.prescriptionId}`);
     }
   };
 
@@ -200,16 +261,43 @@ function NotificationBell() {
     return date.toLocaleDateString();
   };
 
+  // Format medication reminder message to display nicely
+  const formatReminderMessage = (message) => {
+    if (!message) return { medications: [], timeRemaining: '' };
+    
+    const lines = message.split('\n').filter(line => line.trim());
+    
+    // Last line is usually the time remaining (contains "days remaining" or "prescription today")
+    const lastLine = lines[lines.length - 1];
+    const isTimeRemaining = lastLine.includes('days remaining') || 
+                           lastLine.includes('day remaining') || 
+                           lastLine.includes('prescription today') ||
+                           lastLine.includes('remember to take medicine');
+    
+    if (isTimeRemaining) {
+      return {
+        medications: lines.slice(0, -1), // All lines except the last
+        timeRemaining: lastLine
+      };
+    }
+    
+    // If no time remaining line found, treat all as medications
+    return {
+      medications: lines,
+      timeRemaining: ''
+    };
+  };
+
   return (
     <div className="notification-bell-container" ref={dropdownRef}>
       <button 
-        className="notification-bell-btn" 
+        className={`notification-bell-btn ${unreadCount > 0 ? 'has-unread' : ''}`}
         onClick={toggleDropdown}
         aria-label="Notifications"
       >
         <span className="material-symbols-outlined">notifications</span>
         {unreadCount > 0 && (
-          <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+          <span className="notification-badge pulse">{unreadCount > 99 ? '99+' : unreadCount}</span>
         )}
       </button>
 
@@ -221,10 +309,10 @@ function NotificationBell() {
           <div className="notification-dropdown-body">
             {/* Medication Reminders Tab */}
             <div 
-              className={`notification-tab-item ${activeTab === 'reminders' ? 'active' : ''}`}
+              className={`notification-tab-item ${activeTab === 'reminders' ? 'active' : ''} ${hasNewReminder ? 'new-notification' : ''}`}
               onClick={() => handleTabClick('reminders')}
             >
-              <span className="material-symbols-outlined">medication</span>
+              <span className="material-symbols-outlined medication-icon">medication</span>
               <span>Medication Reminders</span>
               {reminderCount > 0 && (
                 <span className="notification-item-badge">{reminderCount}</span>
@@ -235,28 +323,66 @@ function NotificationBell() {
             {activeTab === 'reminders' && (
               <div className="notification-list">
                 {loadingReminders ? (
-                  <div className="notification-loading">Loading...</div>
-                ) : reminders.length > 0 ? (
-                  reminders.map(reminder => (
-                    <div key={reminder.notificationID} className={`notification-list-item ${!reminder.isRead ? 'unread' : ''}`}>
-                      <div className="notification-content">
-                        <p className="notification-message" style={{ whiteSpace: 'pre-line' }}>{reminder.message}</p>
-                        <span className="notification-time">{formatDate(reminder.createdAt)}</span>
-                      </div>
+                  <div className="notification-loading">
+                    <div className="spinner-border spinner-border-sm text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
                     </div>
-                  ))
+                  </div>
+                ) : reminders.length > 0 ? (
+                  reminders.map(reminder => {
+                    const { medications, timeRemaining } = formatReminderMessage(reminder.message);
+                    return (
+                      <div 
+                        key={reminder.notificationID} 
+                        className={`notification-list-item ${!reminder.isRead ? 'unread' : ''}`}
+                        onClick={() => handleReminderClick(reminder)}
+                      >
+                        <div className="notification-icon-wrapper medication-bg">
+                          <span className="material-symbols-outlined">pill</span>
+                        </div>
+                        <div className="notification-content">
+                          <div className="medication-list">
+                            {medications.map((med, index) => (
+                              <div key={index} className="medication-item">
+                                <span className="material-symbols-outlined med-bullet">medication</span>
+                                <span className="medication-text">{med}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {timeRemaining && (
+                            <div className="time-remaining">
+                              <span className="material-symbols-outlined">schedule</span>
+                              <span>{timeRemaining}</span>
+                            </div>
+                          )}
+                          <div className="notification-footer">
+                            
+                            {reminder.prescriptionId && (
+                              <span className="click-hint">
+                                <span className="material-symbols-outlined">info</span>
+                                Click for detail
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <div className="notification-empty">No medication reminders</div>
+                  <div className="notification-empty">
+                    <span className="material-symbols-outlined">inbox</span>
+                    <p>No medication reminders</p>
+                  </div>
                 )}
               </div>
             )}
 
             {/* Appointment Notifications Tab */}
             <div 
-              className={`notification-tab-item ${activeTab === 'notifications' ? 'active' : ''}`}
+              className={`notification-tab-item ${activeTab === 'notifications' ? 'active' : ''} ${hasNewNotification ? 'new-notification' : ''}`}
               onClick={() => handleTabClick('notifications')}
             >
-              <span className="material-symbols-outlined">event</span>
+              <span className="material-symbols-outlined appointment-icon">event</span>
               <span>Appointment Notifications</span>
               {notificationCount > 0 && (
                 <span className="notification-item-badge">{notificationCount}</span>
@@ -267,18 +393,31 @@ function NotificationBell() {
             {activeTab === 'notifications' && (
               <div className="notification-list">
                 {loadingNotifications ? (
-                  <div className="notification-loading">Loading...</div>
+                  <div className="notification-loading">
+                    <div className="spinner-border spinner-border-sm text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
                 ) : notifications.length > 0 ? (
                   notifications.map(notification => (
                     <div key={notification.notificationID} className={`notification-list-item ${!notification.isRead ? 'unread' : ''}`}>
+                      <div className="notification-icon-wrapper appointment-bg">
+                        <span className="material-symbols-outlined">calendar_month</span>
+                      </div>
                       <div className="notification-content">
                         <p className="notification-message">{notification.message}</p>
-                        <span className="notification-time">{formatDate(notification.createdAt)}</span>
+                        <span className="notification-time">
+                          <span className="material-symbols-outlined time-icon">schedule</span>
+                          {formatDate(notification.createdAt)}
+                        </span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="notification-empty">No appointment notifications</div>
+                  <div className="notification-empty">
+                    <span className="material-symbols-outlined">inbox</span>
+                    <p>No appointment notifications</p>
+                  </div>
                 )}
               </div>
             )}
