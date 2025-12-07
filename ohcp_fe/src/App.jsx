@@ -1,6 +1,6 @@
 ﻿// src/App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation  } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Home from './components/Home';
@@ -20,7 +20,6 @@ import Patients from './components/Admin/View/Patients';
 import AdminDoctors from './components/Admin/View/Doctors';
 import Appointments from './components/Admin/View/Appointments';
 import MedicalRecords from './components/Admin/View/MedicalRecords';
-import Invoices from './components/Admin/View/Invoices';
 
 import Sign_in from './components/Auth/Sign_in';
 import Sign_up from './components/Auth/Sign_up';
@@ -72,7 +71,7 @@ function AppContent() {
   const isLoginPage = location.pathname === '/login';
   const isAdminPage = location.pathname.startsWith('/admin');
   // Don't show navbar/footer on video call, doctor page, admin page, or login page
-  const hideLayout = isVideoCallPage || isDoctorPage || isAdminPage ;
+  const hideLayout = isVideoCallPage || isDoctorPage || isAdminPage;
 
   return (
     <>
@@ -96,7 +95,7 @@ function AppContent() {
             <Route path="/health-records" element={<HealthRecords />} />
             <Route path="/share-records" element={<ShareHealthRecords />} />
             <Route path="/profile-patient" element={<ProfilePatient />} />
-            
+
             {/* <Route path="/schedule" element={<Schedule />} /> */}
             {/* <Route path="/book/:doctorId" element={<Schedule />} /> */}
             {/* <Route path="/my-appointments" element={<MyAppointments />} /> */}
@@ -108,7 +107,7 @@ function AppContent() {
                 <DoctorPage />
               </ProtectedRoute>
             } />
-            
+
             <Route path="/schedule" element={
               <ExcludeRolesRoute excludedRoles={['Admin', 'Doctor']}>
                 <Schedule />
@@ -135,7 +134,7 @@ function AppContent() {
               </ProtectedRoute>
             } /> */}
 
-            
+
             <Route path="/records" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <Records />
@@ -151,20 +150,19 @@ function AppContent() {
                 <Payment />
               </ProtectedRoute>
             } />
-            
+
             <Route path="/my-prescriptions" element={
               <ProtectedRoute allowedRoles={['Patient']}>
                 <PatientPrescriptionView />
               </ProtectedRoute>
             } />
-            
+
             <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>} />
-            <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>}/>
-            <Route path="/admin/doctors" element={<AdminRoute> <AdminDoctors /> </AdminRoute>}/>
-            <Route path="/admin/appointments" element={<AdminRoute> <Appointments /> </AdminRoute>}/>
-            <Route path="/admin/medical-records" element={<AdminRoute> <MedicalRecords /> </AdminRoute>}/>
-            <Route path="/admin/invoices" element={<AdminRoute> <Invoices /> </AdminRoute>}/>
-                                          
+            <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>} />
+            <Route path="/admin/doctors" element={<AdminRoute> <AdminDoctors /> </AdminRoute>} />
+            <Route path="/admin/appointments" element={<AdminRoute> <Appointments /> </AdminRoute>} />
+            <Route path="/admin/medical-records" element={<AdminRoute> <MedicalRecords /> </AdminRoute>} />
+
           </Routes>
         </div>
         {!hideLayout && <Footer />}
