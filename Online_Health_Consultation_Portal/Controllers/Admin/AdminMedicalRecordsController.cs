@@ -273,6 +273,14 @@ namespace OHCP_BK.Controllers.Admin
                     .Take(pageSize)
                     .ToListAsync();
 
+                // Get prescription counts for these patients
+                var patientIds = patients.Select(p => p.PatientID).ToList();
+                var prescriptionCounts = await _context.PrescriptionHeaders
+                    .Where(ph => patientIds.Contains(ph.PatientID))
+                    .GroupBy(ph => ph.PatientID)
+                    .Select(g => new { PatientID = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.PatientID, x => x.Count);
+
                 var patientDtos = patients.Select(p => new MedicalRecordsPatientDto
                 {
                     PatientID = p.PatientID,
@@ -280,7 +288,7 @@ namespace OHCP_BK.Controllers.Admin
                     Email = p.User.Email,
                     Gender = p.Gender,
                     DateOfBirth = p.DateOfBirth,
-                    TotalRecords = p.HealthRecords.Count,
+                    TotalRecords = prescriptionCounts.ContainsKey(p.PatientID) ? prescriptionCounts[p.PatientID] : 0,
                     TotalDocuments = p.HealthRecords.Sum(hr => hr.MedicalDocuments.Count),
                     LastUpdated = p.HealthRecords.Max(hr => (DateTime?)hr.LastUpdated)
                 }).ToList();
