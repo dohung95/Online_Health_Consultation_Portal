@@ -78,7 +78,6 @@ export default function AuthForm({ isRegister = false, onSuccess }) {
                 <input
                     id="DateOfBirth"
                     type="date"
-                    required
                     value={DateOfBirth}
                     onChange={(e) => setDateOfBirth(e.target.value)}
                 />

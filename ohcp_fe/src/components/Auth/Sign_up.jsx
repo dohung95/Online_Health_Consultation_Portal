@@ -97,7 +97,7 @@ export function Sign_up() {
         setLoading(true);
 
         try {
-            await register(username, phonenumber, email, password, confirmPassword, role, DateOfBirth);
+            await register(username, phonenumber, email, password, confirmPassword, role, DateOfBirth || null);
             // Hiển thị modal thay vì navigate ngay
             setShowSuccessModal(true);
         } catch (err) {
