@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../components/Css/DoctorPage.css';
@@ -7,11 +7,19 @@ import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { appointmentService } from '../api/appointmentApi';
+import { toast } from 'react-toastify';
 
 const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [medicalHistory, setMedicalHistory] = useState(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [expandedCards, setExpandedCards] = useState({});
+  const [selectedHistoryAppointment, setSelectedHistoryAppointment] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [completingAppointment, setCompletingAppointment] = useState(false);
   const { roles, initiateCall } = useAuth();
   const { openChatWith } = useChat();
 
@@ -40,6 +48,76 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
       age--;
     }
     return age;
+  };
+
+  // Fetch patient medical history
+  useEffect(() => {
+    const fetchMedicalHistory = async () => {
+      if (!patient?.patientID) return;
+      
+      setLoadingHistory(true);
+      try {
+        const data = await appointmentService.getPatientMedicalHistory(patient.patientID);
+        setMedicalHistory(data);
+      } catch (error) {
+        console.error('Error fetching patient medical history:', error);
+        toast.error('Failed to load patient medical history');
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    fetchMedicalHistory();
+  }, [patient?.patientID]);
+
+  // Toggle card expansion
+  const toggleCardExpand = (appointmentId) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [appointmentId]: !prev[appointmentId]
+    }));
+  };
+
+  // Format status badge color
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Completed': return 'bg-success';
+      case 'Scheduled': return 'bg-warning';
+      case 'Cancelled': return 'bg-danger';
+      default: return 'bg-secondary';
+    }
+  };
+
+  // Handle view appointment detail from medical history
+  const handleViewAppointmentDetail = async (appointmentId) => {
+    try {
+      const appointmentDetail = await appointmentService.getAppointmentDetail(appointmentId);
+      setSelectedHistoryAppointment(appointmentDetail);
+      setShowDetailModal(true);
+    } catch (error) {
+      console.error('Error loading appointment detail:', error);
+      toast.error('Failed to load appointment details');
+    }
+  };
+
+  // Handle complete appointment
+  const handleCompleteAppointment = async () => {
+    setCompletingAppointment(true);
+    try {
+      await appointmentService.completeAppointment(appointment.appointmentID);
+      toast.success('Appointment marked as completed successfully');
+      // Reload appointment data
+      if (onBack) {
+        setTimeout(() => onBack(), 1000);
+      } else {
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error completing appointment:', error);
+      toast.error('Failed to complete appointment');
+    } finally {
+      setCompletingAppointment(false);
+    }
   };
 
   if (!appointment || !patient) {
@@ -266,43 +344,159 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                   >
                     Prescribe Medication
                   </button>
+                  <button
+                    className="btn btn-success h-auto py-3 fw-bold flex-fill"
+                    onClick={handleCompleteAppointment}
+                    disabled={appointment.status !== 'Scheduled' || completingAppointment}
+                    title={appointment.status !== 'Scheduled' ? "Can only complete scheduled appointments" : "Mark appointment as completed"}
+                  >
+                    <i className="bi bi-check-circle me-2"></i>
+                    {completingAppointment ? 'Completing...' : 'Complete'}
+                  </button>
                 </div>
               </div>
             </div>
-            {/* Full Width Tab Section (col-12) */}
+            {/* Full Width Medical Records Section (col-12) */}
             <div className="col-12">
               <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
-                <div className="border-bottom border-border-light">
-                  <ul className="nav nav-tabs border-0 px-4 px-md-4" role="tablist">
-                    <li className="nav-item" role="presentation">
-                      <a className="nav-link active" data-bs-toggle="tab" href="#records" role="tab" aria-selected="true">Medical Records</a>
-                    </li>
-                    <li className="nav-item" role="presentation">
-                      <a className="nav-link" data-bs-toggle="tab" href="#prescriptions" role="tab" aria-selected="false">Previous Prescriptions</a>
-                    </li>
-                    <li className="nav-item" role="presentation">
-                      <a className="nav-link" data-bs-toggle="tab" href="#tests" role="tab" aria-selected="false">Test Results</a>
-                    </li>
-                  </ul>
+                <div className="border-bottom border-border-light p-4">
+                  <h2 className="fs-5 fw-bold text-text-light-primary mb-0">
+                    <i className="bi bi-clipboard2-pulse me-2"></i>Medical Record Timeline
+                  </h2>
                 </div>
-                <div className="p-4 p-md-4">
-                  <div className="tab-content">
-                    <div className="tab-pane fade show active" id="records" role="tabpanel">
-                      <div className="d-flex align-items-center justify-content-center rounded-3 border border-dashed border-border-light" style={{ height: '12rem' }}>
-                        <p className="text-text-light-secondary mb-0">Medical records content will be displayed here.</p>
+                <div className="p-4">
+                  {loadingHistory ? (
+                    <div className="text-center py-5">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
                       </div>
+                      <p className="text-text-light-secondary mt-3 mb-0">Loading medical history...</p>
                     </div>
-                    <div className="tab-pane fade" id="prescriptions" role="tabpanel">
-                      <div className="d-flex align-items-center justify-content-center rounded-3 border border-dashed border-border-light" style={{ height: '12rem' }}>
-                        <p className="text-text-light-secondary mb-0">Previous prescriptions will be displayed here.</p>
-                      </div>
+                  ) : medicalHistory?.appointments && medicalHistory.appointments.length > 0 ? (
+                    <div className="d-flex flex-column gap-3">
+                      {medicalHistory.appointments
+                        .filter(apt => apt.status === 'Completed')
+                        .map((apt) => (
+                        <div key={apt.appointmentID} className="card border hover-shadow transition-all rounded-3">
+                          <div className="card-body">
+                            {/* Header row: Date + Status & Type + Action Button */}
+                            <div className="row align-items-start g-3 mb-3">
+                              {/* Date, Status, Type, Doctor */}
+                              <div className="col">
+                                <h5 className="fw-bold text-dark mb-2">
+                                  {formatDate(apt.appointmentTime)}
+                                </h5>
+                                <div className="d-flex gap-2 align-items-center mb-2">
+                                  <span className={`badge rounded-pill ${getStatusBadge(apt.status)}`}>
+                                    {apt.status}
+                                  </span>
+                                  <span className="badge bg-light text-dark border">
+                                    {apt.consultationType}
+                                  </span>
+                                </div>
+                                {/* Doctor Info */}
+                                <h6 className="fw-bold text-primary mb-0">
+                                  Dr. {apt.doctorName} - <span className="text-muted fw-normal">{apt.doctorSpecialty}</span>
+                                </h6>
+                              </div>
+
+                              {/* Action Button */}
+                              <div className="col-auto">
+                                <button
+                                  className="btn btn-outline-primary btn-sm rounded-pill px-3"
+                                  onClick={() => handleViewAppointmentDetail(apt.appointmentID)}
+                                >
+                                  More Info <i className="bi bi-chevron-right ms-1 small"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Diagnosis */}
+                            {apt.consultation && apt.consultation.diagnosis && (
+                              <div className="mb-3 p-3 bg-info-subtle rounded-3 border-start border-info border-4">
+                                <div className="d-flex align-items-center mb-2">
+                                  <i className="bi bi-clipboard2-pulse fs-5 text-info me-2"></i>
+                                  <strong className="text-info text-uppercase small">Diagnosis</strong>
+                                </div>
+                                <p className="mb-0 fs-6 fw-semibold text-dark">
+                                  {apt.consultation.diagnosis.length > 100 && !expandedCards[apt.appointmentID]
+                                    ? apt.consultation.diagnosis.substring(0, 100) + '...'
+                                    : apt.consultation.diagnosis
+                                  }
+                                </p>
+                                {apt.consultation.diagnosis.length > 100 && (
+                                  <button
+                                    className="btn btn-link btn-sm p-0 mt-1 text-info text-decoration-none"
+                                    onClick={() => toggleCardExpand(apt.appointmentID)}
+                                  >
+                                    {expandedCards[apt.appointmentID] ? (
+                                      <><i className="bi bi-chevron-up me-1"></i>Show less</>
+                                    ) : (
+                                      <><i className="bi bi-chevron-down me-1"></i>Show more</>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Prescription */}
+                            {apt.prescription && apt.prescription.medications && apt.prescription.medications.length > 0 && (
+                              <div className="p-3 bg-success-subtle rounded-3 border-start border-success border-4">
+                                <div className="d-flex align-items-center mb-2">
+                                  <i className="bi bi-capsule fs-5 text-success me-2"></i>
+                                  <strong className="text-success text-uppercase small">
+                                    Prescription ({apt.prescription.medicationCount} medications)
+                                  </strong>
+                                </div>
+                                <ul className="list-unstyled mb-0">
+                                  {(expandedCards[apt.appointmentID]
+                                    ? apt.prescription.medications
+                                    : apt.prescription.medications.slice(0, 3)
+                                  ).map((med, i) => (
+                                    <li key={i} className="text-dark mb-2 pb-2 border-bottom border-success border-opacity-25">
+                                      <div className="d-flex align-items-start">
+                                        <i className="bi bi-capsule-pill text-success me-2 mt-1"></i>
+                                        <div className="flex-grow-1">
+                                          <div className="fw-semibold text-dark">{med.medicationName}</div>
+                                          <div className="small text-muted mt-1">
+                                            <span className="badge bg-success-subtle text-success me-2">
+                                              {med.dosage}
+                                            </span>
+                                            <span>{med.instructions}</span>
+                                          </div>
+                                          <div className="small text-muted mt-1">
+                                            <i className="bi bi-calendar-check me-1"></i>
+                                            {med.totalSupplyDays} days supply
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                                {apt.prescription.medications.length > 3 && (
+                                  <button
+                                    className="btn btn-link btn-sm p-0 mt-2 text-success text-decoration-none"
+                                    onClick={() => toggleCardExpand(apt.appointmentID)}
+                                  >
+                                    {expandedCards[apt.appointmentID] ? (
+                                      <><i className="bi bi-chevron-up me-1"></i>Show less</>
+                                    ) : (
+                                      <><i className="bi bi-chevron-down me-1"></i>Show all {apt.prescription.medicationCount} medications</>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="tab-pane fade" id="tests" role="tabpanel">
-                      <div className="d-flex align-items-center justify-content-center rounded-3 border border-dashed border-border-light" style={{ height: '12rem' }}>
-                        <p className="text-text-light-secondary mb-0">Test results will be displayed here.</p>
-                      </div>
+                  ) : (
+                    <div className="text-center py-5">
+                      <i className="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                      <p className="text-text-light-secondary mb-0">No completed appointments found for this patient</p>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -317,6 +511,149 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
         appointment={appointment}
         patient={patient}
       />
+
+      {/* Appointment Detail Modal */}
+      {showDetailModal && selectedHistoryAppointment && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-info-circle-fill me-2"></i>Appointment Details
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowDetailModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                {/* Basic Info */}
+                <div className="mb-4">
+                  <h6 className="fw-bold text-primary mb-3">
+                    <i className="bi bi-calendar-event me-2"></i>Basic Information
+                  </h6>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <p className="mb-1 text-muted small">Date & Time</p>
+                      <p className="fw-semibold">{formatDate(selectedHistoryAppointment.appointmentTime)}</p>
+                    </div>
+                    <div className="col-md-6">
+                      <p className="mb-1 text-muted small">Consultation Type</p>
+                      <p className="fw-semibold">{selectedHistoryAppointment.consultationType}</p>
+                    </div>
+                    <div className="col-md-6">
+                      <p className="mb-1 text-muted small">Status</p>
+                      <span className={`badge ${getStatusBadge(selectedHistoryAppointment.status)}`}>
+                        {selectedHistoryAppointment.status}
+                      </span>
+                    </div>
+                    <div className="col-md-6">
+                      <p className="mb-1 text-muted small">Doctor</p>
+                      <p className="fw-semibold">{selectedHistoryAppointment.doctorName}</p>
+                      <p className="text-muted small">{selectedHistoryAppointment.doctorSpecialty}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Consultation Details */}
+                {selectedHistoryAppointment.consultation && (
+                  <div className="mb-4">
+                    <h6 className="fw-bold text-primary mb-3">
+                      <i className="bi bi-clipboard2-pulse me-2"></i>Consultation Details
+                    </h6>
+                    <div className="bg-light p-3 rounded-3">
+                      {selectedHistoryAppointment.consultation.diagnosis && (
+                        <div className="mb-3">
+                          <p className="mb-1 text-muted small">Diagnosis</p>
+                          <p className="mb-0">{selectedHistoryAppointment.consultation.diagnosis}</p>
+                        </div>
+                      )}
+                      {selectedHistoryAppointment.consultation.doctorNotes && (
+                        <div className="mb-3">
+                          <p className="mb-1 text-muted small">Doctor's Notes</p>
+                          <p className="mb-0">{selectedHistoryAppointment.consultation.doctorNotes}</p>
+                        </div>
+                      )}
+                      {selectedHistoryAppointment.consultation.followUpDate && (
+                        <div>
+                          <p className="mb-1 text-muted small">Follow-up Date</p>
+                          <p className="mb-0">{formatDate(selectedHistoryAppointment.consultation.followUpDate)}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Prescription */}
+                {selectedHistoryAppointment.prescription && selectedHistoryAppointment.prescription.medications && (
+                  <div className="mb-4">
+                    <h6 className="fw-bold text-primary mb-3">
+                      <i className="bi bi-capsule me-2"></i>Prescription
+                    </h6>
+                    <div className="bg-success-subtle p-3 rounded-3">
+                      <p className="mb-2 text-success fw-semibold">
+                        {selectedHistoryAppointment.prescription.medicationCount} Medication(s)
+                      </p>
+                      <ul className="list-unstyled mb-0">
+                        {selectedHistoryAppointment.prescription.medications.map((med, i) => (
+                          <li key={i} className="mb-3 pb-3 border-bottom">
+                            <div className="fw-semibold text-dark mb-1">{med.medicationName}</div>
+                            <div className="small text-muted">
+                              <span className="badge bg-success me-2">{med.dosage}</span>
+                              <span>{med.instructions}</span>
+                            </div>
+                            <div className="small text-muted mt-1">
+                              <i className="bi bi-calendar-check me-1"></i>
+                              {med.totalSupplyDays} days supply
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* Invoice */}
+                {selectedHistoryAppointment.invoice && (
+                  <div>
+                    <h6 className="fw-bold text-primary mb-3">
+                      <i className="bi bi-receipt me-2"></i>Invoice
+                    </h6>
+                    <div className="bg-light p-3 rounded-3">
+                      <div className="row">
+                        <div className="col-md-4">
+                          <p className="mb-1 text-muted small">Amount</p>
+                          <p className="fw-semibold text-success">${selectedHistoryAppointment.invoice.totalAmount}</p>
+                        </div>
+                        <div className="col-md-4">
+                          <p className="mb-1 text-muted small">Status</p>
+                          <span className={`badge ${selectedHistoryAppointment.invoice.paymentStatus === 'Paid' ? 'bg-success' : 'bg-warning'}`}>
+                            {selectedHistoryAppointment.invoice.paymentStatus}
+                          </span>
+                        </div>
+                        <div className="col-md-4">
+                          <p className="mb-1 text-muted small">Payment Date</p>
+                          <p className="mb-0">{formatDate(selectedHistoryAppointment.invoice.paymentDate)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowDetailModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

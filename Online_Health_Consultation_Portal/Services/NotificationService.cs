@@ -165,6 +165,9 @@ namespace OHCP_BK.Services
         {
             try
             {
+                _logger.LogInformation("📤 Attempting to send appointment notification to doctorId: {DoctorId} for appointmentId: {AppointmentId}", 
+                    doctorId, appointmentId);
+                
                 var notification = new Notification
                 {
                     UserId = doctorId,
@@ -179,23 +182,30 @@ namespace OHCP_BK.Services
                     var context = scope.ServiceProvider.GetRequiredService<OHCPContext>();
                     context.Notifications.Add(notification);
                     await context.SaveChangesAsync();
+                    _logger.LogInformation("✅ Notification saved to database for doctor {DoctorId}", doctorId);
                 }
 
                 // Send real-time notification via SignalR
-                await _hubContext.Clients.User(doctorId).SendAsync("ReceiveAppointmentNotification", new
+                var notificationData = new
                 {
                     appointmentID = appointmentId,
                     patientName = patientName,
                     appointmentTime = appointmentTime,
                     consultationType = consultationType,
                     message = notification.Message
-                });
+                };
+                
+                _logger.LogInformation("📡 Sending SignalR notification to User({DoctorId}) with data: {@NotificationData}", 
+                    doctorId, notificationData);
+                
+                await _hubContext.Clients.User(doctorId).SendAsync("ReceiveAppointmentNotification", notificationData);
 
-                _logger.LogInformation($"Sent appointment notification to doctor {doctorId} for appointment {appointmentId}");
+                _logger.LogInformation("✅ SignalR notification sent successfully to doctor {DoctorId} for appointment {AppointmentId}", 
+                    doctorId, appointmentId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error sending appointment notification to doctor {doctorId}");
+                _logger.LogError(ex, "❌ Error sending appointment notification to doctor {DoctorId}", doctorId);
             }
         }
 

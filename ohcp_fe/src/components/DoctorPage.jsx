@@ -10,7 +10,6 @@ import DoctorProfileView from './DoctorProfileView';
 import DoctorAppointmentsView from './DoctorAppointmentsView';
 import DoctorReviewView from './DoctorReviewView';
 import DoctorAppointmentDetail from './DoctorAppointmentDetail';
-import SharedRecordsView from './SharedRecordsView';
 
 const DoctorProfile = () => {
   const navigate = useNavigate();
@@ -40,27 +39,40 @@ const DoctorProfile = () => {
   useEffect(() => {
     fetchDoctorData();
     fetchNotifications();
-    
-    // Connect to SignalR
-    // signalRService.startConnection();
+  }, []);
 
-    // Listen for new appointments
-    const handleNewAppointment = (appointment) => {
-      console.log('📅 New appointment received:', appointment);
-      // Increment counter only if not already viewed
-      if (!viewedAppointments.includes(appointment.appointmentID)) {
-        setNewAppointmentCount(prev => prev + 1);
-      }
-      // Refresh notifications
-      fetchNotifications();
+  useEffect(() => {
+    // Connect to SignalR
+    const initSignalR = async () => {
+      console.log('🔄 Initializing SignalR connection...');
+      
+      // Define the handler for new appointments
+      const handleNewAppointment = (appointment) => {
+        console.log('📅 New appointment received:', appointment);
+        // Increment counter only if not already viewed
+        const viewed = JSON.parse(localStorage.getItem('viewedAppointments') || '[]');
+        if (!viewed.includes(appointment.appointmentID)) {
+          setNewAppointmentCount(prev => prev + 1);
+        }
+        // Refresh notifications
+        fetchNotifications();
+      };
+      
+      // Register listener BEFORE starting connection
+      console.log('📢 Registering listener for ReceiveAppointmentNotification...');
+      signalRService.on('ReceiveAppointmentNotification', handleNewAppointment);
+      
+      // Now start the connection - it will auto-register the listener
+      await signalRService.startConnection();
+      console.log('✅ SignalR initialization complete');
     };
     
-    signalRService.on('ReceiveAppointmentNotification', handleNewAppointment);
+    initSignalR();
     
     return () => {
-      signalRService.off('ReceiveAppointmentNotification', handleNewAppointment);
+      signalRService.off('ReceiveAppointmentNotification');
     };
-  }, [viewedAppointments]);
+  }, []);
   
   // Handle click outside notification dropdown
   useEffect(() => {
@@ -102,6 +114,9 @@ const DoctorProfile = () => {
 
   const handleLogout = async () => {
     try {
+      // Stop SignalR connection before logout
+      await signalRService.stopConnection();
+      
       // Clear tokens from localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
@@ -331,14 +346,6 @@ const DoctorProfile = () => {
               <span className="material-symbols-outlined">star</span>
               <p className="mb-0 small fw-bold">Reviews</p>
             </a>
-            <a 
-              className={`nav-link-custom ${view === 'sharedRecords' ? 'nav-link-active' : ''}`} 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); setView('sharedRecords'); }}
-            >
-              <span className="material-symbols-outlined">folder_shared</span>
-              <p className="mb-0 small">Shared Records</p>
-            </a>
           </div>
         </div>
         
@@ -361,12 +368,11 @@ const DoctorProfile = () => {
             <div className="mb-4">
               <div>
                 <h2 className="fs-3 fw-bold mb-1 text-dark">
-                  {view === 'profile' ? 'Doctor Profile' : view === 'appointments' ? 'Appointments' : view === 'sharedRecords' ? 'Shared Health Records' : view === 'appointmentDetail' ? 'Appointment Details' : 'Reviews'}
+                  {view === 'profile' ? 'Doctor Profile' : view === 'appointments' ? 'Appointments' : view === 'appointmentDetail' ? 'Appointment Details' : 'Reviews'}
                 </h2>
                 <p className="text-secondary mb-0">
                   {view === 'profile' ? 'Manage your personal information.' : 
                    view === 'appointments' ? 'List of your appointments with patients.' :
-                    view === 'sharedRecords' ? 'Health records shared with you by patients.' :
                    view === 'appointmentDetail' ? 'Detailed information about the selected appointment.' : 
                    'Patient reviews and ratings.'}
                 </p>
@@ -384,7 +390,6 @@ const DoctorProfile = () => {
                 />
               )}
               {view === 'reviews' && <DoctorReviewView doctorId={doctorData?.doctorID} />}
-              {view === 'sharedRecords' && <SharedRecordsView />}
               {view === 'appointmentDetail' && (
                 <DoctorAppointmentDetail 
                   appointment={selectedAppointment}
