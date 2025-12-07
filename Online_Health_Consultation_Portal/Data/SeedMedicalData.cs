@@ -359,21 +359,22 @@ namespace OHCP_BK.Data
             var statuses = new[] { "Scheduled", "Completed", "Cancelled", "In Progress" };
 
             var appointmentCount = 0;
-            var targetAppointments = 180;
+            var targetAppointments = 600;
 
             // Each doctor gets 3-4 appointments
             foreach (var doctor in doctors)
             {
-                var appointmentsForDoctor = random.Next(3, 5);
+                var appointmentsForDoctor = random.Next(8, 13);
 
                 for (int i = 0; i < appointmentsForDoctor && appointmentCount < targetAppointments; i++)
                 {
-                    var patient = patients[random.Next(patients.Count)];
-                    var daysOffset = random.Next(-60, 60); // Appointments from 60 days ago to 60 days in future
-                    var hour = random.Next(8, 17); // Working hours 8 AM to 5 PM
-                    var status = daysOffset < 0 ? (random.Next(10) > 2 ? "Completed" : "Cancelled") : "Scheduled";
-                    if (daysOffset == 0) status = "In Progress";
+                    var patientIndex = appointmentCount % patients.Count;
+                    var patient = patients[patientIndex];
 
+                    var daysOffset = random.Next(-90, 30);
+                    var hour = random.Next(8, 17);
+                    var status = daysOffset < 0 ? (random.Next(10) > 1 ? "Completed" : "Cancelled") : "Scheduled";
+                    if (daysOffset == 0) status = "In Progress";
                     var appointment = new Appointment
                     {
                         PatientID = patient.PatientID,
@@ -382,7 +383,6 @@ namespace OHCP_BK.Data
                         ConsultationType = consultationTypes[random.Next(consultationTypes.Length)],
                         Status = status
                     };
-
                     context.Appointments.Add(appointment);
                     appointmentCount++;
                 }

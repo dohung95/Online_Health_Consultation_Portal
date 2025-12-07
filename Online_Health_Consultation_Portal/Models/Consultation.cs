@@ -15,7 +15,8 @@ namespace OHCP_BK.Models
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public string? DoctorNotes { get; set; }
-        
+        public string? Diagnosis { get; set; }
+
         // Recommended follow-up date set by the doctor
         public DateTime? FollowUpDate { get; set; }
 

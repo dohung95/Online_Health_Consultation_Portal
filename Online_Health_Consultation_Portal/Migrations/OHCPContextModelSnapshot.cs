@@ -275,6 +275,9 @@ namespace OHCP_BK.Migrations
                     b.Property<int>("AppointmentID")
                         .HasColumnType("int");
 
+                    b.Property<string>("Diagnosis")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DoctorNotes")
                         .HasColumnType("nvarchar(max)");
 

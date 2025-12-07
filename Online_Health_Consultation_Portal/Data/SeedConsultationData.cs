@@ -120,6 +120,7 @@ namespace OHCP_BK.Data
                     StartTime = startTime,
                     EndTime = endTime,
                     DoctorNotes = notes,
+                    Diagnosis = diagnoses[random.Next(diagnoses.Length)],
                     FollowUpDate = followUpDate
                 };
                 context.Consultations.Add(consultation);

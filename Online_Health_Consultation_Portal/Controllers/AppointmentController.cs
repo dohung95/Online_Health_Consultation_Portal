@@ -536,6 +536,7 @@ namespace OHCP_BK.Controllers
                             StartTime = a.Consultation.StartTime,
                             EndTime = a.Consultation.EndTime,
                             DoctorNotes = a.Consultation.DoctorNotes,
+                            Diagnosis = a.Consultation.Diagnosis,
                             FollowUpDate = a.Consultation.FollowUpDate
                         } : null,
 
@@ -547,6 +548,15 @@ namespace OHCP_BK.Controllers
                             MedicationCount = prescription.PrescriptionItems.Count,
                             MedicationNames = prescription.PrescriptionItems
                                 .Select(pi => pi.MedicationName)
+                                .ToList(),
+                            Medications = prescription.PrescriptionItems
+                                .Select(pi => new MedicationItemDTO
+                                {
+                                    MedicationName = pi.MedicationName,
+                                    Dosage = pi.Dosage,
+                                    Instructions = pi.Instructions,
+                                    TotalSupplyDays = pi.TotalSupplyDays
+                                })
                                 .ToList()
                         } : null,
 
@@ -636,6 +646,7 @@ namespace OHCP_BK.Controllers
                         StartTime = appointment.Consultation.StartTime,
                         EndTime = appointment.Consultation.EndTime,
                         DoctorNotes = appointment.Consultation.DoctorNotes,
+                        Diagnosis = appointment.Consultation.Diagnosis,
                         FollowUpDate = appointment.Consultation.FollowUpDate
                     } : null,
 
@@ -646,6 +657,15 @@ namespace OHCP_BK.Controllers
                         MedicationCount = prescription.PrescriptionItems.Count,
                         MedicationNames = prescription.PrescriptionItems
                             .Select(pi => pi.MedicationName)
+                            .ToList(),
+                        Medications = prescription.PrescriptionItems
+                            .Select(pi => new MedicationItemDTO
+                            {
+                                MedicationName = pi.MedicationName,
+                                Dosage = pi.Dosage,
+                                Instructions = pi.Instructions,
+                                TotalSupplyDays = pi.TotalSupplyDays
+                            })
                             .ToList()
                     } : null,
 
