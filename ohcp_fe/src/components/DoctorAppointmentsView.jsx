@@ -20,6 +20,11 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [filterActive, setFilterActive] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState('All');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const appointmentsPerPage = 8;
 
   useEffect(() => {
     if (!doctorId) return;
@@ -45,6 +50,54 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
     fetchData();
     return () => { mounted = false; };
   }, [doctorId]);
+
+  // Apply filters based on status and date
+  const applyFilters = () => {
+    let filtered = [...appointments];
+
+    // Filter by status
+    if (selectedStatus !== 'All') {
+      filtered = filtered.filter(apt => apt.status === selectedStatus);
+    }
+
+    // Filter by date
+    if (selectedDate) {
+      const filterDate = new Date(selectedDate);
+      filtered = filtered.filter(appointment => {
+        const appointmentDate = new Date(appointment.appointmentDate);
+        return appointmentDate.toDateString() === filterDate.toDateString();
+      });
+    }
+
+    setFilteredAppointments(filtered);
+    setFilterActive(selectedStatus !== 'All' || selectedDate !== '');
+    setCurrentPage(1);
+  };
+
+  // Apply filters when selectedStatus or appointments changes
+  useEffect(() => {
+    if (appointments.length > 0) {
+      applyFilters();
+    }
+  }, [selectedStatus, appointments]);
+
+  // Pagination logic
+  const indexOfLastAppointment = currentPage * appointmentsPerPage;
+  const indexOfFirstAppointment = indexOfLastAppointment - appointmentsPerPage;
+  const currentAppointments = filteredAppointments.slice(indexOfFirstAppointment, indexOfLastAppointment);
+  const totalPages = Math.ceil(filteredAppointments.length / appointmentsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   if (loading) {
     return (
@@ -172,7 +225,7 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
   // Filter by date
   const handleDateFilter = () => {
     if (!selectedDate) {
-      setFilteredAppointments(appointments);
+      applyFilters();
       setFilterActive(false);
       return;
     }
@@ -186,17 +239,63 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
     setFilteredAppointments(filtered);
     setFilterActive(true);
     setShowDatePicker(false);
+    setCurrentPage(1);
   };
 
   const clearFilter = () => {
     setSelectedDate('');
+    setSelectedStatus('All');
     setFilteredAppointments(appointments);
     setFilterActive(false);
+    setCurrentPage(1);
+  };
+
+  // Handle status filter change
+  const handleStatusChange = (status) => {
+    setSelectedStatus(status);
   };
 
   return (
     <>
-      <div className="d-flex justify-content-end p-3 pb-0">
+      <div className="d-flex justify-content-between align-items-center p-3 pb-0">
+        <div className="d-flex gap-2">
+          {/* Status Filter Dropdown */}
+          <div className="dropdown">
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              className="dropdown-toggle"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i className="bi bi-funnel me-2"></i>
+              Status: {selectedStatus}
+            </Button>
+            <ul className="dropdown-menu">
+              <li>
+                <a className={`dropdown-item ${selectedStatus === 'All' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('All'); }}>
+                  All
+                </a>
+              </li>
+              <li>
+                <a className={`dropdown-item ${selectedStatus === 'Scheduled' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('Scheduled'); }}>
+                  Scheduled
+                </a>
+              </li>
+              <li>
+                <a className={`dropdown-item ${selectedStatus === 'Completed' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('Completed'); }}>
+                  Completed
+                </a>
+              </li>
+              <li>
+                <a className={`dropdown-item ${selectedStatus === 'Cancelled' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('Cancelled'); }}>
+                  Cancelled
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <div className="position-relative">
           <Button 
             variant="outline-primary"
@@ -248,7 +347,9 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
         <div className="alert alert-info d-flex justify-content-between align-items-center mb-3 mx-3">
           <span>
             <i className="bi bi-funnel-fill me-2"></i>
-            Showing appointments for: <strong>{new Date(selectedDate).toLocaleDateString()}</strong>
+            {selectedDate && <span>Date: <strong>{new Date(selectedDate).toLocaleDateString()}</strong></span>}
+            {selectedDate && selectedStatus !== 'All' && <span className="mx-2">|</span>}
+            {selectedStatus !== 'All' && <span>Status: <strong>{selectedStatus}</strong></span>}
           </span>
           <Button variant="link" size="sm" onClick={clearFilter}>
             Clear Filter
@@ -270,7 +371,7 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
             </tr>
           </thead>
           <tbody>
-            {filteredAppointments.map((a) => (
+            {currentAppointments.map((a) => (
               <tr key={a.appointmentID} className="border-bottom hover-table-row">
                 <td className="px-4 py-4 fw-medium text-dark fw-bold">
                   #{a.appointmentID}
@@ -348,6 +449,38 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {filteredAppointments.length > appointmentsPerPage && (
+        <div className="d-flex justify-content-between align-items-center p-3 border-top">
+          <div className="text-muted small">
+            Showing {indexOfFirstAppointment + 1} to {Math.min(indexOfLastAppointment, filteredAppointments.length)} of {filteredAppointments.length} appointments
+          </div>
+          <div className="d-flex gap-2">
+            <Button
+              variant="outline-primary"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              <i className="bi bi-chevron-left me-1"></i>
+              Previous
+            </Button>
+            <div className="d-flex align-items-center px-3">
+              <span className="fw-semibold">Page {currentPage} of {totalPages}</span>
+            </div>
+            <Button
+              variant="outline-primary"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <i className="bi bi-chevron-right ms-1"></i>
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
