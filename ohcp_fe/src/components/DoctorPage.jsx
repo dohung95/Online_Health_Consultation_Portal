@@ -40,27 +40,40 @@ const DoctorProfile = () => {
   useEffect(() => {
     fetchDoctorData();
     fetchNotifications();
-    
-    // Connect to SignalR
-    // signalRService.startConnection();
+  }, []);
 
-    // Listen for new appointments
-    const handleNewAppointment = (appointment) => {
-      console.log('📅 New appointment received:', appointment);
-      // Increment counter only if not already viewed
-      if (!viewedAppointments.includes(appointment.appointmentID)) {
-        setNewAppointmentCount(prev => prev + 1);
-      }
-      // Refresh notifications
-      fetchNotifications();
+  useEffect(() => {
+    // Connect to SignalR
+    const initSignalR = async () => {
+      console.log('🔄 Initializing SignalR connection...');
+      
+      // Define the handler for new appointments
+      const handleNewAppointment = (appointment) => {
+        console.log('📅 New appointment received:', appointment);
+        // Increment counter only if not already viewed
+        const viewed = JSON.parse(localStorage.getItem('viewedAppointments') || '[]');
+        if (!viewed.includes(appointment.appointmentID)) {
+          setNewAppointmentCount(prev => prev + 1);
+        }
+        // Refresh notifications
+        fetchNotifications();
+      };
+      
+      // Register listener BEFORE starting connection
+      console.log('📢 Registering listener for ReceiveAppointmentNotification...');
+      signalRService.on('ReceiveAppointmentNotification', handleNewAppointment);
+      
+      // Now start the connection - it will auto-register the listener
+      await signalRService.startConnection();
+      console.log('✅ SignalR initialization complete');
     };
     
-    signalRService.on('ReceiveAppointmentNotification', handleNewAppointment);
+    initSignalR();
     
     return () => {
-      signalRService.off('ReceiveAppointmentNotification', handleNewAppointment);
+      signalRService.off('ReceiveAppointmentNotification');
     };
-  }, [viewedAppointments]);
+  }, []);
   
   // Handle click outside notification dropdown
   useEffect(() => {
@@ -102,6 +115,9 @@ const DoctorProfile = () => {
 
   const handleLogout = async () => {
     try {
+      // Stop SignalR connection before logout
+      await signalRService.stopConnection();
+      
       // Clear tokens from localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');

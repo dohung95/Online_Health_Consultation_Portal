@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace OHCP_BK.Hubs
 {
-    // [Authorize] // Temporarily disabled for testing
+    [Authorize] // Enable authorization so SignalR can map userId to connectionId
     public class NotificationHub : Hub
     {
         private readonly ILogger<NotificationHub> _logger;
@@ -17,8 +17,19 @@ namespace OHCP_BK.Hubs
         public override async Task OnConnectedAsync()
         {
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            _logger.LogInformation("User {UserId} connected to NotificationHub. ConnectionId: {ConnectionId}", 
-                userId, Context.ConnectionId);
+            var userName = Context.User?.Identity?.Name;
+            
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("⚠️ User connected to NotificationHub WITHOUT userId! ConnectionId: {ConnectionId}, IsAuthenticated: {IsAuthenticated}", 
+                    Context.ConnectionId, Context.User?.Identity?.IsAuthenticated ?? false);
+            }
+            else
+            {
+                _logger.LogInformation("✅ User {UserId} ({UserName}) connected to NotificationHub. ConnectionId: {ConnectionId}", 
+                    userId, userName, Context.ConnectionId);
+            }
+            
             await base.OnConnectedAsync();
         }
 

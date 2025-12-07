@@ -43,12 +43,14 @@ class SignalRService {
 
     // Handle reconnecting
     this.connection.onreconnecting(error => {
-      // console.log('SignalR reconnecting...', error);
+      console.log('SignalR reconnecting...', error);
     });
 
     // Handle reconnected
     this.connection.onreconnected(connectionId => {
-      console.log('✅ SignalR reconnected');
+      console.log('✅ SignalR reconnected with connection ID:', connectionId);
+      // Re-register all listeners after reconnect
+      this.reregisterListeners();
     });
 
     // Handle closed
@@ -60,21 +62,29 @@ class SignalRService {
 
     try {
       await this.connection.start();
-      console.log('✅ SignalR connected successfully');
+      console.log('✅ SignalR connected successfully, state:', this.connection.state);
+      console.log('📊 Connection details:', {
+        connectionId: this.connection.connectionId,
+        baseUrl: this.connection.baseUrl,
+        state: this.connection.state
+      });
       
-      // Re-register all listeners after connection
+      // Re-register all listeners after connection is ready
+      console.log('📢 Registering all pending listeners...');
       this.listeners.forEach((callbacks, eventName) => {
         callbacks.forEach(callback => {
+          console.log(`  → Registering listener for: ${eventName}`);
           this.connection.on(eventName, callback);
         });
       });
+      console.log('✅ All listeners registered successfully');
     } catch (err) {
-      // console.error('❌ Error starting SignalR connection:', err);
-      // console.error('Error details:', {
-      //   message: err.message,
-      //   statusCode: err.statusCode,
-      //   errorType: err.constructor.name
-      // });
+      console.error('❌ Error starting SignalR connection:', err);
+      console.error('Error details:', {
+        message: err.message,
+        statusCode: err.statusCode,
+        errorType: err.constructor.name
+      });
       
       // Don't retry if it's an authentication error
       if (err.statusCode === 401 || err.message?.includes('401')) {
@@ -91,11 +101,27 @@ class SignalRService {
     if (this.connection) {
       try {
         await this.connection.stop();
-        // console.log('SignalR connection stopped');
+        console.log('SignalR connection stopped');
+        this.connection = null;
       } catch (err) {
         console.error('Error stopping SignalR connection:', err);
       }
     }
+  }
+
+  reregisterListeners() {
+    if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
+      console.warn('Cannot reregister listeners: connection not ready');
+      return;
+    }
+
+    console.log('Reregistering SignalR listeners...');
+    this.listeners.forEach((callbacks, eventName) => {
+      callbacks.forEach(callback => {
+        this.connection.on(eventName, callback);
+      });
+    });
+    console.log('Listeners reregistered:', Array.from(this.listeners.keys()));
   }
 
   on(eventName, callback) {
@@ -104,8 +130,12 @@ class SignalRService {
     }
     this.listeners.get(eventName).push(callback);
 
+    // Always try to register if connection exists and is connected
     if (this.connection?.state === signalR.HubConnectionState.Connected) {
+      console.log(`📢 Registering listener for event: ${eventName}`);
       this.connection.on(eventName, callback);
+    } else {
+      console.warn(`⚠️ Connection not ready, listener for '${eventName}' will be registered when connected`);
     }
   }
 
