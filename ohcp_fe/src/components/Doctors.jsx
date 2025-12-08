@@ -3,7 +3,7 @@ import { doctorService } from '../api/doctorApi';
 import { useNavigate } from 'react-router-dom';
 import './Css/Doctors.css';
 import { useAuth } from '../context/AuthContext';
-import { handleAuthenticatedAction } from '../utils/authUtils';
+import ConfirmModal from './ConfirmModal';
 
 const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
@@ -27,6 +27,8 @@ const Doctors = () => {
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+const [pendingDoctorId, setPendingDoctorId] = useState(null);
 
   useEffect(() => {
     loadSpecialties();
@@ -111,6 +113,26 @@ const Doctors = () => {
       window.scrollTo(0, 0); // Scroll to top for better UX
     }
   };
+
+  // Xử lý khi click Book Now
+const handleBookNow = (doctorId) => {
+  if (!isAuthenticated) {
+    setPendingDoctorId(doctorId);
+    setShowModal(true);
+  } else {
+    navigate(`/book/${doctorId}`);
+  }
+};
+// Xử lý khi xác nhận trong modal
+const handleConfirmLogin = () => {
+  setShowModal(false);
+  navigate('/login');
+};
+// Xử lý khi hủy modal
+const handleCloseModal = () => {
+  setShowModal(false);
+  setPendingDoctorId(null);
+};
 
   // Helper function to render stars
   const renderStars = (rating) => {
@@ -237,11 +259,11 @@ const Doctors = () => {
                               View Profile
                             </button>
                             <button
-                              className="btn btn-success w-100"
-                              onClick={() => handleAuthenticatedAction(isAuthenticated, navigate, `/book/${doc.doctorID}`)}
-                            >
-                              Book Now
-                            </button>
+  className="btn btn-success w-100"
+  onClick={() => handleBookNow(doc.doctorID)}
+>
+  Book Now
+</button>
                           </div>
                         </div>
                       </div>
@@ -288,6 +310,15 @@ const Doctors = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal xác nhận đăng nhập */}
+      <ConfirmModal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmLogin}
+        title="Authentication Required"
+        message="You need to login to book an appointment. Would you like to go to the login page?"
+      />
     </div>
 
   );
