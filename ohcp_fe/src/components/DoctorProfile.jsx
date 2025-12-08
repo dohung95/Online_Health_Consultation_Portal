@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { doctorService } from '../api/doctorApi';
 import './Css/Doctors.css';
 import { useAuth } from '../context/AuthContext';
-import { handleAuthenticatedAction } from '../utils/authUtils';
+import ConfirmModal from './ConfirmModal';
 
 const DoctorProfile = () => {
     const { id } = useParams(); // get ID doctor from URL
@@ -11,6 +11,7 @@ const DoctorProfile = () => {
     const [doctor, setDoctor] = useState(null);
     const [loading, setLoading] = useState(true);
     const { isAuthenticated } = useAuth();
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         const fetchDoctor = async () => {
@@ -35,6 +36,24 @@ const DoctorProfile = () => {
         const r = Math.round(rating || 0);
         return <span className="text-warning fs-4">{"★".repeat(r)}{"☆".repeat(5 - r)}</span>;
     };
+
+    // Xử lý khi click Schedule Appointment
+const handleScheduleAppointment = () => {
+    if (!isAuthenticated) {
+        setShowModal(true);
+    } else {
+        navigate(`/book/${doctor.doctorID}`);
+    }
+};
+// Xử lý khi xác nhận trong modal
+const handleConfirmLogin = () => {
+    setShowModal(false);
+    navigate('/login');
+};
+// Xử lý khi hủy modal
+const handleCloseModal = () => {
+    setShowModal(false);
+};
 
     return (
         <div className='Background_Doctors'>
@@ -88,7 +107,7 @@ const DoctorProfile = () => {
                                     <div className="ms-auto">
                                         <button
                                             className="btn btn-success btn-lg px-4"
-                                            onClick={() => handleAuthenticatedAction(isAuthenticated, navigate, `/book/${doctor.doctorID}`)}
+                                            onClick={handleScheduleAppointment}
                                         >
                                             Schedule Appointment
                                         </button>
@@ -127,6 +146,15 @@ const DoctorProfile = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal xác nhận đăng nhập */}
+            <ConfirmModal
+                isOpen={showModal}
+                onClose={handleCloseModal}
+                onConfirm={handleConfirmLogin}
+                title="Authentication Required"
+                message="You need to login to schedule an appointment. Would you like to go to the login page?"
+            />
         </div>
     );
 };
