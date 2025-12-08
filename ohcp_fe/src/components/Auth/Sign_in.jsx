@@ -3,14 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { decodeToken } from '../../utils/tokenUtils';
 import { Modal, Button } from 'react-bootstrap';
+import Loading from '../Loading'; // Import Loading component
 import '../Css/Sign_in.css';
+
 export function Sign_in() {
     const navigate = useNavigate();
     const { login, token, roles } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Initial page loading
+    const [submitting, setSubmitting] = useState(false); // Form submission loading
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorModalMessage, setErrorModalMessage] = useState('');
 
@@ -20,6 +23,14 @@ export function Sign_in() {
     const [emailTouched, setEmailTouched] = useState(false);
     const [passwordTouched, setPasswordTouched] = useState(false);
 
+    // Initial loading effect (giống Home.jsx)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     // Custom validation functions
     const validateEmail = (value) => {
@@ -72,7 +83,6 @@ export function Sign_in() {
     const handleCloseErrorModal = () => {
         setShowErrorModal(false);
         setErrorModalMessage('');
-        // Không navigate ngay, chỉ đóng modal
     };
 
     const handleSubmit = async (e) => {
@@ -93,7 +103,7 @@ export function Sign_in() {
             return;
         }
 
-        setLoading(true);
+        setSubmitting(true);
 
         try {
             const success = await login(email, password);
@@ -144,15 +154,13 @@ export function Sign_in() {
             );
 
             if (isStatusError) {
-                // Show modal for status errors and email confirmation - DO NOT navigate here
                 setErrorModalMessage(errorMessage);
                 setShowErrorModal(true);
             } else {
-                // Show inline error for other errors
                 setError(errorMessage);
             }
         } finally {
-            setLoading(false);
+            setSubmitting(false);
         }
     };
 
@@ -169,6 +177,11 @@ export function Sign_in() {
         }
     }, [token, roles, navigate]);
 
+    // Hiển thị Loading component khi initial load
+    if (loading) {
+        return <Loading />;
+    }
+
     return (
         <>
             <div className='Background_Sign_In'>
@@ -184,7 +197,7 @@ export function Sign_in() {
                                 value={email}
                                 onChange={handleEmailChange}
                                 onBlur={handleEmailBlur}
-                                disabled={loading}
+                                disabled={submitting}
                             />
                             {emailTouched && emailError && (
                                 <div className='validation-message error'>
@@ -201,7 +214,7 @@ export function Sign_in() {
                                 value={password}
                                 onChange={handlePasswordChange}
                                 onBlur={handlePasswordBlur}
-                                disabled={loading}
+                                disabled={submitting}
                             />
                             {passwordTouched && passwordError && (
                                 <div className='validation-message error'>
@@ -210,8 +223,8 @@ export function Sign_in() {
                                 </div>
                             )}
                         </div>
-                        <button type="submit" disabled={loading} className='signin-button'>
-                            {loading ? 'Loading...' : 'Login'}
+                        <button type="submit" disabled={submitting} className='signin-button'>
+                            {submitting ? 'Loading...' : 'Login'}
                         </button>
                     </form>
                     <p>
@@ -264,7 +277,6 @@ export function Sign_in() {
                 </Modal.Footer>
             </Modal>
         </>
-
     );
 }
 

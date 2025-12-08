@@ -6,19 +6,33 @@ import { useChat } from '../context/ChatContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { toast } from 'sonner';
+import Loading from './Loading'; // Import Loading component
 
 const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); // Initial page loading
+    const [actionLoading, setActionLoading] = useState(false); // Loading khi cancel/chat/call
     const navigate = useNavigate();
     const { roles, initiateCall } = useAuth();
     const { openChatWith } = useChat();
 
+    // Initial loading effect
     useEffect(() => {
-        loadAppointments();
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
     }, []);
 
+    useEffect(() => {
+        if (!loading) {
+            loadAppointments();
+        }
+    }, [loading]);
+
     const loadAppointments = async () => {
+        setActionLoading(true);
         try {
             const data = await appointmentService.getMyAppointments();
             setAppointments(data);
@@ -29,7 +43,7 @@ const MyAppointments = () => {
                 navigate('/login');
             }
         } finally {
-            setLoading(false);
+            setActionLoading(false);
         }
     };
 
@@ -37,6 +51,7 @@ const MyAppointments = () => {
         const confirm = window.confirm("Are you sure you want to cancel this appointment?");
         if (!confirm) return;
 
+        setActionLoading(true);
         try {
             await appointmentService.cancelAppointment(id, "Patient request");
             toast.success("Appointment cancelled successfully.");
@@ -44,6 +59,8 @@ const MyAppointments = () => {
         } catch (error) {
             const msg = error.response?.data?.message || error.response?.data || "Failed to cancel.";
             toast.error(msg);
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -57,25 +74,17 @@ const MyAppointments = () => {
             return;
         }
 
-        // Firebase ID conversion depends on whether database ID has dashes or not:
-        // - IDs with dashes (e.g., patient): Remove last 4 chars, then remove dashes
-        //   Example: "1a8391a9-3d5f-4a22-ae74-ff2fe7d0a501" -> "1a8391a9-3d5f-4a22-ae74-ff2fe7d0" -> "1a8391a93d5f4a22ae74ff2fe7d0"
-        // - IDs without dashes (e.g., doctor): Remove last 5 chars directly
-        //   Example: "7ecdab692c6540869f9a0cde9c7027" -> "7ecdab692c6540869f9a0cde9c7"
-
         let firebaseID;
         if (partnerID.includes('-')) {
-            // Has dashes: CHỈ remove last 4 chars, GIỮ NGUYÊN dấu gạch ngang
             firebaseID = partnerID.substring(0, partnerID.length - 4);
         } else {
-            // No dashes: remove last 5 chars directly
             firebaseID = partnerID.substring(0, partnerID.length - 5);
         }
 
+        setActionLoading(true);
         try {
             const usersRef = collection(db, "users");
 
-            // Try as document ID first
             let q = query(usersRef, where("__name__", "==", firebaseID));
             let querySnapshot = await getDocs(q);
 
@@ -85,7 +94,6 @@ const MyAppointments = () => {
                 return;
             }
 
-            // Try as uid field
             q = query(usersRef, where("uid", "==", firebaseID));
             querySnapshot = await getDocs(q);
 
@@ -100,46 +108,29 @@ const MyAppointments = () => {
         } catch (error) {
             console.error("[Chat] Error:", error);
             toast.error("Error initiating chat.");
+        } finally {
+            setActionLoading(false);
         }
     };
 
     const handleVideoCall = async (appointment) => {
         try {
-            // Lấy thông tin từ appointment
             const patientID = appointment.patientID;
             const doctorID = appointment.doctorID;
             const patientName = appointment.patient?.fullName || "Patient";
             const doctorName = appointment.doctor?.fullName || "Doctor";
 
-            // Kiểm tra xem user hiện tại là ai
             const isDoctor = roles && roles.some(r => String(r).trim().toLowerCase() === 'doctor');
 
-            // Xác định target user (người được gọi)
             const targetUserId = isDoctor ? patientID : doctorID;
             const targetUserName = isDoctor ? patientName : doctorName;
 
-            // Tạo Room ID bằng cách trộn DoctorID + PatientID và lấy 40 ký tự
-            // const combinedId = doctorID + patientID;
-            // const roomId = combinedId.substring(0, 40);
-
-            // Tạo Room ID ngẫu nhiên 45 ký tự
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let roomId = '';
             for (let i = 0; i < 45; i++) {
                 roomId += characters.charAt(Math.floor(Math.random() * characters.length));
             }
 
-            // console.log('Video Call Info:', {
-            //     patientID,
-            //     doctorID,
-            //     patientName,
-            //     doctorName,
-            //     roomId,
-            //     targetUserId,
-            //     targetUserName
-            // });
-
-            // Gọi hàm initiateCall với thông tin đầy đủ
             initiateCall(targetUserId, roomId, targetUserName);
 
         } catch (error) {
@@ -157,11 +148,37 @@ const MyAppointments = () => {
         }
     };
 
-    if (loading) return <div className="container mt-4">Loading...</div>;
+    // Hiển thị Loading component khi initial load
+    if (loading) {
+        return <Loading />;
+    }
 
     return (
         <div className='Background_Doctors'>
             <div className="container mt-5">
+                {/* Loading overlay khi đang thực hiện action */}
+                {actionLoading && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999
+                    }}>
+                        <div className="text-center">
+                            <div className="spinner-border text-light" style={{ width: '3rem', height: '3rem' }} role="status">
+                                <span className="visually-hidden">Loading...</span>
+                            </div>
+                            <p className="text-white mt-3">Processing...</p>
+                        </div>
+                    </div>
+                )}
+
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h2>My Appointments</h2>
                     <button className="btn btn-primary" onClick={() => navigate('/schedule')}>
@@ -235,7 +252,7 @@ const MyAppointments = () => {
                                                 {item.consultationType === 'Video Call' && item.status === 'Scheduled' && (
                                                     <button
                                                         className="btn btn-sm btn-success"
-                                                        onClick={() => handleVideoCall(item)}  // ← Truyền cả object "item"
+                                                        onClick={() => handleVideoCall(item)}
                                                         title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Start video call"}
                                                         disabled={new Date(item.appointmentTime) < new Date()}
                                                     >
