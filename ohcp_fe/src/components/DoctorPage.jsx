@@ -347,30 +347,33 @@ const DoctorProfile = () => {
                             className={`notification-item p-3 border-bottom ${!notif.isRead ? 'bg-light notification-new-pulse' : ''}`}
                             style={{ cursor: 'pointer' }}
                             onClick={async () => {
-                              // Mark as read
-                              if (!notif.isRead) {
-                                await notificationApi.markAsRead(notif.notificationId);
-                                fetchNotifications();
-                              }
-                              
-                              // Navigate to appointment detail if appointmentId exists
-                              if (notif.appointmentId && doctorData) {
-                                try {
-                                  setLoading(true);
-                                  setShowNotificationDropdown(false);
-                                  
+                              try {
+                                // Mark as read
+                                if (!notif.isRead) {
+                                  await notificationApi.markAsRead(notif.notificationId);
+                                  fetchNotifications();
+                                }
+                                
+                                // Close dropdown first
+                                setShowNotificationDropdown(false);
+                                
+                                // Navigate to appointment detail if appointmentId exists
+                                if (notif.appointmentId && doctorData) {
                                   // Fetch the appointment details using doctor's ID
                                   const appointments = await doctorService.getDoctorAppointments(doctorData.doctorID);
                                   const appointment = appointments.find(apt => apt.appointmentID === notif.appointmentId);
                                   
                                   if (appointment) {
+                                    // Call handleViewAppointment directly - it handles loading state
                                     await handleViewAppointment(appointment);
+                                  } else {
+                                    console.error('Appointment not found:', notif.appointmentId);
+                                    alert('Appointment not found');
                                   }
-                                } catch (err) {
-                                  console.error('Error navigating to appointment:', err);
-                                } finally {
-                                  setLoading(false);
                                 }
+                              } catch (err) {
+                                console.error('Error navigating to appointment:', err);
+                                alert('Failed to load appointment details');
                               }
                             }}
                           >
@@ -495,100 +498,6 @@ const DoctorProfile = () => {
                   </span>
                 )}
               </button>
-              
-              {/* Notification Dropdown - Mobile */}
-              {showNotificationDropdown && (
-                <div className="notification-dropdown-mobile shadow-lg" style={{ zIndex: 1060 }}>
-                  <div className="bg-white rounded-3 overflow-hidden">
-                    <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
-                      <h6 className="mb-0 fw-bold">Notifications</h6>
-                      <div className="d-flex align-items-center gap-2">
-                        {unreadCount > 0 && (
-                          <button
-                            className="btn btn-link btn-sm p-0 text-primary"
-                            onClick={async () => {
-                              await notificationApi.markAllAsRead();
-                              fetchNotifications();
-                            }}
-                          >
-                            Mark all read
-                          </button>
-                        )}
-                        <button
-                          className="btn btn-link btn-sm p-0 text-dark"
-                          onClick={() => setShowNotificationDropdown(false)}
-                          aria-label="Close notifications"
-                        >
-                          <span className="material-symbols-outlined">close</span>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="notification-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                      {notifications.length === 0 ? (
-                        <div className="text-center py-4 text-muted">
-                          <span className="material-symbols-outlined fs-1">notifications_off</span>
-                          <p className="mb-0 mt-2">No notifications</p>
-                        </div>
-                      ) : (
-                        notifications.map((notif) => (
-                          <div
-                            key={notif.notificationId}
-                            className={`notification-item p-3 border-bottom ${!notif.isRead ? 'bg-light notification-new-pulse' : ''}`}
-                            style={{ cursor: 'pointer' }}
-                            onClick={async () => {
-                              if (!notif.isRead) {
-                                await notificationApi.markAsRead(notif.notificationId);
-                                fetchNotifications();
-                              }
-                              
-                              if (notif.appointmentId && doctorData) {
-                                try {
-                                  setLoading(true);
-                                  setShowNotificationDropdown(false);
-                                  setIsMobileMenuOpen(false);
-                                  
-                                  const appointments = await doctorService.getDoctorAppointments(doctorData.doctorID);
-                                  const appointment = appointments.find(apt => apt.appointmentID === notif.appointmentId);
-                                  
-                                  if (appointment) {
-                                    await handleViewAppointment(appointment);
-                                  }
-                                } catch (err) {
-                                  console.error('Error navigating to appointment:', err);
-                                } finally {
-                                  setLoading(false);
-                                }
-                              }
-                            }}
-                          >
-                            <div className="d-flex gap-2">
-                              <span className="material-symbols-outlined text-primary">
-                                calendar_month
-                              </span>
-                              <div className="flex-grow-1">
-                                <p className="mb-1 small" style={{ whiteSpace: 'pre-line' }}>
-                                  {notif.message}
-                                </p>
-                                <small className="text-muted">
-                                  {new Date(notif.createdAt).toLocaleString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </small>
-                              </div>
-                              {!notif.isRead && (
-                                <span className="badge bg-primary rounded-circle" style={{ width: '8px', height: '8px' }}></span>
-                              )}
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
           
@@ -676,6 +585,125 @@ const DoctorProfile = () => {
           </div>
         </div>
       </main>
+
+      {/* Mobile Notification Modal - Full Screen Bottom Sheet */}
+      {showNotificationDropdown && (
+        <div className="mobile-notification-modal d-lg-none">
+          {/* Backdrop */}
+          <div 
+            className="mobile-notification-backdrop"
+            onClick={() => setShowNotificationDropdown(false)}
+          />
+          
+          {/* Content */}
+          <div className="mobile-notification-content bg-white">
+            <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
+              <h6 className="mb-0 fw-bold">Notifications</h6>
+              <div className="d-flex align-items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    className="btn btn-link btn-sm p-0 text-primary"
+                    onClick={async () => {
+                      await notificationApi.markAllAsRead();
+                      fetchNotifications();
+                    }}
+                  >
+                    Mark all read
+                  </button>
+                )}
+                <button
+                  className="btn btn-link btn-sm p-0 text-dark"
+                  onClick={() => setShowNotificationDropdown(false)}
+                  aria-label="Close notifications"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+            <div className="notification-list" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              {notifications.length === 0 ? (
+                <div className="text-center py-4 text-muted">
+                  <span className="material-symbols-outlined fs-1">notifications_off</span>
+                  <p className="mb-0 mt-2">No notifications</p>
+                </div>
+              ) : (
+                notifications.map((notif) => (
+                  <div
+                    key={notif.notificationId}
+                    className={`notification-item p-3 border-bottom ${!notif.isRead ? 'bg-light notification-new-pulse' : ''}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={async () => {
+                      console.log('🔔 Mobile notification clicked:', notif);
+                      
+                      try {
+                        // Mark as read
+                        if (!notif.isRead) {
+                          console.log('📧 Marking notification as read...');
+                          await notificationApi.markAsRead(notif.notificationId);
+                          fetchNotifications();
+                        }
+                        
+                        // Close dropdown and mobile menu
+                        console.log('🚪 Closing dropdowns...');
+                        setShowNotificationDropdown(false);
+                        setIsMobileMenuOpen(false);
+                        
+                        // Navigate to appointment detail if appointmentId exists
+                        if (notif.appointmentId && doctorData) {
+                          console.log('🔍 Fetching appointment:', notif.appointmentId);
+                          
+                          // Fetch the appointment details using doctor's ID
+                          const appointments = await doctorService.getDoctorAppointments(doctorData.doctorID);
+                          console.log('📋 All appointments:', appointments);
+                          
+                          const appointment = appointments.find(apt => apt.appointmentID === notif.appointmentId);
+                          console.log('✅ Found appointment:', appointment);
+                          
+                          if (appointment) {
+                            console.log('🚀 Navigating to appointment detail...');
+                            // Call handleViewAppointment directly - it handles loading state
+                            await handleViewAppointment(appointment);
+                          } else {
+                            console.error('❌ Appointment not found:', notif.appointmentId);
+                            alert('Appointment not found');
+                          }
+                        } else {
+                          console.warn('⚠️ Missing appointmentId or doctorData:', { appointmentId: notif.appointmentId, doctorData: !!doctorData });
+                        }
+                      } catch (err) {
+                        console.error('💥 Error navigating to appointment:', err);
+                        alert('Failed to load appointment details: ' + err.message);
+                      }
+                    }}
+                  >
+                    <div className="d-flex gap-2">
+                      <span className="material-symbols-outlined text-primary">
+                        calendar_month
+                      </span>
+                      <div className="flex-grow-1">
+                        <p className="mb-1 small" style={{ whiteSpace: 'pre-line' }}>
+                          {notif.message}
+                        </p>
+                        <small className="text-muted">
+                          {new Date(notif.createdAt).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </small>
+                      </div>
+                      {!notif.isRead && (
+                        <span className="badge bg-primary rounded-circle" style={{ width: '8px', height: '8px' }}></span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
