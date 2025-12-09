@@ -7,6 +7,7 @@ import { useChat } from '../context/ChatContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import signalRService from '../services/signalrService';
+import './Css/DoctorPage.css';
 
 export default function DoctorAppointmentsView({ doctorId, onViewAppointment, viewedAppointments = [] }) {
   const navigate = useNavigate();
@@ -105,33 +106,40 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
   
   // Listen for new appointments via SignalR
   useEffect(() => {
-    const handleNewAppointment = (appointment) => {
-      console.log('📅 New appointment received in AppointmentsView:', appointment);
+    const handleNewAppointment = async (notification) => {
+      console.log('📅 New appointment notification received:', notification);
+      
+      // Get appointment ID (could be appointmentId or appointmentID)
+      const apptId = notification.appointmentId || notification.appointmentID;
+      
+      if (!apptId) {
+        console.error('No appointment ID in notification:', notification);
+        return;
+      }
+      
+      console.log('✅ Adding appointment ID to new list:', apptId);
       
       // Add to new appointments list with timestamp
-      const newItem = {
-        id: appointment.appointmentID,
-        timestamp: Date.now()
-      };
-      
       setNewAppointmentIds(prev => {
+        const newItem = {
+          id: apptId,
+          timestamp: Date.now()
+        };
         const updated = [newItem, ...prev];
         localStorage.setItem('newAppointments', JSON.stringify(updated));
+        console.log('💾 Saved to localStorage:', updated);
         return updated;
       });
       
-      // Update appointments list - add new appointment at the top
-      setAppointments(prevAppointments => {
-        // Check if appointment already exists
-        const exists = prevAppointments.some(a => a.appointmentID === appointment.appointmentID);
-        if (exists) {
-          return prevAppointments;
+      // Refetch appointments to get full data
+      try {
+        const data = await doctorService.getDoctorAppointments(doctorId);
+        if (data) {
+          setAppointments(data);
         }
-        
-        // Add new appointment and sort
-        const updated = [appointment, ...prevAppointments];
-        return sortAppointments(updated);
-      });
+      } catch (error) {
+        console.error('Error refetching appointments:', error);
+      }
     };
     
     // Register SignalR listener
@@ -140,7 +148,7 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
     return () => {
       signalRService.off('ReceiveAppointmentNotification', handleNewAppointment);
     };
-  }, []);
+  }, [doctorId]);
   
   // Clean up old "new" appointments every minute
   useEffect(() => {
@@ -161,7 +169,8 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
   // Helper function to sort appointments (new ones first, then by date)
   const sortAppointments = (appointmentsList) => {
     const newIds = newAppointmentIds.map(item => item.id);
-    return [...appointmentsList].sort((a, b) => {
+    
+    const sorted = [...appointmentsList].sort((a, b) => {
       const aIsNew = newIds.includes(a.appointmentID);
       const bIsNew = newIds.includes(b.appointmentID);
       
@@ -172,11 +181,15 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
       // Then sort by date (newest first)
       return new Date(b.appointmentTime) - new Date(a.appointmentTime);
     });
+    
+    console.log('🔄 Sorted appointments. New IDs:', newIds, 'First 3:', sorted.slice(0, 3).map(a => ({ id: a.appointmentID, isNew: newIds.includes(a.appointmentID) })));
+    return sorted;
   };
   
   // Helper function to check if appointment is new
   const isNewAppointment = (appointmentId) => {
-    return newAppointmentIds.some(item => item.id === appointmentId);
+    const isNew = newAppointmentIds.some(item => item.id === appointmentId);
+    return isNew;
   };
 
   // Close dropdowns when clicking outside
@@ -225,7 +238,7 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
     if (appointments.length > 0) {
       applyFilters();
     }
-  }, [selectedStatus, appointments]);
+  }, [selectedStatus, appointments, newAppointmentIds]);
 
   // Pagination logic
   const indexOfLastAppointment = currentPage * appointmentsPerPage;
