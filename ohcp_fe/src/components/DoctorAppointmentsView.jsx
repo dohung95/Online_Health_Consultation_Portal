@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import signalRService from '../services/signalrService';
 
 export default function DoctorAppointmentsView({ doctorId, onViewAppointment, viewedAppointments = [] }) {
   const navigate = useNavigate();
@@ -16,16 +17,32 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
   const { roles, initiateCall } = useAuth();
   const { openChatWith } = useChat();
   
+  // Track new appointments with timestamp (last 5 minutes)
+  const [newAppointmentIds, setNewAppointmentIds] = useState(() => {
+    const saved = localStorage.getItem('newAppointments');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Filter out appointments older than 5 minutes
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      const filtered = parsed.filter(item => item.timestamp > fiveMinutesAgo);
+      localStorage.setItem('newAppointments', JSON.stringify(filtered));
+      return filtered;
+    }
+    return [];
+  });
+  
   // Filter state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [filterActive, setFilterActive] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('All');
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const appointmentsPerPage = 8;
 
+  // Fetch appointments data
   useEffect(() => {
     if (!doctorId) return;
 
@@ -36,8 +53,10 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
       try {
         const data = await doctorService.getDoctorAppointments(doctorId);
         if (mounted) {
-          setAppointments(data || []);
-          setFilteredAppointments(data || []);
+          // Sort appointments: new ones first, then by date
+          const sorted = sortAppointments(data || []);
+          setAppointments(sorted);
+          setFilteredAppointments(sorted);
         }
       } catch (err) {
         console.error('Error fetching appointments:', err);
@@ -50,6 +69,97 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
     fetchData();
     return () => { mounted = false; };
   }, [doctorId]);
+  
+  // Listen for new appointments via SignalR
+  useEffect(() => {
+    const handleNewAppointment = (appointment) => {
+      console.log('📅 New appointment received in AppointmentsView:', appointment);
+      
+      // Add to new appointments list with timestamp
+      const newItem = {
+        id: appointment.appointmentID,
+        timestamp: Date.now()
+      };
+      
+      setNewAppointmentIds(prev => {
+        const updated = [newItem, ...prev];
+        localStorage.setItem('newAppointments', JSON.stringify(updated));
+        return updated;
+      });
+      
+      // Update appointments list - add new appointment at the top
+      setAppointments(prevAppointments => {
+        // Check if appointment already exists
+        const exists = prevAppointments.some(a => a.appointmentID === appointment.appointmentID);
+        if (exists) {
+          return prevAppointments;
+        }
+        
+        // Add new appointment and sort
+        const updated = [appointment, ...prevAppointments];
+        return sortAppointments(updated);
+      });
+    };
+    
+    // Register SignalR listener
+    signalRService.on('ReceiveAppointmentNotification', handleNewAppointment);
+    
+    return () => {
+      signalRService.off('ReceiveAppointmentNotification', handleNewAppointment);
+    };
+  }, []);
+  
+  // Clean up old "new" appointments every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      setNewAppointmentIds(prev => {
+        const filtered = prev.filter(item => item.timestamp > fiveMinutesAgo);
+        if (filtered.length !== prev.length) {
+          localStorage.setItem('newAppointments', JSON.stringify(filtered));
+        }
+        return filtered;
+      });
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Helper function to sort appointments (new ones first, then by date)
+  const sortAppointments = (appointmentsList) => {
+    const newIds = newAppointmentIds.map(item => item.id);
+    return [...appointmentsList].sort((a, b) => {
+      const aIsNew = newIds.includes(a.appointmentID);
+      const bIsNew = newIds.includes(b.appointmentID);
+      
+      // New appointments first
+      if (aIsNew && !bIsNew) return -1;
+      if (!aIsNew && bIsNew) return 1;
+      
+      // Then sort by date (newest first)
+      return new Date(b.appointmentTime) - new Date(a.appointmentTime);
+    });
+  };
+  
+  // Helper function to check if appointment is new
+  const isNewAppointment = (appointmentId) => {
+    return newAppointmentIds.some(item => item.id === appointmentId);
+  };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showStatusDropdown && !event.target.closest('.position-relative')) {
+        setShowStatusDropdown(false);
+      }
+      if (showDatePicker && !event.target.closest('.position-relative')) {
+        setShowDatePicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showStatusDropdown, showDatePicker]);
 
   // Apply filters based on status and date
   const applyFilters = () => {
@@ -68,8 +178,11 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
         return appointmentDate.toDateString() === filterDate.toDateString();
       });
     }
+    
+    // Keep sort order (new appointments first)
+    const sorted = sortAppointments(filtered);
 
-    setFilteredAppointments(filtered);
+    setFilteredAppointments(sorted);
     setFilterActive(selectedStatus !== 'All' || selectedDate !== '');
     setCurrentPage(1);
   };
@@ -257,57 +370,73 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
 
   return (
     <>
-      <div className="d-flex justify-content-between align-items-center p-3 pb-0">
-        <div className="d-flex gap-2">
+      <div className="d-flex justify-content-between align-items-center p-3 pb-0 flex-wrap gap-2">
+        <h6 className="mb-0 fw-semibold text-dark d-none d-md-block">Appointments List</h6>
+        
+        <div className="d-flex gap-2 ms-auto flex-wrap">
           {/* Status Filter Dropdown */}
-          <div className="dropdown">
+          <div className="position-relative">
             <Button
-              variant="outline-secondary"
+              variant={selectedStatus !== 'All' ? 'primary' : 'outline-secondary'}
               size="sm"
-              className="dropdown-toggle"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
+              className={`filter-btn ${selectedStatus !== 'All' ? 'filter-active' : ''}`}
+              onClick={() => setShowStatusDropdown(!showStatusDropdown)}
             >
               <i className="bi bi-funnel me-2"></i>
-              Status: {selectedStatus}
+              <span className="d-none d-sm-inline">{selectedStatus}</span>
+              <span className="d-inline d-sm-none">{selectedStatus}</span>
+              <i className={`bi bi-chevron-${showStatusDropdown ? 'up' : 'down'} ms-2`}></i>
             </Button>
-            <ul className="dropdown-menu">
-              <li>
-                <a className={`dropdown-item ${selectedStatus === 'All' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('All'); }}>
-                  All
-                </a>
-              </li>
-              <li>
-                <a className={`dropdown-item ${selectedStatus === 'Scheduled' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('Scheduled'); }}>
-                  Scheduled
-                </a>
-              </li>
-              <li>
-                <a className={`dropdown-item ${selectedStatus === 'Completed' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('Completed'); }}>
-                  Completed
-                </a>
-              </li>
-              <li>
-                <a className={`dropdown-item ${selectedStatus === 'Cancelled' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('Cancelled'); }}>
-                  Cancelled
-                </a>
-              </li>
-            </ul>
+            {showStatusDropdown && (
+              <>
+                <div className="filter-backdrop d-md-none" onClick={() => setShowStatusDropdown(false)} />
+                <ul className="dropdown-menu show position-absolute" style={{ zIndex: 1000 }}>
+                  <li>
+                    <a className={`dropdown-item ${selectedStatus === 'All' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('All'); setShowStatusDropdown(false); }}>
+                      All
+                    </a>
+                  </li>
+                  <li>
+                    <a className={`dropdown-item ${selectedStatus === 'Scheduled' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('Scheduled'); setShowStatusDropdown(false); }}>
+                      Scheduled
+                    </a>
+                  </li>
+                  <li>
+                    <a className={`dropdown-item ${selectedStatus === 'Completed' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('Completed'); setShowStatusDropdown(false); }}>
+                      Completed
+                    </a>
+                  </li>
+                  <li>
+                    <a className={`dropdown-item ${selectedStatus === 'Cancelled' ? 'active' : ''}`} href="#" onClick={(e) => { e.preventDefault(); handleStatusChange('Cancelled'); setShowStatusDropdown(false); }}>
+                      Cancelled
+                    </a>
+                  </li>
+                </ul>
+              </>
+            )}
           </div>
-        </div>
 
-        <div className="position-relative">
-          <Button 
-            variant="outline-primary"
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            size="sm"
-          >
-            <i className="bi bi-calendar-check me-2"></i>
-            Filter by Date
-          </Button>
+          {/* Date Filter */}
+          <div className="position-relative">
+            <Button 
+              variant={selectedDate ? 'primary' : 'outline-primary'}
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              size="sm"
+              className={`filter-btn ${selectedDate ? 'filter-active' : ''}`}
+              title="Filter by Date"
+            >
+              <i className="bi bi-calendar-check"></i>
+              {selectedDate && (
+                <span className="ms-2 d-none d-sm-inline">
+                  {new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+              )}
+            </Button>
           
-          {showDatePicker && (
-            <Card className="position-absolute end-0 mt-2 shadow-lg" style={{ zIndex: 1000, minWidth: '300px' }}>
+            {showDatePicker && (
+              <>
+                <div className="filter-backdrop d-md-none" onClick={() => setShowDatePicker(false)} />
+                <Card className="position-absolute end-0 mt-2 shadow-lg" style={{ zIndex: 1000, minWidth: '300px' }}>
               <Card.Body>
                 <Form.Group className="mb-3">
                   <Form.Label className="fw-semibold">Select Date</Form.Label>
@@ -339,23 +468,11 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
                 </div>
               </Card.Body>
             </Card>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
-
-      {filterActive && (
-        <div className="alert alert-info d-flex justify-content-between align-items-center mb-3 mx-3">
-          <span>
-            <i className="bi bi-funnel-fill me-2"></i>
-            {selectedDate && <span>Date: <strong>{new Date(selectedDate).toLocaleDateString()}</strong></span>}
-            {selectedDate && selectedStatus !== 'All' && <span className="mx-2">|</span>}
-            {selectedStatus !== 'All' && <span>Status: <strong>{selectedStatus}</strong></span>}
-          </span>
-          <Button variant="link" size="sm" onClick={clearFilter}>
-            Clear Filter
-          </Button>
-        </div>
-      )}
 
       <div className="table-responsive">
         <table className="table table-borderless align-middle mb-0">
@@ -371,12 +488,14 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
             </tr>
           </thead>
           <tbody>
-            {currentAppointments.map((a) => (
-              <tr key={a.appointmentID} className="border-bottom hover-table-row">
+            {currentAppointments.map((a) => {
+              const isNew = isNewAppointment(a.appointmentID);
+              return (
+              <tr key={a.appointmentID} className={`border-bottom hover-table-row ${isNew ? 'new-appointment-row' : ''}`}>
                 <td className="px-4 py-4 fw-medium text-dark fw-bold">
                   #{a.appointmentID}
-                  {!viewedAppointments.includes(a.appointmentID) && (
-                    <span className="badge bg-success ms-2 small">NEW</span>
+                  {isNew && (
+                    <span className="badge bg-success ms-2 small new-badge-pulse">NEW</span>
                   )}
                 </td>
                 <td className="px-4 py-4 text-dark">{a.patient?.fullName || 'Unknown Patient'}</td>
@@ -445,7 +564,8 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
                   </div>
                 </td>
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>

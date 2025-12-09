@@ -23,8 +23,18 @@ const DoctorProfile = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
   
-  // New appointment notification state
-  const [newAppointmentCount, setNewAppointmentCount] = useState(0);
+  // New appointment notification state - sync with DoctorAppointmentsView
+  const [newAppointmentCount, setNewAppointmentCount] = useState(() => {
+    const saved = localStorage.getItem('newAppointments');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Filter out appointments older than 5 minutes
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      const filtered = parsed.filter(item => item.timestamp > fiveMinutesAgo);
+      return filtered.length;
+    }
+    return 0;
+  });
   const [viewedAppointments, setViewedAppointments] = useState(() => {
     const saved = localStorage.getItem('viewedAppointments');
     return saved ? JSON.parse(saved) : [];
@@ -35,10 +45,31 @@ const DoctorProfile = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const notificationRef = useRef(null);
+  
+  // Mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchDoctorData();
     fetchNotifications();
+    
+    // Sync new appointment count from localStorage every minute
+    const syncInterval = setInterval(() => {
+      const saved = localStorage.getItem('newAppointments');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+        const filtered = parsed.filter(item => item.timestamp > fiveMinutesAgo);
+        setNewAppointmentCount(filtered.length);
+        
+        // Update localStorage if filtered
+        if (filtered.length !== parsed.length) {
+          localStorage.setItem('newAppointments', JSON.stringify(filtered));
+        }
+      }
+    }, 60000); // Every minute
+    
+    return () => clearInterval(syncInterval);
   }, []);
 
   useEffect(() => {
@@ -48,12 +79,27 @@ const DoctorProfile = () => {
       
       // Define the handler for new appointments
       const handleNewAppointment = (appointment) => {
-        console.log('📅 New appointment received:', appointment);
-        // Increment counter only if not already viewed
-        const viewed = JSON.parse(localStorage.getItem('viewedAppointments') || '[]');
-        if (!viewed.includes(appointment.appointmentID)) {
-          setNewAppointmentCount(prev => prev + 1);
+        console.log('📅 New appointment received in DoctorPage:', appointment);
+        
+        // Get current new appointments from localStorage
+        const savedNew = localStorage.getItem('newAppointments');
+        let newAppointments = savedNew ? JSON.parse(savedNew) : [];
+        
+        // Check if this appointment is already marked as new
+        const exists = newAppointments.some(item => item.id === appointment.appointmentID);
+        if (!exists) {
+          // Add new appointment with timestamp
+          const newItem = {
+            id: appointment.appointmentID,
+            timestamp: Date.now()
+          };
+          newAppointments = [newItem, ...newAppointments];
+          localStorage.setItem('newAppointments', JSON.stringify(newAppointments));
+          
+          // Update count
+          setNewAppointmentCount(newAppointments.length);
         }
+        
         // Refresh notifications
         fetchNotifications();
       };
@@ -85,6 +131,19 @@ const DoctorProfile = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+  
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
 
   const fetchDoctorData = async () => {
     try {
@@ -193,8 +252,27 @@ const DoctorProfile = () => {
   
   return (
     <div className="d-flex min-vh-100">
-      {/* Sidebar */}
-      <aside className="sidebar d-flex flex-column">
+      {/* Burger Menu Button - Mobile & Tablet Only */}
+      <button 
+        className="burger-menu-btn d-lg-none"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label="Toggle menu"
+      >
+        <span className="material-symbols-outlined">
+          menu
+        </span>
+      </button>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="mobile-sidebar-overlay d-lg-none"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Desktop */}
+      <aside className="sidebar sidebar-desktop d-none d-lg-flex flex-column">
         <div className="d-flex flex-column gap-4">
           {/* Doctor Profile Summary */}
           <div className="d-flex gap-3 align-items-center">
@@ -234,17 +312,27 @@ const DoctorProfile = () => {
                   <div className="bg-white rounded-3 overflow-hidden">
                     <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
                       <h6 className="mb-0 fw-bold">Notifications</h6>
-                      {unreadCount > 0 && (
+                      <div className="d-flex align-items-center gap-2">
+                        {unreadCount > 0 && (
+                          <button
+                            className="btn btn-link btn-sm p-0 text-primary d-none d-md-inline"
+                            onClick={async () => {
+                              await notificationApi.markAllAsRead();
+                              fetchNotifications();
+                            }}
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                        {/* Close button for mobile */}
                         <button
-                          className="btn btn-link btn-sm p-0 text-primary"
-                          onClick={async () => {
-                            await notificationApi.markAllAsRead();
-                            fetchNotifications();
-                          }}
+                          className="btn btn-link btn-sm p-0 text-dark d-md-none"
+                          onClick={() => setShowNotificationDropdown(false)}
+                          aria-label="Close notifications"
                         >
-                          Mark all read
+                          <span className="material-symbols-outlined">close</span>
                         </button>
-                      )}
+                      </div>
                     </div>
                     <div className="notification-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                       {notifications.length === 0 ? (
@@ -356,6 +444,193 @@ const DoctorProfile = () => {
               <span className="material-symbols-outlined">logout</span>
               <p className="mb-0 small">Logout</p>
             </a>
+          </div>
+        </div>
+      </aside>
+
+      {/* Sidebar - Mobile & Tablet (Sliding from right) */}
+      <aside className={`sidebar sidebar-mobile d-lg-none ${isMobileMenuOpen ? 'sidebar-mobile-open' : ''}`}>
+        <div className="d-flex flex-column gap-4 h-100">
+          {/* Menu Header with Close Button */}
+          <div className="d-flex justify-content-between align-items-center">
+            <h5 className="mb-0 fw-bold">Menu</h5>
+            <button 
+              className="btn btn-link p-0 text-dark"
+              onClick={() => setIsMobileMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              <span className="material-symbols-outlined fs-4">close</span>
+            </button>
+          </div>
+
+          {/* Doctor Profile Summary */}
+          <div className="d-flex gap-3 align-items-center">
+            <div className="doctor-profile-img"></div>
+            <div className="d-flex flex-column">
+              <h1 className="fs-6 fw-bold mb-0 text-dark">
+                {doctorData?.fullName || 'Loading...'}
+              </h1>
+              <p className="text-secondary small mb-0">{doctorData?.specialty || 'Specialty'}</p>
+            </div>
+          </div>
+
+          <div className="d-flex align-items-center justify-content-between">
+            <span className="status-badge">
+              <span className="status-dot"></span>
+              Working
+            </span>
+            
+            {/* Notification Bell - Mobile */}
+            <div className="position-relative">
+              <button
+                className="btn btn-link p-0 position-relative"
+                onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
+              >
+                <span className={`material-symbols-outlined fs-4 text-dark ${unreadCount > 0 ? 'notification-bell-pulse' : ''}`}>
+                  notifications
+                </span>
+                {unreadCount > 0 && (
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.65rem' }}>
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              
+              {/* Notification Dropdown - Mobile */}
+              {showNotificationDropdown && (
+                <div className="notification-dropdown-mobile shadow-lg" style={{ zIndex: 1060 }}>
+                  <div className="bg-white rounded-3 overflow-hidden">
+                    <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
+                      <h6 className="mb-0 fw-bold">Notifications</h6>
+                      <div className="d-flex align-items-center gap-2">
+                        {unreadCount > 0 && (
+                          <button
+                            className="btn btn-link btn-sm p-0 text-primary"
+                            onClick={async () => {
+                              await notificationApi.markAllAsRead();
+                              fetchNotifications();
+                            }}
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-link btn-sm p-0 text-dark"
+                          onClick={() => setShowNotificationDropdown(false)}
+                          aria-label="Close notifications"
+                        >
+                          <span className="material-symbols-outlined">close</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="notification-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                      {notifications.length === 0 ? (
+                        <div className="text-center py-4 text-muted">
+                          <span className="material-symbols-outlined fs-1">notifications_off</span>
+                          <p className="mb-0 mt-2">No notifications</p>
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div
+                            key={notif.notificationId}
+                            className={`notification-item p-3 border-bottom ${!notif.isRead ? 'bg-light notification-new-pulse' : ''}`}
+                            style={{ cursor: 'pointer' }}
+                            onClick={async () => {
+                              if (!notif.isRead) {
+                                await notificationApi.markAsRead(notif.notificationId);
+                                fetchNotifications();
+                              }
+                              
+                              if (notif.appointmentId && doctorData) {
+                                try {
+                                  setLoading(true);
+                                  setShowNotificationDropdown(false);
+                                  setIsMobileMenuOpen(false);
+                                  
+                                  const appointments = await doctorService.getDoctorAppointments(doctorData.doctorID);
+                                  const appointment = appointments.find(apt => apt.appointmentID === notif.appointmentId);
+                                  
+                                  if (appointment) {
+                                    await handleViewAppointment(appointment);
+                                  }
+                                } catch (err) {
+                                  console.error('Error navigating to appointment:', err);
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }
+                            }}
+                          >
+                            <div className="d-flex gap-2">
+                              <span className="material-symbols-outlined text-primary">
+                                calendar_month
+                              </span>
+                              <div className="flex-grow-1">
+                                <p className="mb-1 small" style={{ whiteSpace: 'pre-line' }}>
+                                  {notif.message}
+                                </p>
+                                <small className="text-muted">
+                                  {new Date(notif.createdAt).toLocaleString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </small>
+                              </div>
+                              {!notif.isRead && (
+                                <span className="badge bg-primary rounded-circle" style={{ width: '8px', height: '8px' }}></span>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Navigation Links */}
+          <div className="d-flex flex-column gap-2 pt-4">
+            <a 
+              className={`nav-link-custom ${view === 'profile' ? 'nav-link-active' : ''}`} 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); setView('profile'); setIsMobileMenuOpen(false); }}
+            >
+              <span className="material-symbols-outlined">person</span>
+              <p className="mb-0 small fw-bold">Profile</p>
+            </a>
+            <a 
+              className={`nav-link-custom ${view === 'appointments' || view === 'appointmentDetail' ? 'nav-link-active' : ''}`} 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); setView('appointments'); setIsMobileMenuOpen(false); }}
+            >
+              <span className="material-symbols-outlined">calendar_month</span>
+              <p className="mb-0 small">Appointments</p>
+              {newAppointmentCount > 0 && (
+                <span className="badge bg-danger rounded-pill ms-auto">{newAppointmentCount}</span>
+              )}
+            </a>
+            <a 
+              className={`nav-link-custom ${view === 'reviews' ? 'nav-link-active' : ''}`} 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); setView('reviews'); setIsMobileMenuOpen(false); }}
+            >
+              <span className="material-symbols-outlined">star</span>
+              <p className="mb-0 small fw-bold">Reviews</p>
+            </a>
+          </div>
+        
+          {/* Bottom Links */}
+          <div className="d-flex flex-column gap-4 mt-auto">
+            <div className="d-flex flex-column gap-1">
+              <a className="nav-link-custom logout-link" href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
+                <span className="material-symbols-outlined">logout</span>
+                <p className="mb-0 small">Logout</p>
+              </a>
+            </div>
           </div>
         </div>
       </aside>

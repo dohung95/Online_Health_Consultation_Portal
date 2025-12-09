@@ -40,6 +40,196 @@ body {
     top: 0;
     height: 100vh;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+}
+
+/* Sidebar responsive adjustments */
+@media (max-width: 1440px) {
+    .sidebar {
+        width: 320px;
+    }
+}
+
+@media (max-width: 1280px) {
+    .sidebar {
+        width: 280px;
+        padding: 1.25rem;
+    }
+    
+    .sidebar h1 {
+        font-size: 0.9rem !important;
+    }
+    
+    .sidebar p, .sidebar .small {
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 260px;
+        padding: 1rem;
+    }
+    
+    .doctor-profile-img {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+    
+    .nav-link-custom {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .nav-link-custom .material-symbols-outlined {
+        font-size: 1.25rem;
+    }
+}
+
+/* Burger Menu Button */
+.burger-menu-btn {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1050;
+    background: var(--primary);
+    border: none;
+    border-radius: 0.5rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(19, 127, 236, 0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.burger-menu-btn:hover {
+    background: #0d6ecd;
+    box-shadow: 0 6px 16px rgba(19, 127, 236, 0.4);
+    transform: scale(1.05);
+}
+
+.burger-menu-btn:active {
+    transform: scale(0.95);
+}
+
+.burger-menu-btn .material-symbols-outlined {
+    color: white;
+    font-size: 1.5rem;
+}
+
+/* Mobile Sidebar Overlay */
+.mobile-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Desktop Sidebar - shown on large screens */
+.sidebar-desktop {
+    display: flex !important;
+}
+
+/* Mobile Sidebar - sliding from right */
+.sidebar-mobile {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 320px;
+    max-width: 85vw;
+    height: 100vh;
+    background-color: #fff;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1.5rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sidebar-mobile::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-mobile::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.sidebar-mobile::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+.sidebar-mobile::-webkit-scrollbar-thumb:hover {
+    background: #0d6ecd;
+}
+
+.sidebar-mobile-open {
+    right: 0;
+}
+
+.sidebar-mobile h5 {
+    color: var(--slate-800);
+}
+
+/* Mobile sidebar navigation links */
+.sidebar-mobile .nav-link-custom {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sidebar-mobile .nav-link-custom .material-symbols-outlined {
+    font-size: 1.5rem;
+}
+
+.sidebar-mobile .nav-link-custom p {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+/* Mobile sidebar animations */
+@keyframes slideInRight {
+    from {
+        right: -100%;
+        opacity: 0;
+    }
+    to {
+        right: 0;
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        right: 0;
+        opacity: 1;
+    }
+    to {
+        right: -100%;
+        opacity: 0;
+    }
 }
 
 .nav-link-custom {
@@ -268,6 +458,60 @@ body {
     background: #555;
 }
 
+/* Notification Dropdown for Mobile Sidebar */
+.notification-dropdown-mobile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 70vh;
+    background: white;
+    border-radius: 1rem 1rem 0 0;
+    animation: slideUpMobile 0.3s ease-out;
+    z-index: 1150;
+}
+
+.notification-dropdown-mobile::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+}
+
+@keyframes slideUpMobile {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-dropdown-mobile .notification-list {
+    max-height: calc(70vh - 60px) !important;
+}
+
+/* Desktop notification dropdown - only show on desktop */
+@media (min-width: 1025px) {
+    .notification-dropdown-mobile {
+        display: none;
+    }
+}
+
+/* Mobile and Tablet - use mobile dropdown style */
+@media (max-width: 1024px) {
+    .sidebar-mobile .notification-dropdown-mobile {
+        display: block;
+    }
+}
+
 .type-badge {
     display: inline-flex;
     align-items: center;
@@ -354,4 +598,697 @@ body {
 
 .border-dashed {
     border-style: dashed !important;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN FOR TABLET AND MOBILE
+   ============================================ */
+
+/* Tablet (iPad and similar devices) */
+@media (max-width: 1024px) {
+    /* Hide desktop sidebar */
+    .sidebar-desktop {
+        display: none !important;
+    }
+    
+    /* Show burger button */
+    .burger-menu-btn {
+        display: flex !important;
+    }
+    
+    /* Main content takes full width */
+    main.flex-grow-1 {
+        width: 100%;
+        padding: 1.5rem !important;
+        padding-top: 5rem !important; /* Space for burger button */
+    }
+    
+    /* Notification dropdown position adjustment */
+    .notification-dropdown {
+        width: 320px !important;
+        right: 0 !important;
+        left: auto !important;
+    }
+}
+
+/* Mobile devices */
+@media (max-width: 768px) {
+    /* Burger button smaller on mobile */
+    .burger-menu-btn {
+        width: 44px;
+        height: 44px;
+        top: 0.75rem;
+        right: 0.75rem;
+    }
+    
+    .burger-menu-btn .material-symbols-outlined {
+        font-size: 1.35rem;
+    }
+    
+    /* Mobile sidebar narrower */
+    .sidebar-mobile {
+        width: 280px;
+        max-width: 80vw;
+        padding: 1.25rem;
+    }
+    
+    /* Main content */
+    main.flex-grow-1 {
+        padding: 1rem !important;
+        padding-top: 4.5rem !important;
+    }
+    
+    /* Page heading */
+    main h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    main p.text-secondary {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Info card */
+    .info-card {
+        border-radius: 0.5rem;
+    }
+    
+    /* Notification dropdown - mobile optimized */
+    .notification-dropdown {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 1rem 1rem 0 0 !important;
+        max-height: 70vh !important;
+        animation: slideUp 0.3s ease-out !important;
+        z-index: 1051 !important;
+    }
+    
+    /* Mobile notification backdrop */
+    .notification-dropdown::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .notification-list {
+        max-height: calc(70vh - 60px) !important;
+    }
+    
+    /* Filter and date picker adjustments */
+    .dropdown-menu, .card.position-absolute {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        max-width: 90vw !important;
+        z-index: 1050 !important;
+    }
+    
+    /* Appointment detail page */
+    .profile-avatar {
+        width: 4rem !important;
+        height: 4rem !important;
+    }
+    
+    /* Detail items in appointment view */
+    .detail-item {
+        padding: 0.75rem 0;
+    }
+    
+    .detail-label, .detail-value {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Review stars */
+    .rating-stars {
+        font-size: 1rem !important;
+    }
+    
+    /* Review cards */
+    .card-body {
+        padding: 0.75rem !important;
+    }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Burger button for tablet */
+    .burger-menu-btn {
+        width: 52px;
+        height: 52px;
+        top: 1.25rem;
+        right: 1.25rem;
+    }
+    
+    .burger-menu-btn .material-symbols-outlined {
+        font-size: 1.6rem;
+    }
+    
+    /* Tablet sidebar */
+    .sidebar-mobile {
+        width: 340px;
+        padding: 1.75rem;
+    }
+    
+    /* Main content padding */
+    main.flex-grow-1 {
+        padding: 2rem !important;
+        padding-top: 5.5rem !important;
+    }
+}
+
+/* Touch-friendly improvements for all mobile devices */
+@media (hover: none) and (pointer: coarse) {
+    /* Increase tap targets */
+    .btn, .nav-link-custom, button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Larger touch areas for interactive elements */
+    .notification-bell-btn {
+        padding: 0.75rem !important;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .nav-link-custom:hover,
+    .table tbody tr:hover,
+    .notification-list-item:hover {
+        background-color: transparent;
+        transform: none;
+    }
+    
+    /* Add active states instead */
+    .nav-link-custom:active {
+        background-color: var(--slate-200);
+    }
+    
+    .table tbody tr:active {
+        background-color: var(--background-light);
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    /* Even smaller burger button */
+    .burger-menu-btn {
+        width: 42px;
+        height: 42px;
+    }
+    
+    .burger-menu-btn .material-symbols-outlined {
+        font-size: 1.25rem;
+    }
+    
+    /* Mobile sidebar takes more screen */
+    .sidebar-mobile {
+        width: 260px;
+        max-width: 85vw;
+        padding: 1rem;
+    }
+    
+    /* Main content */
+    main.flex-grow-1 {
+        padding: 0.75rem !important;
+        padding-top: 4rem !important;
+    }
+    
+    main h2 {
+        font-size: 1.25rem !important;
+    }
+    
+    /* Tables responsive */
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+    
+    /* Appointment table adjustments */
+    .table thead th {
+        font-size: 0.75rem;
+        padding: 0.5rem !important;
+    }
+    
+    .table tbody td {
+        font-size: 0.8rem;
+        padding: 0.5rem !important;
+    }
+    
+    /* Buttons in tables */
+    .btn-view, .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.6rem;
+    }
+    
+    /* Badges */
+    .badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    /* Dropdown menus */
+    .dropdown-menu {
+        font-size: 0.85rem;
+    }
+    
+    /* Cards and modals */
+    .card {
+        font-size: 0.85rem;
+    }
+    
+    /* Form controls */
+    .form-control, .form-select {
+        font-size: 0.85rem;
+    }
+}
+
+/* ============================================
+   RESPONSIVE STYLES FOR APPOINTMENTS VIEW
+   ============================================ */
+
+/* New Appointment Highlight Animation */
+.new-appointment-row {
+    animation: highlightNew 3s ease-in-out;
+}
+
+@keyframes highlightNew {
+    0% {
+        background-color: rgba(16, 185, 129, 0.15);
+    }
+    50% {
+        background-color: rgba(16, 185, 129, 0.08);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+/* New Badge Pulse Animation */
+.new-badge-pulse {
+    animation: badgePulse 2s ease-in-out infinite;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+}
+
+@keyframes badgePulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+/* Filter buttons */
+.filter-btn {
+    white-space: nowrap;
+    min-width: auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.1rem;
+    border: 2px solid transparent;
+}
+
+.filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.filter-btn.filter-active {
+    box-shadow: 0 4px 12px rgba(19, 127, 236, 0.4);
+    animation: pulseFilter 2s ease-in-out infinite;
+    border-color: rgba(19, 127, 236, 0.3);
+}
+
+@keyframes pulseFilter {
+    0%, 100% {
+        box-shadow: 0 4px 12px rgba(19, 127, 236, 0.4);
+    }
+    50% {
+        box-shadow: 0 6px 16px rgba(19, 127, 236, 0.6);
+    }
+}
+
+.filter-btn i {
+    font-size: 1.1rem;
+}
+
+/* Status filter dropdown */
+.dropdown-menu {
+    min-width: 150px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--slate-200);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.dropdown-item {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border-radius: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.dropdown-item:last-child {
+    margin-bottom: 0;
+}
+
+.dropdown-item:hover {
+    background-color: var(--slate-200);
+    transform: translateX(4px);
+}
+
+.dropdown-item.active {
+    background: linear-gradient(135deg, var(--primary) 0%, #0d6ecd 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(19, 127, 236, 0.3);
+}
+
+/* Filter backdrop for mobile and tablet */
+.filter-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+    animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+@media (min-width: 769px) {
+    .filter-backdrop {
+        display: none;
+    }
+}
+
+/* Tablet and below */
+@media (max-width: 1024px) {
+    /* Filter section responsive */
+    .d-flex.justify-content-between.align-items-center.p-3 {
+        padding: 1rem !important;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    /* Filter buttons for tablet - larger touch targets */
+    .filter-btn {
+        font-size: 0.9rem;
+        padding: 0.7rem 1rem;
+        border-radius: 0.75rem;
+        min-height: 44px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .filter-btn:active {
+        transform: scale(0.97);
+    }
+    
+    /* Filter container spacing */
+    .d-flex.gap-2.ms-auto {
+        gap: 0.75rem !important;
+    }
+    
+    /* Table responsive */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table thead th {
+        font-size: 0.8rem;
+        padding: 0.75rem 0.5rem !important;
+        white-space: nowrap;
+    }
+    
+    .table tbody td {
+        font-size: 0.85rem;
+        padding: 0.75rem 0.5rem !important;
+    }
+    
+    /* Badges smaller */
+    .type-badge, .badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Hide some table columns on mobile */
+    .table thead th:first-child,
+    .table tbody td:first-child {
+        display: none; /* Hide ID column */
+    }
+    
+    /* Filter section mobile layout */
+    .d-flex.justify-content-between.align-items-center.p-3 {
+        padding: 1rem !important;
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 1rem;
+    }
+    
+    /* Stack filter buttons in mobile */
+    .d-flex.gap-2.ms-auto {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem !important;
+        margin: 0 !important;
+    }
+    
+    .filter-btn {
+        flex: 1 1 calc(50% - 0.375rem);
+        font-size: 0.9rem;
+        padding: 0.75rem 0.85rem;
+        justify-content: center;
+        min-height: 48px;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        font-weight: 600;
+    }
+    
+    .filter-btn:active {
+        transform: scale(0.96);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Filter dropdown positioning - centered modal style */
+    .dropdown-menu {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+        border-radius: 1rem;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    }
+    
+    .dropdown-item {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.65rem;
+        margin-bottom: 0.35rem;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Date picker card - centered modal */
+    .position-absolute.end-0.mt-2.shadow-lg {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translate(-50%, -50%) !important;
+        max-width: 90vw !important;
+        z-index: 1055 !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25) !important;
+    }
+    
+    /* Alert badges */
+    .alert.alert-info {
+        font-size: 0.85rem;
+        padding: 0.75rem;
+    }
+    
+    .alert .badge {
+        font-size: 0.7rem;
+    }
+    
+    /* Pagination */
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.6rem;
+    }
+    
+    /* Table even more compact */
+    .table thead th {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.35rem !important;
+    }
+    
+    .table tbody td {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.35rem !important;
+    }
+    
+    /* Action buttons in table */
+    .btn-view {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Very compact table */
+    .table {
+        font-size: 0.7rem;
+    }
+    
+    .table thead th {
+        padding: 0.4rem 0.25rem !important;
+        font-size: 0.7rem;
+    }
+    
+    .table tbody td {
+        padding: 0.4rem 0.25rem !important;
+        font-size: 0.75rem;
+    }
+    
+    /* Hide more columns */
+    .table thead th:nth-child(4),
+    .table tbody td:nth-child(4) {
+        display: none; /* Hide Type column on very small screens */
+    }
+    
+    /* Filter section extra compact */
+    .d-flex.justify-content-between.align-items-center.p-3 {
+        padding: 0.85rem !important;
+    }
+    
+    /* Filter buttons - full width stack */
+    .d-flex.gap-2.ms-auto {
+        flex-direction: column;
+        gap: 0.65rem !important;
+    }
+    
+    .filter-btn {
+        width: 100%;
+        flex: 1 1 100%;
+        font-size: 0.85rem;
+        padding: 0.8rem 1rem;
+        min-height: 50px;
+        justify-content: center;
+        gap: 0.6rem;
+    }
+    
+    .filter-btn i {
+        font-size: 1.15rem;
+    }
+    
+    /* Dropdown items larger for easier tapping */
+    .dropdown-item {
+        padding: 0.85rem 1.1rem;
+        font-size: 0.9rem;
+        min-height: 48px;
+    }
+}
+
+/* ============================================
+   RESPONSIVE STYLES FOR REVIEW VIEW
+   ============================================ */
+
+@media (max-width: 1024px) {
+    /* Review table */
+    .table thead th {
+        font-size: 0.8rem;
+    }
+    
+    .table tbody td {
+        font-size: 0.85rem;
+    }
+    
+    /* Rating stars */
+    .rating-stars {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Review cards more compact */
+    .card {
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Hide review ID column */
+    .table thead th:first-child,
+    .table tbody td:first-child {
+        display: none;
+    }
+    
+    /* Rating stars smaller */
+    .rating-stars {
+        font-size: 0.9rem;
+    }
+    
+    /* Review text */
+    .table tbody td {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Very compact reviews */
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .rating-stars {
+        font-size: 0.85rem;
+    }
+    
+    /* Hide date column on very small screens */
+    .table thead th:nth-child(3),
+    .table tbody td:nth-child(3) {
+        display: none;
+    }
+    
+    /* Review text smaller */
+    .table tbody td {
+        font-size: 0.75rem;
+    }
 }
