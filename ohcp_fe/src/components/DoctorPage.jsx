@@ -196,12 +196,24 @@ const DoctorProfile = () => {
     try {
       setLoading(true);
       
+      // Remove appointment from newAppointments list when viewed
+      const savedNew = localStorage.getItem('newAppointments');
+      if (savedNew) {
+        const newAppointments = JSON.parse(savedNew);
+        const filteredNew = newAppointments.filter(item => item.id !== appointment.appointmentID);
+        
+        if (filteredNew.length !== newAppointments.length) {
+          // Appointment was in the new list, remove it
+          localStorage.setItem('newAppointments', JSON.stringify(filteredNew));
+          setNewAppointmentCount(filteredNew.length);
+        }
+      }
+      
       // Mark appointment as viewed
       if (!viewedAppointments.includes(appointment.appointmentID)) {
         const updatedViewed = [...viewedAppointments, appointment.appointmentID];
         setViewedAppointments(updatedViewed);
         localStorage.setItem('viewedAppointments', JSON.stringify(updatedViewed));
-        setNewAppointmentCount(prev => Math.max(0, prev - 1));
       }
       
       // Try different possible field names for patient ID

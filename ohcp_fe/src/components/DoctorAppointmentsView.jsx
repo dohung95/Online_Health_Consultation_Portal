@@ -31,6 +31,39 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
     return [];
   });
   
+  // Sync with localStorage changes (when parent removes from newAppointments)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const saved = localStorage.getItem('newAppointments');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setNewAppointmentIds(parsed);
+      } else {
+        setNewAppointmentIds([]);
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom event from same tab
+    const intervalId = setInterval(() => {
+      const saved = localStorage.getItem('newAppointments');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const currentIds = JSON.stringify(newAppointmentIds);
+        const newIds = JSON.stringify(parsed);
+        if (currentIds !== newIds) {
+          setNewAppointmentIds(parsed);
+        }
+      }
+    }, 500); // Check every 500ms
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
+    };
+  }, [newAppointmentIds]);
+  
   // Filter state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
