@@ -12,7 +12,6 @@ const PatientPrescriptionView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('Tất cả');
 
   useEffect(() => {
     fetchPrescriptions();
@@ -20,7 +19,7 @@ const PatientPrescriptionView = () => {
 
   useEffect(() => {
     filterPrescriptions();
-  }, [prescriptions, searchQuery, activeFilter]);
+  }, [prescriptions, searchQuery]);
 
   const fetchPrescriptions = async () => {
     try {
@@ -54,11 +53,6 @@ const PatientPrescriptionView = () => {
         p.doctorName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         formatDate(p.issueDate).toLowerCase().includes(searchQuery.toLowerCase())
       );
-    }
-
-    // Filter by status
-    if (activeFilter !== 'Tất cả') {
-      filtered = filtered.filter(p => getStatus(p.issueDate) === activeFilter);
     }
 
     setFilteredPrescriptions(filtered);
@@ -138,19 +132,6 @@ const PatientPrescriptionView = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-
-            {/* Chips */}
-            <div className="d-flex gap-2 overflow-auto">
-              {['All', 'New', 'Used', 'Expired'].map((chip) => (
-                <div 
-                  key={chip} 
-                  className={`chip ${chip === activeFilter ? 'chip-active' : 'chip-inactive'}`}
-                  onClick={() => setActiveFilter(chip)}
-                >
-                  {chip}
-                </div>
-              ))}
-            </div>
           </div>
           
           {/* Prescription List Items */}
@@ -163,7 +144,7 @@ const PatientPrescriptionView = () => {
               filteredPrescriptions.map((p) => (
                 <div
                   key={p.prescriptionHeaderID}
-                  className={`d-flex gap-3 p-3 justify-content-between prescription-list-item ${
+                  className={`d-flex gap-3 p-3 prescription-list-item ${
                     selectedPrescription?.prescriptionHeaderID === p.prescriptionHeaderID ? 'list-item-active' : 'list-item-inactive'
                   }`}
                   onClick={() => setSelectedPrescription(p)}
@@ -176,9 +157,6 @@ const PatientPrescriptionView = () => {
                       <p className="text-gray-900 fs-6 fw-medium mb-0">{p.doctorName || 'Dr. Unknown'}</p>
                       <p className="text-gray-500 small mb-0">Issued: {formatDate(p.issueDate)}</p>
                     </div>
-                  </div>
-                  <div className="flex-shrink-0 d-flex align-items-center">
-                    {getStatusBadge(getStatus(p.issueDate))}
                   </div>
                 </div>
               ))

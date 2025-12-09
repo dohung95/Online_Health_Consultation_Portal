@@ -33,6 +33,17 @@ function NotificationBell() {
       setUnreadCount(prev => prev + 1);
       setHasNewReminder(true);
       
+      // Add to reminders list if tab is open
+      const newReminder = {
+        notificationID: Date.now(), // Temporary ID
+        message: reminder.message || `${reminder.medicationName} - ${reminder.dosage}: use ${reminder.instructions}`,
+        createdAt: new Date().toISOString(),
+        isRead: false,
+        prescriptionId: reminder.prescriptionId
+      };
+      
+      setReminders(prev => [newReminder, ...prev]);
+      
       // Show browser notification if supported
       if (Notification.permission === 'granted') {
         new Notification('💊 Medication Reminder', {
@@ -48,6 +59,17 @@ function NotificationBell() {
       setNotificationCount(prev => prev + 1);
       setUnreadCount(prev => prev + 1);
       setHasNewNotification(true);
+      
+      // Add to notifications list if tab is open
+      const newNotification = {
+        notificationID: Date.now(), // Temporary ID
+        message: notification.message || `New appointment notification`,
+        createdAt: new Date().toISOString(),
+        isRead: false,
+        appointmentId: notification.appointmentId || notification.appointmentID
+      };
+      
+      setNotifications(prev => [newNotification, ...prev]);
       
       // Show browser notification if supported
       if (Notification.permission === 'granted') {
@@ -355,15 +377,14 @@ function NotificationBell() {
                               <span>{timeRemaining}</span>
                             </div>
                           )}
-                          <div className="notification-footer">
-                            
-                            {reminder.prescriptionId && (
+                          {reminder.prescriptionId && (
+                            <div className="notification-footer">
                               <span className="click-hint">
                                 <span className="material-symbols-outlined">info</span>
                                 Click for detail
                               </span>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -406,10 +427,6 @@ function NotificationBell() {
                       </div>
                       <div className="notification-content">
                         <p className="notification-message">{notification.message}</p>
-                        <span className="notification-time">
-                          <span className="material-symbols-outlined time-icon">schedule</span>
-                          {formatDate(notification.createdAt)}
-                        </span>
                       </div>
                     </div>
                   ))

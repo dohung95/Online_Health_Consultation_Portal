@@ -127,11 +127,32 @@ namespace OHCP_BK.Services
 
                 // Create message
                 var timeUntil = notification.AppointmentDateTime - DateTime.UtcNow;
-                var timeMessage = timeUntil.TotalHours < 1 
-                    ? $"in {(int)timeUntil.TotalMinutes} minutes"
-                    : timeUntil.TotalHours < 24
-                        ? $"in {(int)timeUntil.TotalHours} hours"
-                        : $"in {(int)timeUntil.TotalDays} days";
+                string timeMessage;
+                
+                if (timeUntil.TotalHours < 1)
+                {
+                    timeMessage = $"in {(int)timeUntil.TotalMinutes} minutes";
+                }
+                else if (timeUntil.TotalHours < 2)
+                {
+                    timeMessage = $"in about 1 hour";
+                }
+                else if (timeUntil.TotalHours < 24)
+                {
+                    timeMessage = $"in {(int)timeUntil.TotalHours} hours";
+                }
+                else if (timeUntil.TotalHours >= 23 && timeUntil.TotalHours <= 25)
+                {
+                    timeMessage = $"in 1 day";
+                }
+                else if (timeUntil.TotalDays < 1)
+                {
+                    timeMessage = $"today";
+                }
+                else
+                {
+                    timeMessage = $"in {(int)timeUntil.TotalDays} days";
+                }
 
                 var message = $"You have an appointment with Dr. {notification.DoctorName} " +
                              $"({notification.Specialty}) {timeMessage} at {notification.AppointmentDateTime:MMM dd, yyyy h:mm tt}.";
@@ -142,14 +163,25 @@ namespace OHCP_BK.Services
                     UserId = patientId,
                     Message = message,
                     IsRead = false,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    AppointmentId = notification.AppointmentId
                 };
 
                 context.Notifications.Add(dbNotification);
                 await context.SaveChangesAsync();
 
-                // Send realtime via SignalR
-                await _hubContext.Clients.User(patientId).SendAsync("ReceiveAppointmentNotification", notification);
+                // Send realtime via SignalR with full data including message
+                var signalRData = new
+                {
+                    appointmentId = notification.AppointmentId,
+                    doctorName = notification.DoctorName,
+                    specialty = notification.Specialty,
+                    appointmentDateTime = notification.AppointmentDateTime,
+                    location = notification.Location,
+                    message = message
+                };
+                
+                await _hubContext.Clients.User(patientId).SendAsync("ReceiveAppointmentNotification", signalRData);
                 
                 _logger.LogInformation("Appointment notification sent and saved for patient {PatientId}, appointment {AppointmentId}", 
                     patientId, notification.AppointmentId);
@@ -188,7 +220,7 @@ namespace OHCP_BK.Services
                 // Send real-time notification via SignalR
                 var notificationData = new
                 {
-                    appointmentID = appointmentId,
+                    appointmentId = appointmentId,
                     patientName = patientName,
                     appointmentTime = appointmentTime,
                     consultationType = consultationType,
@@ -229,10 +261,10 @@ namespace OHCP_BK.Services
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<OHCPContext>();
 
+            // Check if notification exists for this specific appointment
             return await context.Notifications
                 .AnyAsync(n => n.UserId == userId 
-                    && n.Message.Contains($"appointment")
-                    && n.Message.Contains("Dr."));
+                    && n.AppointmentId == appointmentId);
         }
 
         private int CalculateRemainingDays(DateTime issueDate, int totalSupplyDays)
