@@ -35,7 +35,7 @@ const MyAppointments = () => {
 
     const loadAppointments = async (fromAction = false) => {
         if (!fromAction) setActionLoading(true);
-        
+
         try {
             const data = await appointmentService.getMyAppointments();
             setAppointments(data);
@@ -51,34 +51,34 @@ const MyAppointments = () => {
     };
 
     // Hàm mở modal xác nhận
-const handleCancelClick = (id) => {
-    setPendingAppointmentId(id);
-    setShowCancelModal(true);
-};
+    const handleCancelClick = (id) => {
+        setPendingAppointmentId(id);
+        setShowCancelModal(true);
+    };
 
-// Hàm xác nhận hủy (khi nhấn Confirm trong modal)
-const handleConfirmCancel = async () => {
-    setShowCancelModal(false);
-    
-    if (!pendingAppointmentId) return;
-    
-    try {
-        await appointmentService.cancelAppointment(pendingAppointmentId, "Patient request");
-        toast.success("Appointment cancelled successfully.");
-        loadAppointments();
-    } catch (error) {
-        const msg = error.response?.data?.message || error.response?.data || "Failed to cancel.";
-        toast.error(msg);
-    } finally {
+    // Hàm xác nhận hủy (khi nhấn Confirm trong modal)
+    const handleConfirmCancel = async () => {
+        setShowCancelModal(false);
+
+        if (!pendingAppointmentId) return;
+
+        try {
+            await appointmentService.cancelAppointment(pendingAppointmentId, "Patient request");
+            toast.success("Appointment cancelled successfully.");
+            loadAppointments();
+        } catch (error) {
+            const msg = error.response?.data?.message || error.response?.data || "Failed to cancel.";
+            toast.error(msg);
+        } finally {
+            setPendingAppointmentId(null);
+        }
+    };
+
+    // Hàm đóng modal (khi nhấn Cancel trong modal)
+    const handleCloseCancelModal = () => {
+        setShowCancelModal(false);
         setPendingAppointmentId(null);
-    }
-};
-
-// Hàm đóng modal (khi nhấn Cancel trong modal)
-const handleCloseCancelModal = () => {
-    setShowCancelModal(false);
-    setPendingAppointmentId(null);
-};
+    };
 
     const handleChat = async (appointment) => {
         const isDoctor = roles && roles.some(r => String(r).trim().toLowerCase() === 'doctor');
@@ -255,13 +255,13 @@ const handleCloseCancelModal = () => {
 
                                                 {item.status === 'Scheduled' && (
                                                     <button
-    className="btn btn-sm btn-outline-danger"
-    onClick={() => handleCancelClick(item.appointmentID)}  // ← ĐỔI TÊN HÀM
-    title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Cancel appointment"}
-    disabled={new Date(item.appointmentTime) < new Date()}
->
-    Cancel
-</button>
+                                                        className="btn btn-sm btn-outline-danger"
+                                                        onClick={() => handleCancelClick(item.appointmentID)}  // ← ĐỔI TÊN HÀM
+                                                        title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Cancel appointment"}
+                                                        disabled={new Date(item.appointmentTime) < new Date()}
+                                                    >
+                                                        Cancel
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
@@ -274,16 +274,17 @@ const handleCloseCancelModal = () => {
             </div>
 
             {/* Modal xác nhận hủy lịch hẹn */}
-        <ConfirmModal
-    isOpen={showCancelModal}
-    onClose={handleCloseCancelModal}
-    onConfirm={handleConfirmCancel}
-    title="Cancel Appointment"
-    message="Are you sure you want to cancel this appointment? This action cannot be undone."
-    confirmText="Yes, Cancel"           // ← THÊM
-    cancelText="No, Keep It"            // ← THÊM
-    iconClass="bi-exclamation-triangle-fill"  // ← THÊM (icon cảnh báo)
-/>
+            <ConfirmModal
+                isOpen={showCancelModal}
+                onClose={handleCloseCancelModal}
+                onConfirm={handleConfirmCancel}
+                title="Cancel Appointment"
+                message="Are you sure you want to cancel this appointment? This action cannot be undone."
+                confirmText="Yes, Cancel"
+                cancelText="No, Keep It"
+                iconClass="bi-exclamation-triangle-fill"
+                variant="warning"
+            />
         </div>
     );
 };

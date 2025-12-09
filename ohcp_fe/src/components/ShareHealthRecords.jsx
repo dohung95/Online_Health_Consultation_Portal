@@ -4,6 +4,7 @@ import { doctorService } from '../api/doctorApi';
 import { healthRecordApi } from '../api/healthRecordApi';
 import { toast } from 'sonner';
 import Loading from './Loading'; // Import Loading component
+import ConfirmModal from './ConfirmModal';
 
 const ShareHealthRecords = () => {
     // States
@@ -12,7 +13,7 @@ const ShareHealthRecords = () => {
     const [shares, setShares] = useState([]);
     const [loading, setLoading] = useState(true); // Initial page loading
     const [dataLoading, setDataLoading] = useState(false); // Loading khi share/revoke
-    
+
     // Form states
     const [selectedDoctor, setSelectedDoctor] = useState('');
     const [selectedRecord, setSelectedRecord] = useState('');
@@ -24,6 +25,8 @@ const ShareHealthRecords = () => {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [shareAll, setShareAll] = useState(true);
     const [selectedDocuments, setSelectedDocuments] = useState([]);
+    const [showRevokeModal, setShowRevokeModal] = useState(false);
+    const [pendingShareId, setPendingShareId] = useState(null);
 
     // Initial loading effect
     useEffect(() => {
@@ -123,7 +126,7 @@ const ShareHealthRecords = () => {
 
             const shareType = shareAll ? 'Entire record' : `${selectedDocuments.length} document(s)`;
             toast.success(`Shared successfully! ${shareType} shared.`);
-            
+
             // Reset form
             setSelectedRecord('');
             setSelectedDoctor('');
@@ -133,7 +136,7 @@ const ShareHealthRecords = () => {
             setShowAdvanced(false);
             setShareAll(true);
             setSelectedDocuments([]);
-            
+
             // Reload data
             loadData();
         } catch (error) {
@@ -157,13 +160,21 @@ const ShareHealthRecords = () => {
         }
     };
 
-    const handleRevoke = async (shareId) => {
-        if (!window.confirm('Are you sure you want to revoke access to this doctor?')) {
-            return;
-        }
+    // Hàm mở modal xác nhận revoke
+    const handleRevokeClick = (shareId) => {
+        setPendingShareId(shareId);
+        setShowRevokeModal(true);
+    };
+
+    // Hàm xác nhận revoke (khi nhấn Confirm trong modal)
+    const handleConfirmRevoke = async () => {
+        setShowRevokeModal(false);
+
+        if (!pendingShareId) return;
+
         setDataLoading(true);
         try {
-            await shareApi.revokeShare(shareId);
+            await shareApi.revokeShare(pendingShareId);
             toast.success('Access revoked successfully');
             loadData();
         } catch (error) {
@@ -171,7 +182,14 @@ const ShareHealthRecords = () => {
             toast.error('Failed to revoke access');
         } finally {
             setDataLoading(false);
+            setPendingShareId(null);
         }
+    };
+
+    // Hàm đóng modal (khi nhấn Cancel trong modal)
+    const handleCloseRevokeModal = () => {
+        setShowRevokeModal(false);
+        setPendingShareId(null);
     };
 
     const filteredDoctors = doctors.filter(doc => {
@@ -613,7 +631,7 @@ const ShareHealthRecords = () => {
 
                                                         <button
                                                             className="btn btn-outline-danger btn-sm w-100 mt-2 rounded-pill"
-                                                            onClick={() => handleRevoke(share.shareID)}
+                                                            onClick={() => handleRevokeClick(share.shareID)}
                                                             disabled={dataLoading}
                                                         >
                                                             <i className="bi bi-x-circle me-1"></i> Revoke Access
@@ -629,6 +647,18 @@ const ShareHealthRecords = () => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showRevokeModal}
+                onClose={handleCloseRevokeModal}
+                onConfirm={handleConfirmRevoke}
+                title="Revoke Access"
+                message="Are you sure you want to revoke this doctor's access to your health records? They will no longer be able to view your shared information."
+                confirmText="Yes, Revoke"
+                cancelText="No, Keep Access"
+                iconClass="bi-exclamation-triangle-fill"
+                variant="danger"
+            />
         </div>
     );
 };

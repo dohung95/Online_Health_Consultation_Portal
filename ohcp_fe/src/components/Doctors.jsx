@@ -346,6 +346,9 @@ const Doctors = () => {
         onConfirm={handleConfirmLogin}
         title="Authentication Required"
         message="You need to login to book an appointment. Would you like to go to the login page?"
+        confirmText="Go to Login"
+        iconClass="bi-shield-lock-fill"
+        variant="primary"
       />
     </div>
   );
