@@ -117,7 +117,7 @@ const PatientPrescriptionView = () => {
           <div className="col-lg-4 d-flex flex-column bg-white-custom rounded-3 border border-custom">
             <div className="p-4 border-bottom border-custom">
               {/* SearchBar */}
-              <div className="input-group search-input-group mb-4">
+              <div className="input-group search-input-group">
                 <span className="input-group-text border-end-0">
                   <span className="material-symbols-outlined">search</span>
                 </span>
@@ -128,19 +128,6 @@ const PatientPrescriptionView = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-              </div>
-
-              {/* Chips */}
-              <div className="d-flex gap-2 overflow-auto">
-                {['All', 'New', 'Used', 'Expired'].map((chip) => (
-                  <div
-                    key={chip}
-                    className={`chip ${chip === activeFilter ? 'chip-active' : 'chip-inactive'}`}
-                    onClick={() => setActiveFilter(chip)}
-                  >
-                    {chip}
-                  </div>
-                ))}
               </div>
             </div>
 
