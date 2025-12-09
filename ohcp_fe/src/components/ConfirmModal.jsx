@@ -1,5 +1,14 @@
 import React from 'react';
-const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+const ConfirmModal = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message,
+  confirmText = "Confirm",      // Text nút xác nhận, mặc định "Confirm"
+  cancelText = "Cancel",         // Text nút hủy, mặc định "Cancel"
+  iconClass = "bi-shield-lock-fill"  // Icon, mặc định là khóa
+}) => {
   if (!isOpen) return null;
   // Inline Styles
   const styles = {
@@ -133,7 +142,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
         <div style={styles.container} onClick={(e) => e.stopPropagation()}>
           <div style={styles.header}>
             <div style={styles.iconContainer}>
-              <i className="bi bi-shield-lock-fill" style={styles.icon}></i>
+              <i className={`bi ${iconClass}`} style={styles.icon}></i>
             </div>
             <h3 style={styles.title}>{title}</h3>
           </div>
@@ -157,7 +166,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
                 e.target.style.boxShadow = 'none';
               }}
             >
-              <i className="bi bi-x-circle"></i> Cancel
+             <i className="bi bi-x-circle"></i> {cancelText}
             </button>
             <button 
               style={{...styles.buttonBase, ...styles.confirmButton}} 
@@ -171,7 +180,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
                 e.target.style.boxShadow = 'none';
               }}
             >
-              <i className="bi bi-box-arrow-in-right"></i> Go to Login
+              <i className="bi bi-check-circle"></i> {confirmText}
             </button>
           </div>
         </div>
