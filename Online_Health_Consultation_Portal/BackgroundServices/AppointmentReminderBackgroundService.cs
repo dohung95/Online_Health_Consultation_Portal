@@ -48,15 +48,36 @@ namespace OHCP_BK.BackgroundServices
 
             var now = DateTime.UtcNow;
 
-            // Find appointments in the next 24 hours (for 24-hour reminder)
-            var tomorrow = now.AddHours(24);
-            var upcomingAppointments24h = await context.Appointments
+            // Find appointments exactly 1 day ahead (for 1-day advance reminder)
+            var oneDayAhead = now.AddHours(24);
+            var upcomingAppointments1Day = await context.Appointments
                 .Include(a => a.Doctor)
                 .Include(a => a.Patient)
                 .Where(a => a.Status == "Scheduled" 
                     && a.AppointmentTime >= now.AddHours(23.5)
-                    && a.AppointmentTime <= tomorrow)
+                    && a.AppointmentTime <= oneDayAhead.AddHours(0.5))
                 .ToListAsync(stoppingToken);
+
+            // Find appointments happening today (same date reminder)
+            // Only send at the start of the day (between midnight and 10 AM)
+            var currentHour = DateTime.UtcNow.Hour;
+            var todayStart = DateTime.UtcNow.Date;
+            var todayEnd = todayStart.AddDays(1);
+            
+            List<OHCP_BK.Models.Appointment> appointmentsToday = new List<OHCP_BK.Models.Appointment>();
+            
+            // Only check for today's appointments during morning hours (0-10 AM)
+            if (currentHour >= 0 && currentHour < 10)
+            {
+                appointmentsToday = await context.Appointments
+                    .Include(a => a.Doctor)
+                    .Include(a => a.Patient)
+                    .Where(a => a.Status == "Scheduled" 
+                        && a.AppointmentTime >= todayStart
+                        && a.AppointmentTime < todayEnd
+                        && a.AppointmentTime > now) // Only future appointments today
+                    .ToListAsync(stoppingToken);
+            }
 
             // Find appointments in the next 30 minutes (for urgent reminder)
             var urgentTime = now.AddMinutes(30);
@@ -68,17 +89,19 @@ namespace OHCP_BK.BackgroundServices
                     && a.AppointmentTime <= urgentTime)
                 .ToListAsync(stoppingToken);
 
-            _logger.LogInformation("Found {count24h} appointments in next 24h, {count30min} in next 30 minutes",
-                upcomingAppointments24h.Count, upcomingAppointments30min.Count);
+            _logger.LogInformation("Found {count1Day} appointments in 1 day, {countToday} today, {count30min} in next 30 minutes",
+                upcomingAppointments1Day.Count, appointmentsToday.Count, upcomingAppointments30min.Count);
 
-            // Process 24-hour reminders
-            foreach (var appointment in upcomingAppointments24h)
+            // Process 1-day advance reminders
+            foreach (var appointment in upcomingAppointments1Day)
             {
                 if (stoppingToken.IsCancellationRequested) break;
 
-                var reminderExists = await notificationService.CheckIfAppointmentReminderExistsAsync(
+                var reminderExists = await CheckReminderExists(
+                    context,
                     appointment.AppointmentID,
-                    appointment.PatientID
+                    appointment.PatientID,
+                    "1 day"
                 );
 
                 if (!reminderExists)
@@ -99,7 +122,42 @@ namespace OHCP_BK.BackgroundServices
                         notification
                     );
 
-                    _logger.LogInformation("Sent 24h reminder to patient {PatientId} for appointment {AppointmentId}",
+                    _logger.LogInformation("Sent 1-day advance reminder to patient {PatientId} for appointment {AppointmentId}",
+                        appointment.PatientID, appointment.AppointmentID);
+                }
+            }
+
+            // Process same-day reminders (morning reminder for appointments today)
+            foreach (var appointment in appointmentsToday)
+            {
+                if (stoppingToken.IsCancellationRequested) break;
+
+                var reminderExists = await CheckReminderExists(
+                    context,
+                    appointment.AppointmentID,
+                    appointment.PatientID,
+                    "today"
+                );
+
+                if (!reminderExists)
+                {
+                    var notification = new AppointmentNotificationDto
+                    {
+                        AppointmentId = appointment.AppointmentID,
+                        DoctorName = appointment.Doctor.FullName,
+                        Specialty = appointment.Doctor.Specialty,
+                        AppointmentDateTime = appointment.AppointmentTime,
+                        Location = appointment.ConsultationType == "Online" 
+                            ? "Online Consultation" 
+                            : "Clinic"
+                    };
+
+                    await notificationService.SendAppointmentNotificationAsync(
+                        appointment.PatientID,
+                        notification
+                    );
+
+                    _logger.LogInformation("Sent same-day reminder to patient {PatientId} for appointment {AppointmentId}",
                         appointment.PatientID, appointment.AppointmentID);
                 }
             }
@@ -140,6 +198,22 @@ namespace OHCP_BK.BackgroundServices
             }
         }
 
+        private async Task<bool> CheckReminderExists(
+            OHCPContext context,
+            int appointmentId,
+            string patientId,
+            string reminderType)
+        {
+            // Check if a reminder of this type was already sent for this specific appointment
+            var typeKeyword = reminderType == "1 day" ? "in 1 day" : 
+                              reminderType == "today" ? "today" : "";
+
+            return await context.Notifications
+                .AnyAsync(n => n.UserId == patientId
+                    && n.AppointmentId == appointmentId
+                    && (string.IsNullOrEmpty(typeKeyword) || n.Message.Contains(typeKeyword)));
+        }
+
         private async Task<bool> CheckRecentUrgentReminder(
             OHCPContext context,
             int appointmentId,
@@ -147,9 +221,12 @@ namespace OHCP_BK.BackgroundServices
         {
             var oneHourAgo = DateTime.UtcNow.AddHours(-1);
 
+            // Check if urgent reminder (30 min) was sent for this specific appointment
             return await context.Notifications
                 .AnyAsync(n => n.UserId == patientId
-                    && n.Message.Contains("appointment")
+                    && n.AppointmentId == appointmentId
+                    && n.Message.Contains("in")
+                    && n.Message.Contains("minutes")
                     && n.CreatedAt >= oneHourAgo);
         }
     }

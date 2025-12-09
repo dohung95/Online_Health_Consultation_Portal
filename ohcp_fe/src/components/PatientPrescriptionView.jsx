@@ -13,7 +13,6 @@ const PatientPrescriptionView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('Tất cả');
 
   useEffect(() => {
     fetchPrescriptions();
@@ -21,7 +20,7 @@ const PatientPrescriptionView = () => {
 
   useEffect(() => {
     filterPrescriptions();
-  }, [prescriptions, searchQuery, activeFilter]);
+  }, [prescriptions, searchQuery]);
 
   const fetchPrescriptions = async () => {
     try {
@@ -57,11 +56,6 @@ const PatientPrescriptionView = () => {
         p.doctorName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         formatDate(p.issueDate).toLowerCase().includes(searchQuery.toLowerCase())
       );
-    }
-
-    // Filter by status
-    if (activeFilter !== 'Tất cả') {
-      filtered = filtered.filter(p => getStatus(p.issueDate) === activeFilter);
     }
 
     setFilteredPrescriptions(filtered);
