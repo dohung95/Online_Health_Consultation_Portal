@@ -23,25 +23,35 @@ const MyAppointments = () => {
         loadAppointments();
     }, []);
 
-    useEffect(() => {
-        if (!loading) {
-            loadAppointments();
-        }
-    }, [loading]);
-
-    const loadAppointments = async (fromAction = false) => {
-        if (!fromAction) setActionLoading(true);
-
+    const loadAppointments = async () => {
         try {
             setLoading(true);
             const data = await appointmentService.getMyAppointments();
-            setAppointments(data);
+            // Sắp xếp: Cuộc hẹn sắp tới (gần nhất) lên đầu
+            const sortedData = data.sort((a, b) => {
+                const now = new Date();
+                const dateA = new Date(a.appointmentTime);
+                const dateB = new Date(b.appointmentTime);
+
+                // Phân loại: sắp tới vs đã qua
+                const aIsFuture = dateA >= now;
+                const bIsFuture = dateB >= now;
+
+                // Cuộc hẹn sắp tới ưu tiên lên trước
+                if (aIsFuture && !bIsFuture) return -1;
+                if (!aIsFuture && bIsFuture) return 1;
+
+                // Cùng loại thì sắp theo thời gian
+                if (aIsFuture && bIsFuture) {
+                    return dateA - dateB;  // Gần nhất lên đầu
+                } else {
+                    return dateB - dateA;  // Mới nhất lên đầu (cho các cuộc hẹn đã qua)
+                }
+            });
+
+            setAppointments(sortedData);
         } catch (error) {
-            console.error("Error loading appointments:", error);
-            if (error.response && error.response.status === 401) {
-                toast.error("Session expired.");
-                navigate('/login');
-            }
+            navigate('/login');
         } finally {
             // Delay để hiển thị loading animation
             setTimeout(() => {
