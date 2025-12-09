@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './Css/Doctors.css';
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './ConfirmModal';
+import Loading from './Loading'; // Import Loading component
 
 const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
@@ -25,10 +26,20 @@ const Doctors = () => {
 
   const { isAuthenticated } = useAuth();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Thay đổi initial state thành true
+  const [dataLoading, setDataLoading] = useState(false); // Loading khi filter/pagination
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-const [pendingDoctorId, setPendingDoctorId] = useState(null);
+  const [pendingDoctorId, setPendingDoctorId] = useState(null);
+
+  // Initial loading effect (giống Home.jsx)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     loadSpecialties();
@@ -36,11 +47,15 @@ const [pendingDoctorId, setPendingDoctorId] = useState(null);
 
   // Load when page changes
   useEffect(() => {
-    loadDoctors();
-  }, [pagination.page]);
+    if (!loading) { // Chỉ load khi đã qua initial loading
+      loadDoctors();
+    }
+  }, [pagination.page, loading]);
 
   // Load when filters change (DEBOUNCE)
   useEffect(() => {
+    if (loading) return; // Không chạy khi đang initial loading
+
     // Timer
     const timer = setTimeout(() => {
       // Logic:
@@ -55,7 +70,7 @@ const [pendingDoctorId, setPendingDoctorId] = useState(null);
 
     // Cleanup function: clear timer
     return () => clearTimeout(timer);
-  }, [filters]); // Run again when 'filters' changes
+  }, [filters, loading]); // Run again when 'filters' changes
 
   const loadSpecialties = async () => {
     try {
@@ -69,7 +84,7 @@ const [pendingDoctorId, setPendingDoctorId] = useState(null);
   };
 
   const loadDoctors = async () => {
-    setLoading(true);
+    setDataLoading(true);
     try {
       const params = { ...filters, page: pagination.page, pageSize: pagination.pageSize };
 
@@ -98,7 +113,7 @@ const [pendingDoctorId, setPendingDoctorId] = useState(null);
       console.error("Lỗi tải danh sách:", error);
       setDoctors([]);
     }
-    setLoading(false);
+    setDataLoading(false);
   };
 
   // Handle filter change
@@ -115,24 +130,26 @@ const [pendingDoctorId, setPendingDoctorId] = useState(null);
   };
 
   // Xử lý khi click Book Now
-const handleBookNow = (doctorId) => {
-  if (!isAuthenticated) {
-    setPendingDoctorId(doctorId);
-    setShowModal(true);
-  } else {
-    navigate(`/book/${doctorId}`);
-  }
-};
-// Xử lý khi xác nhận trong modal
-const handleConfirmLogin = () => {
-  setShowModal(false);
-  navigate('/login');
-};
-// Xử lý khi hủy modal
-const handleCloseModal = () => {
-  setShowModal(false);
-  setPendingDoctorId(null);
-};
+  const handleBookNow = (doctorId) => {
+    if (!isAuthenticated) {
+      setPendingDoctorId(doctorId);
+      setShowModal(true);
+    } else {
+      navigate(`/book/${doctorId}`);
+    }
+  };
+
+  // Xử lý khi xác nhận trong modal
+  const handleConfirmLogin = () => {
+    setShowModal(false);
+    navigate('/login');
+  };
+
+  // Xử lý khi hủy modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setPendingDoctorId(null);
+  };
 
   // Helper function to render stars
   const renderStars = (rating) => {
@@ -165,6 +182,11 @@ const handleCloseModal = () => {
     }
     return rangeWithDots;
   };
+
+  // Hiển thị Loading component khi initial load (giống Home.jsx)
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className='Background_Doctors'>
@@ -223,7 +245,13 @@ const handleCloseModal = () => {
               Available Doctors <span className="text-muted fs-6">({pagination.totalItems} results)</span>
             </h3>
 
-            {loading ? <div className="text-center">Loading...</div> : (
+            {dataLoading ? (
+              <div className="text-center">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            ) : (
               <>
                 {doctors?.length === 0 ? (
                   <div className="alert alert-warning">No doctors found matching your criteria.</div>
@@ -259,11 +287,11 @@ const handleCloseModal = () => {
                               View Profile
                             </button>
                             <button
-  className="btn btn-success w-100"
-  onClick={() => handleBookNow(doc.doctorID)}
->
-  Book Now
-</button>
+                              className="btn btn-success w-100"
+                              onClick={() => handleBookNow(doc.doctorID)}
+                            >
+                              Book Now
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -318,9 +346,11 @@ const handleCloseModal = () => {
         onConfirm={handleConfirmLogin}
         title="Authentication Required"
         message="You need to login to book an appointment. Would you like to go to the login page?"
+        confirmText="Go to Login"
+        iconClass="bi-shield-lock-fill"
+        variant="primary"
       />
     </div>
-
   );
 };
 

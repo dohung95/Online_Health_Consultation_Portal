@@ -3,35 +3,52 @@ import { shareApi } from '../api/shareRecordApi';
 import { doctorService } from '../api/doctorApi';
 import { healthRecordApi } from '../api/healthRecordApi';
 import { toast } from 'sonner';
+import Loading from './Loading'; // Import Loading component
+import ConfirmModal from './ConfirmModal';
 
 const ShareHealthRecords = () => {
     // States
     const [doctors, setDoctors] = useState([]);
     const [healthRecords, setHealthRecords] = useState([]);
     const [shares, setShares] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Initial page loading
+    const [dataLoading, setDataLoading] = useState(false); // Loading khi share/revoke
+
     // Form states
     const [selectedDoctor, setSelectedDoctor] = useState('');
     const [selectedRecord, setSelectedRecord] = useState('');
     const [permissionLevel, setPermissionLevel] = useState('View');
     const [expiryDate, setExpiryDate] = useState('');
     const [searchDoctor, setSearchDoctor] = useState('');
-    const [specialtyFilter, setSpecialtyFilter] = useState(''); // Filter theo specialty
+    const [specialtyFilter, setSpecialtyFilter] = useState('');
     const [specialties, setSpecialties] = useState([]);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [shareAll, setShareAll] = useState(true);
     const [selectedDocuments, setSelectedDocuments] = useState([]);
+    const [showRevokeModal, setShowRevokeModal] = useState(false);
+    const [pendingShareId, setPendingShareId] = useState(null);
+
+    // Initial loading effect
     useEffect(() => {
-        loadData();
-        loadSpecialties();
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
     }, []);
 
+    useEffect(() => {
+        if (!loading) {
+            loadData();
+            loadSpecialties();
+        }
+    }, [loading]);
+
     const loadData = async () => {
-        setLoading(true);
+        setDataLoading(true);
         try {
-            // Load tuần tự để tránh race condition
             const doctorsData = await doctorService.getAllDoctors();
-            setDoctors(doctorsData || []); // Set ngay để UI update sớm
+            setDoctors(doctorsData || []);
 
             const recordsData = await healthRecordApi.getMyRecords();
             setHealthRecords(recordsData || []);
@@ -42,7 +59,7 @@ const ShareHealthRecords = () => {
             console.error("❌ Error loading data:", error);
             toast.error(`Failed to load data: ${error.response?.data?.message || error.message}`);
         } finally {
-            setLoading(false);
+            setDataLoading(false);
         }
     };
 
@@ -61,15 +78,15 @@ const ShareHealthRecords = () => {
         const record = healthRecords.find(r => r.healthRecordID === parseInt(selectedRecord));
         return record?.documents || [];
     };
-    // Handle "Select All" toggle
+
     const handleShareAllToggle = (e) => {
         const checked = e.target.checked;
         setShareAll(checked);
         if (checked) {
-            setSelectedDocuments([]);  // Clear individual selections
+            setSelectedDocuments([]);
         }
     };
-    // Handle individual document checkbox
+
     const handleDocumentToggle = (e) => {
         const documentId = parseInt(e.target.value);
         const checked = e.target.checked;
@@ -80,21 +97,22 @@ const ShareHealthRecords = () => {
             setSelectedDocuments(prev => prev.filter(id => id !== documentId));
         }
     };
-    // Reset advanced panel when record changes
+
     const handleRecordChange = (e) => {
         setSelectedRecord(e.target.value);
-        setShowAdvanced(false);  // Collapse panel
-        setShareAll(true);       // Reset to share all
-        setSelectedDocuments([]); // Clear selections
+        setShowAdvanced(false);
+        setShareAll(true);
+        setSelectedDocuments([]);
     };
 
     const handleShare = async (e) => {
         e.preventDefault();
-        // VALIDATION: If advanced mode + no docs selected
         if (!shareAll && selectedDocuments.length === 0) {
             toast.warning('Please select at least one document to share, or check "Select All"');
             return;
         }
+
+        setDataLoading(true);
         try {
             const data = {
                 healthRecordID: parseInt(selectedRecord),
@@ -103,11 +121,12 @@ const ShareHealthRecords = () => {
                 permissionLevel,
                 expiryDate: expiryDate || null,
                 shareMedicalHistory: true
-            }; 
+            };
             await shareApi.shareWithDoctor(data);
 
             const shareType = shareAll ? 'Entire record' : `${selectedDocuments.length} document(s)`;
             toast.success(`Shared successfully! ${shareType} shared.`);
+
             // Reset form
             setSelectedRecord('');
             setSelectedDoctor('');
@@ -117,54 +136,68 @@ const ShareHealthRecords = () => {
             setShowAdvanced(false);
             setShareAll(true);
             setSelectedDocuments([]);
+
             // Reload data
             loadData();
         } catch (error) {
-    console.error('Share error:', error);
-    let errorMessage = 'Unknown error occurred';
-    
-    if (error.response && error.response.data) {
-        if (typeof error.response.data === 'string') {
-            errorMessage = error.response.data;
-        } else if (error.response.data.message) {
-            errorMessage = error.response.data.message;
-        } else {
-            errorMessage = JSON.stringify(error.response.data);
+            console.error('Share error:', error);
+            let errorMessage = 'Unknown error occurred';
+
+            if (error.response && error.response.data) {
+                if (typeof error.response.data === 'string') {
+                    errorMessage = error.response.data;
+                } else if (error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                } else {
+                    errorMessage = JSON.stringify(error.response.data);
+                }
+            } else {
+                errorMessage = error.message;
+            }
+            toast.error(`Failed to share: ${errorMessage}`);
+        } finally {
+            setDataLoading(false);
         }
-    } else {
-        errorMessage = error.message;
-    }
-    toast.error(`Failed to share: ${errorMessage}`);
-}
     };
 
-    const handleRevoke = async (shareId) => {
-        if (!window.confirm('Are you sure you want to revoke access to this doctor?')) {
-            return;
-        }
+    // Hàm mở modal xác nhận revoke
+    const handleRevokeClick = (shareId) => {
+        setPendingShareId(shareId);
+        setShowRevokeModal(true);
+    };
+
+    // Hàm xác nhận revoke (khi nhấn Confirm trong modal)
+    const handleConfirmRevoke = async () => {
+        setShowRevokeModal(false);
+
+        if (!pendingShareId) return;
+
+        setDataLoading(true);
         try {
-            await shareApi.revokeShare(shareId);
+            await shareApi.revokeShare(pendingShareId);
             toast.success('Access revoked successfully');
             loadData();
         } catch (error) {
             console.error(error);
             toast.error('Failed to revoke access');
+        } finally {
+            setDataLoading(false);
+            setPendingShareId(null);
         }
     };
 
+    // Hàm đóng modal (khi nhấn Cancel trong modal)
+    const handleCloseRevokeModal = () => {
+        setShowRevokeModal(false);
+        setPendingShareId(null);
+    };
+
     const filteredDoctors = doctors.filter(doc => {
-        // Filter 1: Search theo tên bác sĩ
         const matchesName = doc.fullName?.toLowerCase().includes(searchDoctor.toLowerCase());
-
-        // Filter 2: Filter theo specialty (nếu có chọn)
-        const matchesSpecialty = specialtyFilter === '' ||
-            doc.specialty === specialtyFilter;
-
-        // Kết hợp cả 2 điều kiện (AND)
+        const matchesSpecialty = specialtyFilter === '' || doc.specialty === specialtyFilter;
         return matchesName && matchesSpecialty;
     });
 
-    // Group records by exact date
     const groupRecordsByDate = (records) => {
         const groups = {};
         records.forEach(record => {
@@ -175,19 +208,16 @@ const ShareHealthRecords = () => {
             groups[dateKey].push(record);
         });
 
-        // Convert to array and sort by date (newest first)
         return Object.entries(groups)
             .sort((a, b) => new Date(b[0]) - new Date(a[0]))
             .map(([date, records]) => ({ date, records }));
     };
 
+    // Hiển thị Loading component khi initial load
     if (loading) {
-        return (
-            <div className="text-center mt-5">
-                <div className="spinner-border" role="status"></div>
-            </div>
-        );
+        return <Loading />;
     }
+
     return (
         <div className="Background_Doctors">
             <style>{`
@@ -209,6 +239,29 @@ const ShareHealthRecords = () => {
                         Securely share your medical history with trusted healthcare professionals. You retain full control over your data.
                     </p>
                 </div>
+
+                {/* Loading overlay khi đang share/revoke */}
+                {dataLoading && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999
+                    }}>
+                        <div className="text-center">
+                            <div className="spinner-border text-light" style={{ width: '3rem', height: '3rem' }} role="status">
+                                <span className="visually-hidden">Loading...</span>
+                            </div>
+                            <p className="text-white mt-3">Processing...</p>
+                        </div>
+                    </div>
+                )}
 
                 <div className="row g-4">
                     {/* --- LEFT COLUMN: SHARE FORM --- */}
@@ -243,20 +296,17 @@ const ShareHealthRecords = () => {
                                                 ) : (
                                                     groupRecordsByDate(healthRecords).map((group, groupIdx) => (
                                                         <div key={groupIdx} className="mb-3">
-                                                            {/* Date Header */}
                                                             <div className="d-flex align-items-center mb-2">
                                                                 <i className="bi bi-calendar3 text-primary me-2"></i>
                                                                 <span className="fw-bold text-dark small">{group.date}</span>
                                                                 <span className="badge bg-secondary ms-2">{group.records.length}</span>
                                                             </div>
 
-                                                            {/* Records for this date */}
                                                             {group.records.map(record => (
                                                                 <label
                                                                     key={record.healthRecordID}
                                                                     className="d-block mb-2 cursor-pointer"
                                                                     onClick={(e) => {
-                                                                        // ✅ Cho phép click lại để deselect
                                                                         if (selectedRecord === record.healthRecordID.toString()) {
                                                                             e.preventDefault();
                                                                             setSelectedRecord('');
@@ -294,15 +344,12 @@ const ShareHealthRecords = () => {
                                                                 </label>
                                                             ))}
 
-                                                            {/* Separator */}
                                                             {groupIdx < groupRecordsByDate(healthRecords).length - 1 && (
                                                                 <hr className="my-2" />
                                                             )}
                                                         </div>
                                                     ))
                                                 )}
-
-
                                             </div>
                                         </div>
                                         {healthRecords.length === 0 && (
@@ -361,15 +408,12 @@ const ShareHealthRecords = () => {
                                                                     <div className={`p-2 rounded border d-flex align-items-center ${shareAll ? 'bg-light text-muted' : 'hover-lift'}`}>
                                                                         <i className="bi bi-file-earmark-text text-secondary me-2 fs-5"></i>
                                                                         <div className="small lh-sm flex-grow-1">
-                                                                            {/* Title: Category + Type */}
                                                                             <div className="fw-bold d-flex align-items-center">
                                                                                 <span className="badge bg-info bg-opacity-10 text-info me-2 fw-normal" style={{ fontSize: '0.7rem' }}>
                                                                                     {doc.category || 'General'}
                                                                                 </span>
                                                                                 {doc.documentType || 'Document'}
                                                                             </div>
-
-                                                                            {/* Details: Date + Filename */}
                                                                             <div className="text-muted" style={{ fontSize: '0.72rem' }}>
                                                                                 <i className="bi bi-calendar3 me-1"></i>
                                                                                 {doc.documentDate ? new Date(doc.documentDate).toLocaleDateString() : 'No date'}
@@ -378,8 +422,6 @@ const ShareHealthRecords = () => {
                                                                                 {doc.fileName}
                                                                             </div>
                                                                         </div>
-
-                                                                        {/* Checkmark when selected */}
                                                                         {!shareAll && selectedDocuments.includes(doc.documentID) && (
                                                                             <i className="bi bi-check-circle-fill text-primary ms-2"></i>
                                                                         )}
@@ -392,7 +434,6 @@ const ShareHealthRecords = () => {
                                                     </div>
                                                 </div>
                                             )}
-                                            {/* Warning when nothing selected */}
                                             {!shareAll && selectedDocuments.length === 0 && showAdvanced && (
                                                 <div className="text-danger small mt-2">
                                                     <i className="bi bi-exclamation-triangle me-1"></i> Please select at least one document.
@@ -407,7 +448,6 @@ const ShareHealthRecords = () => {
                                             <i className="bi bi-2-circle-fill me-2"></i>Find a Doctor
                                         </label>
 
-                                        {/* Filter Tools Row */}
                                         <div className="row g-2 mb-2">
                                             <div className="col-md-6">
                                                 <div className="input-group">
@@ -439,7 +479,6 @@ const ShareHealthRecords = () => {
                                             </div>
                                         </div>
 
-                                        {/* Clear Filter Button */}
                                         {(searchDoctor || specialtyFilter) && (
                                             <div className="d-flex justify-content-end mb-2">
                                                 <button
@@ -452,7 +491,6 @@ const ShareHealthRecords = () => {
                                             </div>
                                         )}
 
-                                        {/* Doctor List */}
                                         <div className="border rounded-3 p-3 bg-light" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                                             {filteredDoctors.length === 0 ? (
                                                 <p className="text-muted text-center mb-0">No doctors match your filters</p>
@@ -475,7 +513,6 @@ const ShareHealthRecords = () => {
                                                             ? 'border-primary bg-primary bg-opacity-10 shadow-sm'
                                                             : 'border bg-white hover-lift'
                                                             }`}>
-                                                            {/* Avatar */}
                                                             <div className={`rounded-circle me-3 d-flex align-items-center justify-content-center fw-bold ${selectedDoctor === doc.doctorID.toString()
                                                                 ? 'bg-primary text-white'
                                                                 : 'bg-secondary bg-opacity-10 text-secondary'
@@ -483,13 +520,11 @@ const ShareHealthRecords = () => {
                                                                 {doc.fullName?.charAt(0) || 'D'}
                                                             </div>
 
-                                                            {/* Info */}
                                                             <div className="flex-grow-1">
                                                                 <div className="fw-bold text-dark">{doc.fullName}</div>
                                                                 <small className="text-muted">{doc.specialization}</small>
                                                             </div>
 
-                                                            {/* Check Icon */}
                                                             {selectedDoctor === doc.doctorID.toString() && (
                                                                 <i className="bi bi-check-circle-fill text-primary fs-5"></i>
                                                             )}
@@ -520,7 +555,7 @@ const ShareHealthRecords = () => {
                                     <button
                                         type="submit"
                                         className="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm hover-lift"
-                                        disabled={!selectedRecord || !selectedDoctor || (!shareAll && selectedDocuments.length === 0)}
+                                        disabled={!selectedRecord || !selectedDoctor || (!shareAll && selectedDocuments.length === 0) || dataLoading}
                                     >
                                         <i className="bi bi-share-fill me-2"></i>
                                         {shareAll ? 'Share Entire Record' : `Share ${selectedDocuments.length} Selected Document(s)`}
@@ -558,7 +593,6 @@ const ShareHealthRecords = () => {
                                         {shares.map(share => (
                                             <div key={share.shareID} className="list-group-item p-3 hover-lift border-bottom">
                                                 <div className="d-flex align-items-start">
-                                                    {/* Avatar Placeholder */}
                                                     <div className="avatar-circle bg-primary text-white flex-shrink-0 me-3 shadow-sm">
                                                         {share.doctorName?.charAt(0) || 'D'}
                                                     </div>
@@ -597,7 +631,8 @@ const ShareHealthRecords = () => {
 
                                                         <button
                                                             className="btn btn-outline-danger btn-sm w-100 mt-2 rounded-pill"
-                                                            onClick={() => handleRevoke(share.shareID)}
+                                                            onClick={() => handleRevokeClick(share.shareID)}
+                                                            disabled={dataLoading}
                                                         >
                                                             <i className="bi bi-x-circle me-1"></i> Revoke Access
                                                         </button>
@@ -612,8 +647,20 @@ const ShareHealthRecords = () => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showRevokeModal}
+                onClose={handleCloseRevokeModal}
+                onConfirm={handleConfirmRevoke}
+                title="Revoke Access"
+                message="Are you sure you want to revoke this doctor's access to your health records? They will no longer be able to view your shared information."
+                confirmText="Yes, Revoke"
+                cancelText="No, Keep Access"
+                iconClass="bi-exclamation-triangle-fill"
+                variant="danger"
+            />
         </div>
-        // </div>
     );
 };
+
 export default ShareHealthRecords;

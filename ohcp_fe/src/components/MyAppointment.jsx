@@ -6,13 +6,18 @@ import { useChat } from '../context/ChatContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { toast } from 'sonner';
+import ConfirmModal from './ConfirmModal';
+import Loading from './Loading';
 
 const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
     const navigate = useNavigate();
     const { roles, initiateCall } = useAuth();
     const { openChatWith } = useChat();
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [pendingAppointmentId, setPendingAppointmentId] = useState(null);
 
     useEffect(() => {
         loadAppointments();
@@ -20,31 +25,69 @@ const MyAppointments = () => {
 
     const loadAppointments = async () => {
         try {
+            setLoading(true);
             const data = await appointmentService.getMyAppointments();
-            setAppointments(data);
+            // Sắp xếp: Cuộc hẹn sắp tới (gần nhất) lên đầu
+            const sortedData = data.sort((a, b) => {
+                const now = new Date();
+                const dateA = new Date(a.appointmentTime);
+                const dateB = new Date(b.appointmentTime);
+
+                // Phân loại: sắp tới vs đã qua
+                const aIsFuture = dateA >= now;
+                const bIsFuture = dateB >= now;
+
+                // Cuộc hẹn sắp tới ưu tiên lên trước
+                if (aIsFuture && !bIsFuture) return -1;
+                if (!aIsFuture && bIsFuture) return 1;
+
+                // Cùng loại thì sắp theo thời gian
+                if (aIsFuture && bIsFuture) {
+                    return dateA - dateB;  // Gần nhất lên đầu
+                } else {
+                    return dateB - dateA;  // Mới nhất lên đầu (cho các cuộc hẹn đã qua)
+                }
+            });
+
+            setAppointments(sortedData);
         } catch (error) {
-            console.error("Error loading appointments:", error);
-            if (error.response && error.response.status === 401) {
-                toast.error("Session expired.");
-                navigate('/login');
-            }
+            navigate('/login');
         } finally {
-            setLoading(false);
+            // Delay để hiển thị loading animation
+            setTimeout(() => {
+                setLoading(false);
+            }, 800);
         }
     };
 
-    const handleCancel = async (id) => {
-        const confirm = window.confirm("Are you sure you want to cancel this appointment?");
-        if (!confirm) return;
+    // Hàm mở modal xác nhận
+    const handleCancelClick = (id) => {
+        setPendingAppointmentId(id);
+        setShowCancelModal(true);
+    };
+
+    // Hàm xác nhận hủy (khi nhấn Confirm trong modal)
+    const handleConfirmCancel = async () => {
+        setShowCancelModal(false);
+
+        if (!pendingAppointmentId) return;
 
         try {
-            await appointmentService.cancelAppointment(id, "Patient request");
+            await appointmentService.cancelAppointment(pendingAppointmentId, "Patient request");
             toast.success("Appointment cancelled successfully.");
             loadAppointments();
         } catch (error) {
             const msg = error.response?.data?.message || error.response?.data || "Failed to cancel.";
             toast.error(msg);
+        } finally {
+            setPendingAppointmentId(null);
         }
+    };
+
+    // Hàm đóng modal (khi nhấn Cancel trong modal)
+    const handleCloseCancelModal = () => {
+        setShowCancelModal(false);
+        setPendingAppointmentId(null);
     };
 
     const handleChat = async (appointment) => {
@@ -57,25 +100,17 @@ const MyAppointments = () => {
             return;
         }
 
-        // Firebase ID conversion depends on whether database ID has dashes or not:
-        // - IDs with dashes (e.g., patient): Remove last 4 chars, then remove dashes
-        //   Example: "1a8391a9-3d5f-4a22-ae74-ff2fe7d0a501" -> "1a8391a9-3d5f-4a22-ae74-ff2fe7d0" -> "1a8391a93d5f4a22ae74ff2fe7d0"
-        // - IDs without dashes (e.g., doctor): Remove last 5 chars directly
-        //   Example: "7ecdab692c6540869f9a0cde9c7027" -> "7ecdab692c6540869f9a0cde9c7"
-
         let firebaseID;
         if (partnerID.includes('-')) {
-            // Has dashes: CHỈ remove last 4 chars, GIỮ NGUYÊN dấu gạch ngang
             firebaseID = partnerID.substring(0, partnerID.length - 4);
         } else {
-            // No dashes: remove last 5 chars directly
             firebaseID = partnerID.substring(0, partnerID.length - 5);
         }
 
+        setActionLoading(true);
         try {
             const usersRef = collection(db, "users");
 
-            // Try as document ID first
             let q = query(usersRef, where("__name__", "==", firebaseID));
             let querySnapshot = await getDocs(q);
 
@@ -85,7 +120,6 @@ const MyAppointments = () => {
                 return;
             }
 
-            // Try as uid field
             q = query(usersRef, where("uid", "==", firebaseID));
             querySnapshot = await getDocs(q);
 
@@ -100,46 +134,29 @@ const MyAppointments = () => {
         } catch (error) {
             console.error("[Chat] Error:", error);
             toast.error("Error initiating chat.");
+        } finally {
+            setActionLoading(false);
         }
     };
 
     const handleVideoCall = async (appointment) => {
         try {
-            // Lấy thông tin từ appointment
             const patientID = appointment.patientID;
             const doctorID = appointment.doctorID;
             const patientName = appointment.patient?.fullName || "Patient";
             const doctorName = appointment.doctor?.fullName || "Doctor";
 
-            // Kiểm tra xem user hiện tại là ai
             const isDoctor = roles && roles.some(r => String(r).trim().toLowerCase() === 'doctor');
 
-            // Xác định target user (người được gọi)
             const targetUserId = isDoctor ? patientID : doctorID;
             const targetUserName = isDoctor ? patientName : doctorName;
 
-            // Tạo Room ID bằng cách trộn DoctorID + PatientID và lấy 40 ký tự
-            // const combinedId = doctorID + patientID;
-            // const roomId = combinedId.substring(0, 40);
-
-            // Tạo Room ID ngẫu nhiên 45 ký tự
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let roomId = '';
             for (let i = 0; i < 45; i++) {
                 roomId += characters.charAt(Math.floor(Math.random() * characters.length));
             }
 
-            // console.log('Video Call Info:', {
-            //     patientID,
-            //     doctorID,
-            //     patientName,
-            //     doctorName,
-            //     roomId,
-            //     targetUserId,
-            //     targetUserName
-            // });
-
-            // Gọi hàm initiateCall với thông tin đầy đủ
             initiateCall(targetUserId, roomId, targetUserName);
 
         } catch (error) {
@@ -157,7 +174,10 @@ const MyAppointments = () => {
         }
     };
 
-    if (loading) return <div className="container mt-4">Loading...</div>;
+    // Hiển thị Loading component khi đang load hoặc đang cancel
+    if (loading || actionLoading) {
+        return <Loading />;
+    }
 
     return (
         <div className='Background_Doctors'>
@@ -235,7 +255,7 @@ const MyAppointments = () => {
                                                 {item.consultationType === 'Video Call' && item.status === 'Scheduled' && (
                                                     <button
                                                         className="btn btn-sm btn-success"
-                                                        onClick={() => handleVideoCall(item)}  // ← Truyền cả object "item"
+                                                        onClick={() => handleVideoCall(item)}
                                                         title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Start video call"}
                                                         disabled={new Date(item.appointmentTime) < new Date()}
                                                     >
@@ -247,7 +267,7 @@ const MyAppointments = () => {
                                                 {item.status === 'Scheduled' && (
                                                     <button
                                                         className="btn btn-sm btn-outline-danger"
-                                                        onClick={() => handleCancel(item.appointmentID)}
+                                                        onClick={() => handleCancelClick(item.appointmentID)}  // ← ĐỔI TÊN HÀM
                                                         title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Cancel appointment"}
                                                         disabled={new Date(item.appointmentTime) < new Date()}
                                                     >
@@ -263,6 +283,19 @@ const MyAppointments = () => {
                     </div>
                 )}
             </div>
+
+            {/* Modal xác nhận hủy lịch hẹn */}
+            <ConfirmModal
+                isOpen={showCancelModal}
+                onClose={handleCloseCancelModal}
+                onConfirm={handleConfirmCancel}
+                title="Cancel Appointment"
+                message="Are you sure you want to cancel this appointment? This action cannot be undone."
+                confirmText="Yes, Cancel"
+                cancelText="No, Keep It"
+                iconClass="bi-exclamation-triangle-fill"
+                variant="warning"
+            />
         </div>
     );
 };

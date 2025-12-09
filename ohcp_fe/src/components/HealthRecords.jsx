@@ -4,6 +4,7 @@ import DocumentViewerModal from './DocumentViewerModal';
 import { appointmentService } from '../api/appointmentApi';
 import "../components/Css/HealthRecords.css"
 import { toast } from 'sonner';
+import Loading from './Loading';
 
 const HealthRecords = () => {
     // State for Documents
@@ -14,6 +15,7 @@ const HealthRecords = () => {
     const timelineRef = useRef(null);
 
     // State for Medical History
+    const [loading, setLoading] = useState(true);
     const [history, setHistory] = useState("");
     const [medicalHistory, setMedicalHistory] = useState(null);
     const [loadingHistory, setLoadingHistory] = useState(false);
@@ -39,8 +41,17 @@ const HealthRecords = () => {
     const [showViewer, setShowViewer] = useState(false);
 
     useEffect(() => {
-        loadData();
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
     }, []);
+    useEffect(() => {
+        if (!loading) {
+            loadData();
+        }
+    }, [loading]);
 
     const loadData = async () => {
         setLoadingDocs(true);
@@ -248,7 +259,9 @@ const HealthRecords = () => {
             [appointmentID]: !prev[appointmentID]
         }));
     };
-
+    if (loading) {
+        return <Loading />;
+    }
     return (
         <div className='Background_Doctors'>
             <style>
@@ -492,11 +505,11 @@ const HealthRecords = () => {
                                                 <i className="bi bi-chevron-left me-1"></i>
                                                 Previous
                                             </button>
-                                            
+
                                             <span className="text-muted small">
                                                 Page <strong>{currentPage}</strong> of <strong>{Math.ceil((medicalHistory?.appointments?.length || 0) / itemsPerPage)}</strong>
                                             </span>
-                                            
+
                                             <button
                                                 className="btn btn-outline-primary btn-sm px-3"
                                                 onClick={() => {
