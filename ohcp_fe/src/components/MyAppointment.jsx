@@ -6,17 +6,16 @@ import { useChat } from '../context/ChatContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { toast } from 'sonner';
-import Loading from './Loading'; // Import Loading component
+import Loading from './Loading';
 
 const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
-    const [loading, setLoading] = useState(true); // Initial page loading
-    const [actionLoading, setActionLoading] = useState(false); // Loading khi cancel/chat/call
+    const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
     const navigate = useNavigate();
     const { roles, initiateCall } = useAuth();
     const { openChatWith } = useChat();
 
-    // Initial loading effect
     useEffect(() => {
         const timer = setTimeout(() => {
             setLoading(false);
@@ -31,8 +30,9 @@ const MyAppointments = () => {
         }
     }, [loading]);
 
-    const loadAppointments = async () => {
-        setActionLoading(true);
+    const loadAppointments = async (fromAction = false) => {
+        if (!fromAction) setActionLoading(true);
+        
         try {
             const data = await appointmentService.getMyAppointments();
             setAppointments(data);
@@ -43,7 +43,7 @@ const MyAppointments = () => {
                 navigate('/login');
             }
         } finally {
-            setActionLoading(false);
+            if (!fromAction) setActionLoading(false);
         }
     };
 
@@ -54,10 +54,19 @@ const MyAppointments = () => {
         setActionLoading(true);
         try {
             await appointmentService.cancelAppointment(id, "Patient request");
+            await loadAppointments(true);
+            
+            // Delay để hiển thị loading animation
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
             toast.success("Appointment cancelled successfully.");
-            loadAppointments();
         } catch (error) {
             const msg = error.response?.data?.message || error.response?.data || "Failed to cancel.";
+            
+            // Delay để hiển thị loading animation ngay cả khi lỗi
+            await loadAppointments(true);
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
             toast.error(msg);
         } finally {
             setActionLoading(false);
@@ -148,37 +157,13 @@ const MyAppointments = () => {
         }
     };
 
-    // Hiển thị Loading component khi initial load
-    if (loading) {
+    if (loading || actionLoading) {
         return <Loading />;
     }
 
     return (
         <div className='Background_Doctors'>
             <div className="container mt-5">
-                {/* Loading overlay khi đang thực hiện action */}
-                {actionLoading && (
-                    <div style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 9999
-                    }}>
-                        <div className="text-center">
-                            <div className="spinner-border text-light" style={{ width: '3rem', height: '3rem' }} role="status">
-                                <span className="visually-hidden">Loading...</span>
-                            </div>
-                            <p className="text-white mt-3">Processing...</p>
-                        </div>
-                    </div>
-                )}
-
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h2>My Appointments</h2>
                     <button className="btn btn-primary" onClick={() => navigate('/schedule')}>
