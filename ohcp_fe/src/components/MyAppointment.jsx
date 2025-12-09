@@ -20,11 +20,7 @@ const MyAppointments = () => {
     const [pendingAppointmentId, setPendingAppointmentId] = useState(null);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1000);
-
-        return () => clearTimeout(timer);
+        loadAppointments();
     }, []);
 
     useEffect(() => {
@@ -37,6 +33,7 @@ const MyAppointments = () => {
         if (!fromAction) setActionLoading(true);
 
         try {
+            setLoading(true);
             const data = await appointmentService.getMyAppointments();
             setAppointments(data);
         } catch (error) {
@@ -46,7 +43,10 @@ const MyAppointments = () => {
                 navigate('/login');
             }
         } finally {
-            if (!fromAction) setActionLoading(false);
+            // Delay để hiển thị loading animation
+            setTimeout(() => {
+                setLoading(false);
+            }, 800);
         }
     };
 
@@ -164,6 +164,7 @@ const MyAppointments = () => {
         }
     };
 
+    // Hiển thị Loading component khi đang load hoặc đang cancel
     if (loading || actionLoading) {
         return <Loading />;
     }
