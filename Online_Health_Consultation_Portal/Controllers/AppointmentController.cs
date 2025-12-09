@@ -135,6 +135,125 @@ namespace OHCP_BK.Controllers
             }
         }
 
+        // GET: api/Appointment/patient/{patientId}/medical-history
+        [HttpGet("patient/{patientId}/medical-history")]
+        [Authorize(Roles = "doctor,admin")]
+        public async Task<ActionResult<MedicalHistoryDTO>> GetPatientMedicalHistory(string patientId)
+        {
+            try
+            {
+                // Get info patient
+                var patient = await _context.Patients
+                    .FirstOrDefaultAsync(p => p.PatientID == patientId);
+                if (patient == null)
+                {
+                    return NotFound(new { message = "Patient not found" });
+                }
+                
+                // Get all appointments for this patient
+                var appointments = await _context.Appointments
+                    .Include(a => a.Doctor)
+                    .Include(a => a.Consultation)
+                    .Include(a => a.Invoice)
+                    .Where(a => a.PatientID == patientId)
+                    .OrderByDescending(a => a.AppointmentTime)
+                    .ToListAsync();
+                
+                // Get all prescriptions
+                var appointmentIds = appointments.Select(a => a.AppointmentID).ToList();
+                var prescriptions = await _context.PrescriptionHeaders
+                    .Include(ph => ph.PrescriptionItems)
+                    .Where(ph => appointmentIds.Contains(ph.AppointmentID))
+                    .ToListAsync();
+                
+                // Map to DTO
+                var appointmentHistories = appointments.Select(a =>
+                {
+                    var prescription = prescriptions.FirstOrDefault(p => p.AppointmentID == a.AppointmentID);
+
+                    return new AppointmentHistoryDTO
+                    {
+                        AppointmentID = a.AppointmentID,
+                        AppointmentTime = a.AppointmentTime,
+                        ConsultationType = a.ConsultationType,
+                        Status = a.Status,
+                        DoctorID = a.DoctorID,
+                        DoctorName = a.Doctor?.FullName ?? "Unknown",
+                        DoctorSpecialty = a.Doctor?.Specialty ?? "N/A",
+
+                        Consultation = a.Consultation != null ? new ConsultationDetailsDTO
+                        {
+                            ConsultationID = a.Consultation.ConsultationID,
+                            StartTime = a.Consultation.StartTime,
+                            EndTime = a.Consultation.EndTime,
+                            DoctorNotes = a.Consultation.DoctorNotes,
+                            Diagnosis = a.Consultation.Diagnosis,
+                            FollowUpDate = a.Consultation.FollowUpDate
+                        } : null,
+
+                        Prescription = prescription != null ? new PrescriptionSummaryDTO
+                        {
+                            PrescriptionHeaderID = prescription.PrescriptionHeaderID,
+                            IssueDate = prescription.IssueDate,
+                            MedicationCount = prescription.PrescriptionItems.Count,
+                            MedicationNames = prescription.PrescriptionItems
+                                .Select(pi => pi.MedicationName)
+                                .ToList(),
+                            Medications = prescription.PrescriptionItems
+                                .Select(pi => new MedicationItemDTO
+                                {
+                                    MedicationName = pi.MedicationName,
+                                    Dosage = pi.Dosage,
+                                    Instructions = pi.Instructions,
+                                    TotalSupplyDays = pi.TotalSupplyDays
+                                })
+                                .ToList()
+                        } : null,
+
+                        Invoice = a.Invoice != null ? new InvoiceSummaryDTO
+                        {
+                            InvoiceID = a.Invoice.InvoiceID,
+                            TotalAmount = a.Invoice.Amount,
+                            PaymentStatus = a.Invoice.Status,
+                            PaymentDate = a.Invoice.IssueDate
+                        } : null
+                    };
+                }).ToList();
+                
+                // Calculate doctor visit summary
+                var doctorVisits = appointments
+                    .Where(a => a.Doctor != null && a.Status == "Completed")
+                    .GroupBy(a => new { a.DoctorID, a.Doctor!.FullName, a.Doctor.Specialty })
+                    .Select(g => new DoctorVisitSummaryDTO
+                    {
+                        DoctorID = g.Key.DoctorID,
+                        DoctorName = g.Key.FullName,
+                        DoctorSpecialty = g.Key.Specialty,
+                        VisitCount = g.Count(),
+                        LastVisit = g.Max(a => a.AppointmentTime),
+                        FirstVisit = g.Min(a => a.AppointmentTime)
+                    })
+                    .OrderByDescending(d => d.VisitCount)
+                    .ToList();
+                
+                var result = new MedicalHistoryDTO
+                {
+                    PatientID = patientId,
+                    PatientName = patient.FullName,
+                    TotalAppointments = appointments.Count,
+                    Appointments = appointmentHistories,
+                    DoctorVisits = doctorVisits
+                };
+                
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting patient medical history");
+                return StatusCode(500, new { message = "Error retrieving patient medical history", detail = ex.Message });
+            }
+        }
+
         // GET: api/Appointment/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Appointment>> GetAppointment(int id)
@@ -636,125 +755,6 @@ namespace OHCP_BK.Controllers
             {
                 _logger.LogError(ex, "Error getting medical history");
                 return StatusCode(500, new { message = "Error retrieving medical history", detail = ex.Message });
-            }
-        }
-
-        // GET: api/Appointment/patient/{patientId}/medical-history
-        [HttpGet("patient/{patientId}/medical-history")]
-        [Authorize(Roles = "doctor,admin")]
-        public async Task<ActionResult<MedicalHistoryDTO>> GetPatientMedicalHistory(string patientId)
-        {
-            try
-            {
-                // Get info patient
-                var patient = await _context.Patients
-                    .FirstOrDefaultAsync(p => p.PatientID == patientId);
-                if (patient == null)
-                {
-                    return NotFound(new { message = "Patient not found" });
-                }
-                
-                // Get all appointments for this patient
-                var appointments = await _context.Appointments
-                    .Include(a => a.Doctor)
-                    .Include(a => a.Consultation)
-                    .Include(a => a.Invoice)
-                    .Where(a => a.PatientID == patientId)
-                    .OrderByDescending(a => a.AppointmentTime)
-                    .ToListAsync();
-                
-                // Get all prescriptions
-                var appointmentIds = appointments.Select(a => a.AppointmentID).ToList();
-                var prescriptions = await _context.PrescriptionHeaders
-                    .Include(ph => ph.PrescriptionItems)
-                    .Where(ph => appointmentIds.Contains(ph.AppointmentID))
-                    .ToListAsync();
-                
-                // Map to DTO
-                var appointmentHistories = appointments.Select(a =>
-                {
-                    var prescription = prescriptions.FirstOrDefault(p => p.AppointmentID == a.AppointmentID);
-
-                    return new AppointmentHistoryDTO
-                    {
-                        AppointmentID = a.AppointmentID,
-                        AppointmentTime = a.AppointmentTime,
-                        ConsultationType = a.ConsultationType,
-                        Status = a.Status,
-                        DoctorID = a.DoctorID,
-                        DoctorName = a.Doctor?.FullName ?? "Unknown",
-                        DoctorSpecialty = a.Doctor?.Specialty ?? "N/A",
-
-                        Consultation = a.Consultation != null ? new ConsultationDetailsDTO
-                        {
-                            ConsultationID = a.Consultation.ConsultationID,
-                            StartTime = a.Consultation.StartTime,
-                            EndTime = a.Consultation.EndTime,
-                            DoctorNotes = a.Consultation.DoctorNotes,
-                            Diagnosis = a.Consultation.Diagnosis,
-                            FollowUpDate = a.Consultation.FollowUpDate
-                        } : null,
-
-                        Prescription = prescription != null ? new PrescriptionSummaryDTO
-                        {
-                            PrescriptionHeaderID = prescription.PrescriptionHeaderID,
-                            IssueDate = prescription.IssueDate,
-                            MedicationCount = prescription.PrescriptionItems.Count,
-                            MedicationNames = prescription.PrescriptionItems
-                                .Select(pi => pi.MedicationName)
-                                .ToList(),
-                            Medications = prescription.PrescriptionItems
-                                .Select(pi => new MedicationItemDTO
-                                {
-                                    MedicationName = pi.MedicationName,
-                                    Dosage = pi.Dosage,
-                                    Instructions = pi.Instructions,
-                                    TotalSupplyDays = pi.TotalSupplyDays
-                                })
-                                .ToList()
-                        } : null,
-
-                        Invoice = a.Invoice != null ? new InvoiceSummaryDTO
-                        {
-                            InvoiceID = a.Invoice.InvoiceID,
-                            TotalAmount = a.Invoice.Amount,
-                            PaymentStatus = a.Invoice.Status,
-                            PaymentDate = a.Invoice.IssueDate
-                        } : null
-                    };
-                }).ToList();
-                
-                // Calculate doctor visit summary
-                var doctorVisits = appointments
-                    .Where(a => a.Doctor != null && a.Status == "Completed")
-                    .GroupBy(a => new { a.DoctorID, a.Doctor!.FullName, a.Doctor.Specialty })
-                    .Select(g => new DoctorVisitSummaryDTO
-                    {
-                        DoctorID = g.Key.DoctorID,
-                        DoctorName = g.Key.FullName,
-                        DoctorSpecialty = g.Key.Specialty,
-                        VisitCount = g.Count(),
-                        LastVisit = g.Max(a => a.AppointmentTime),
-                        FirstVisit = g.Min(a => a.AppointmentTime)
-                    })
-                    .OrderByDescending(d => d.VisitCount)
-                    .ToList();
-                
-                var result = new MedicalHistoryDTO
-                {
-                    PatientID = patientId,
-                    PatientName = patient.FullName,
-                    TotalAppointments = appointments.Count,
-                    Appointments = appointmentHistories,
-                    DoctorVisits = doctorVisits
-                };
-                
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting patient medical history");
-                return StatusCode(500, new { message = "Error retrieving patient medical history", detail = ex.Message });
             }
         }
 
