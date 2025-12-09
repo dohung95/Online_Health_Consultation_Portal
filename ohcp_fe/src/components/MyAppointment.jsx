@@ -6,6 +6,7 @@ import { useChat } from '../context/ChatContext';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { toast } from 'sonner';
+import ConfirmModal from './ConfirmModal';
 import Loading from './Loading';
 
 const MyAppointments = () => {
@@ -15,6 +16,8 @@ const MyAppointments = () => {
     const navigate = useNavigate();
     const { roles, initiateCall } = useAuth();
     const { openChatWith } = useChat();
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [pendingAppointmentId, setPendingAppointmentId] = useState(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -47,10 +50,35 @@ const MyAppointments = () => {
         }
     };
 
-    const handleCancel = async (id) => {
-        const confirm = window.confirm("Are you sure you want to cancel this appointment?");
-        if (!confirm) return;
+    // Hàm mở modal xác nhận
+const handleCancelClick = (id) => {
+    setPendingAppointmentId(id);
+    setShowCancelModal(true);
+};
 
+// Hàm xác nhận hủy (khi nhấn Confirm trong modal)
+const handleConfirmCancel = async () => {
+    setShowCancelModal(false);
+    
+    if (!pendingAppointmentId) return;
+    
+    try {
+        await appointmentService.cancelAppointment(pendingAppointmentId, "Patient request");
+        toast.success("Appointment cancelled successfully.");
+        loadAppointments();
+    } catch (error) {
+        const msg = error.response?.data?.message || error.response?.data || "Failed to cancel.";
+        toast.error(msg);
+    } finally {
+        setPendingAppointmentId(null);
+    }
+};
+
+// Hàm đóng modal (khi nhấn Cancel trong modal)
+const handleCloseCancelModal = () => {
+    setShowCancelModal(false);
+    setPendingAppointmentId(null);
+};
         setActionLoading(true);
         try {
             await appointmentService.cancelAppointment(id, "Patient request");
@@ -248,13 +276,13 @@ const MyAppointments = () => {
 
                                                 {item.status === 'Scheduled' && (
                                                     <button
-                                                        className="btn btn-sm btn-outline-danger"
-                                                        onClick={() => handleCancel(item.appointmentID)}
-                                                        title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Cancel appointment"}
-                                                        disabled={new Date(item.appointmentTime) < new Date()}
-                                                    >
-                                                        Cancel
-                                                    </button>
+    className="btn btn-sm btn-outline-danger"
+    onClick={() => handleCancelClick(item.appointmentID)}  // ← ĐỔI TÊN HÀM
+    title={new Date(item.appointmentTime) < new Date() ? "Appointment time has passed" : "Cancel appointment"}
+    disabled={new Date(item.appointmentTime) < new Date()}
+>
+    Cancel
+</button>
                                                 )}
                                             </div>
                                         </td>
@@ -265,6 +293,18 @@ const MyAppointments = () => {
                     </div>
                 )}
             </div>
+
+            {/* Modal xác nhận hủy lịch hẹn */}
+        <ConfirmModal
+    isOpen={showCancelModal}
+    onClose={handleCloseCancelModal}
+    onConfirm={handleConfirmCancel}
+    title="Cancel Appointment"
+    message="Are you sure you want to cancel this appointment? This action cannot be undone."
+    confirmText="Yes, Cancel"           // ← THÊM
+    cancelText="No, Keep It"            // ← THÊM
+    iconClass="bi-exclamation-triangle-fill"  // ← THÊM (icon cảnh báo)
+/>
         </div>
     );
 };
