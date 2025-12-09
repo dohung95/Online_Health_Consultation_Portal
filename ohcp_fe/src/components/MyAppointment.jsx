@@ -79,27 +79,6 @@ const handleCloseCancelModal = () => {
     setShowCancelModal(false);
     setPendingAppointmentId(null);
 };
-        setActionLoading(true);
-        try {
-            await appointmentService.cancelAppointment(id, "Patient request");
-            await loadAppointments(true);
-            
-            // Delay để hiển thị loading animation
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            toast.success("Appointment cancelled successfully.");
-        } catch (error) {
-            const msg = error.response?.data?.message || error.response?.data || "Failed to cancel.";
-            
-            // Delay để hiển thị loading animation ngay cả khi lỗi
-            await loadAppointments(true);
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            toast.error(msg);
-        } finally {
-            setActionLoading(false);
-        }
-    };
 
     const handleChat = async (appointment) => {
         const isDoctor = roles && roles.some(r => String(r).trim().toLowerCase() === 'doctor');
