@@ -224,7 +224,7 @@ using (var scope = app.Services.CreateScope())
 
     //// Seed 50 doctors, 100 patients, and related data
     //Console.WriteLine("Starting medical data seeding process...");
-    await OHCP_BK.Data.SeedMedicalData.SeedAsync(services);
+    //await OHCP_BK.Data.SeedMedicalData.SeedAsync(services);
     //Console.WriteLine("Medical data seeding completed!");
 
     //// Seed 50 invoices

@@ -25,6 +25,7 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
   const { roles, initiateCall } = useAuth();
   const { openChatWith } = useChat();
   const [filteredSharedRecords, setFilteredSharedRecords] = useState([]);
+  const [activeTab, setActiveTab] = useState('timeline');
 
   // Helper function to format date
   const formatDate = (dateString) => {
@@ -361,25 +362,67 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
               </div>
             </div>
 
-            {/* Shared Health Records Section */}
-            <div className="col-12">
-              <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
-                <div className="border-bottom border-border-light p-4">
-                  <h2 className="fs-5 fw-bold text-text-light-primary mb-0">
-                    <i className="bi bi-folder-open me-2"></i>Shared Health Records
-                  </h2>
-                  <p className="text-text-light-secondary small mb-0 mt-2">
-                    Medical documents shared by {patient.fullName}
-                  </p>
-                </div>
-                <div className="p-4">
-                  <SharedRecordsView patientFilter={patient.patientID} />
-                </div>
-              </div>
-            </div>
+            {/* Combined Medical Records Section with Tabs */}
+<div className="col-12">
+  <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
+    {/* Header with Tabs */}
+    <div className="border-bottom border-border-light p-4">
+      <h2 className="fs-5 fw-bold text-text-light-primary mb-3">
+        <i className="bi bi-folder2-open me-2"></i>Patient Medical Information
+      </h2>
+      
+      {/* Tab Navigation */}
+      <ul className="nav nav-tabs border-0">
+        <li className="nav-item">
+          <button
+            className={`nav-link ${activeTab === 'timeline' ? 'active' : ''}`}
+            onClick={() => setActiveTab('timeline')}
+            style={{
+              border: 'none',
+              borderBottom: activeTab === 'timeline' ? '2px solid #0d6efd' : '2px solid transparent',
+              background: 'transparent',
+              color: activeTab === 'timeline' ? '#0d6efd' : '#6c757d',
+              fontWeight: activeTab === 'timeline' ? 'bold' : 'normal'
+            }}
+          >
+            <i className="bi bi-clipboard2-pulse me-2"></i>
+            Medical Record Timeline
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            className={`nav-link ${activeTab === 'shared' ? 'active' : ''}`}
+            onClick={() => setActiveTab('shared')}
+            style={{
+              border: 'none',
+              borderBottom: activeTab === 'shared' ? '2px solid #0d6efd' : '2px solid transparent',
+              background: 'transparent',
+              color: activeTab === 'shared' ? '#0d6efd' : '#6c757d',
+              fontWeight: activeTab === 'shared' ? 'bold' : 'normal'
+            }}
+          >
+            <i className="bi bi-folder-open me-2"></i>
+            Shared Health Records
+          </button>
+        </li>
+      </ul>
+    </div>
 
-            {/* Full Width Medical Records Section (col-12) */}
-            <div className="col-12">
+    {/* Tab Content */}
+    <div className="p-4">
+      {/* Timeline Tab Content */}
+      {activeTab === 'timeline' && (
+        <div>
+          {loadingHistory ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="text-text-light-secondary mt-3 mb-0">Loading medical history...</p>
+            </div>
+          ) : medicalHistory?.appointments && medicalHistory.appointments.length > 0 ? (
+            <div className="d-flex flex-column gap-3">
+
               <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
                 <div className="border-bottom border-border-light p-4">
                   <h2 className="fs-5 fw-bold text-text-light-primary mb-0">
@@ -522,6 +565,27 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                 </div>
               </div>
             </div>
+          ) : (
+            <div className="text-center py-5">
+              <i className="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+              <p className="text-text-light-secondary mb-0">No completed appointments found for this patient</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Shared Records Tab Content */}
+      {activeTab === 'shared' && (
+        <div>
+          <p className="text-text-light-secondary small mb-3">
+            Medical documents shared by {patient.fullName}
+          </p>
+          <SharedRecordsView patientFilter={patient.patientID} />
+        </div>
+      )}
+    </div>
+  </div>
+</div>
           </div>
         </div>
       </main>
