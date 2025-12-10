@@ -1,6 +1,50 @@
 import React from 'react';
-const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+const ConfirmModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = "Confirm",      // Text nút xác nhận, mặc định "Confirm"
+  cancelText = "Cancel",         // Text nút hủy, mặc định "Cancel"
+  iconClass = "bi-shield-lock-fill",  // Icon, mặc định là khóa
+  variant = "primary"
+}) => {
   if (!isOpen) return null;
+
+   // Hàm lấy màu nút Confirm theo variant
+  const getConfirmButtonStyle = () => {
+    switch (variant) {
+      case 'danger':
+        return {
+          background: 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)',
+          color: 'white',
+          hoverShadow: 'rgba(220, 53, 69, 0.4)'
+        };
+      case 'warning':
+        return {
+          background: 'linear-gradient(135deg, #ffc107 0%, #e0a800 100%)',
+          color: '#212529',
+          hoverShadow: 'rgba(255, 193, 7, 0.4)'
+        };
+      case 'success':
+        return {
+          background: 'linear-gradient(135deg, #28a745 0%, #218838 100%)',
+          color: 'white',
+          hoverShadow: 'rgba(40, 167, 69, 0.4)'
+        };
+      case 'primary':
+      default:
+        return {
+          background: 'linear-gradient(135deg, #3eb7e9 0%, #0088cc 100%)',
+          color: 'white',
+          hoverShadow: 'rgba(62, 183, 233, 0.4)'
+        };
+    }
+  };
+
+  const confirmButtonColors = getConfirmButtonStyle();
+
   // Inline Styles
   const styles = {
     overlay: {
@@ -91,8 +135,8 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
       color: '#666'
     },
     confirmButton: {
-      background: 'linear-gradient(135deg, #3eb7e9 0%, #0088cc 100%)',
-      color: 'white'
+      background: confirmButtonColors.background,
+      color: confirmButtonColors.color
     }
   };
   return (
@@ -133,18 +177,18 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
         <div style={styles.container} onClick={(e) => e.stopPropagation()}>
           <div style={styles.header}>
             <div style={styles.iconContainer}>
-              <i className="bi bi-shield-lock-fill" style={styles.icon}></i>
+              <i className={`bi ${iconClass}`} style={styles.icon}></i>
             </div>
             <h3 style={styles.title}>{title}</h3>
           </div>
-          
+
           <div style={styles.body}>
             <p style={styles.message}>{message}</p>
           </div>
-          
+
           <div style={styles.footer}>
-            <button 
-              style={{...styles.buttonBase, ...styles.cancelButton}} 
+            <button
+              style={{ ...styles.buttonBase, ...styles.cancelButton }}
               onClick={onClose}
               onMouseEnter={(e) => {
                 e.target.style.background = '#d0d0d0';
@@ -157,21 +201,21 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
                 e.target.style.boxShadow = 'none';
               }}
             >
-              <i className="bi bi-x-circle"></i> Cancel
+              <i className="bi bi-x-circle"></i> {cancelText}
             </button>
-            <button 
-              style={{...styles.buttonBase, ...styles.confirmButton}} 
+            <button
+              style={{ ...styles.buttonBase, ...styles.confirmButton }}
               onClick={onConfirm}
               onMouseEnter={(e) => {
                 e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 8px 20px rgba(62, 183, 233, 0.4)';
+                e.target.style.boxShadow = `0 8px 20px ${confirmButtonColors.hoverShadow}`;
               }}
               onMouseLeave={(e) => {
                 e.target.style.transform = 'translateY(0)';
                 e.target.style.boxShadow = 'none';
-              }}
+              }}  
             >
-              <i className="bi bi-box-arrow-in-right"></i> Go to Login
+              <i className="bi bi-check-circle"></i> {confirmText}
             </button>
           </div>
         </div>

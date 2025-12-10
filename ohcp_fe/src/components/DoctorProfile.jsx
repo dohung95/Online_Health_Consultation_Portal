@@ -4,9 +4,10 @@ import { doctorService } from '../api/doctorApi';
 import './Css/Doctors.css';
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './ConfirmModal';
+import Loading from './Loading';
 
 const DoctorProfile = () => {
-    const { id } = useParams(); // get ID doctor from URL
+    const { id } = useParams();
     const navigate = useNavigate();
     const [doctor, setDoctor] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -16,20 +17,30 @@ const DoctorProfile = () => {
     useEffect(() => {
         const fetchDoctor = async () => {
             try {
+                setLoading(true);
                 const data = await doctorService.getDoctorById(id);
                 setDoctor(data);
             } catch (error) {
-                console.error("Lỗi tải hồ sơ:", error);
+                console.error("Error download profile:", error);
             } finally {
-                setLoading(false);
+                // Delay để hiển thị loading animation
+                setTimeout(() => {
+                    setLoading(false);
+                }, 800);
             }
         };
 
         if (id) fetchDoctor();
     }, [id]);
 
-    if (loading) return <div className="container mt-5 text-center">Loading profile...</div>;
-    if (!doctor) return <div className="container mt-5 text-center alert alert-danger">Doctor not found.</div>;
+    // Hiển thị Loading component
+    if (loading) return <Loading />;
+    
+    if (!doctor) return (
+        <div className="container mt-5 text-center">
+            <div className="alert alert-danger">Doctor not found.</div>
+        </div>
+    );
 
     // helper function to render stars
     const renderStars = (rating) => {
@@ -38,22 +49,24 @@ const DoctorProfile = () => {
     };
 
     // Xử lý khi click Schedule Appointment
-const handleScheduleAppointment = () => {
-    if (!isAuthenticated) {
-        setShowModal(true);
-    } else {
-        navigate(`/book/${doctor.doctorID}`);
-    }
-};
-// Xử lý khi xác nhận trong modal
-const handleConfirmLogin = () => {
-    setShowModal(false);
-    navigate('/login');
-};
-// Xử lý khi hủy modal
-const handleCloseModal = () => {
-    setShowModal(false);
-};
+    const handleScheduleAppointment = () => {
+        if (!isAuthenticated) {
+            setShowModal(true);
+        } else {
+            navigate(`/book/${doctor.doctorID}`);
+        }
+    };
+
+    // Xử lý khi xác nhận trong modal
+    const handleConfirmLogin = () => {
+        setShowModal(false);
+        navigate('/login');
+    };
+
+    // Xử lý khi hủy modal
+    const handleCloseModal = () => {
+        setShowModal(false);
+    };
 
     return (
         <div className='Background_Doctors'>
@@ -153,7 +166,10 @@ const handleCloseModal = () => {
                 onClose={handleCloseModal}
                 onConfirm={handleConfirmLogin}
                 title="Authentication Required"
-                message="You need to login to schedule an appointment. Would you like to go to the login page?"
+                message="You need to login to book an appointment. Would you like to go to the login page?"
+                confirmText="Go to Login"
+                iconClass="bi-shield-lock-fill"
+                variant="primary"
             />
         </div>
     );

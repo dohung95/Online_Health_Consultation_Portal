@@ -234,7 +234,7 @@ function Navbar() {
                                     {/* Patient Dropdown */}
                                     {isUser && (
                                         <div
-                                            className="position-relative"
+                                            className="position-relative d-none d-xl-block"
                                             onMouseEnter={() => setPatientDropdownOpen(true)}
                                             onMouseLeave={() => setPatientDropdownOpen(false)}
                                         >

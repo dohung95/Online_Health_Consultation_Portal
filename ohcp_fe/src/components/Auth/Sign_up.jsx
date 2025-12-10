@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Modal, Button } from 'react-bootstrap';
+import Loading from '../Loading'; // Import Loading component
 import '../Css/Sign_up.css';
 
 export function Sign_up() {
@@ -14,9 +15,19 @@ export function Sign_up() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Initial page loading
+    const [submitting, setSubmitting] = useState(false); // Form submission loading
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const role = "patient";
+
+    // Initial loading effect (giống Home.jsx)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     // Password validation checks
     const passwordRequirements = {
@@ -33,9 +44,6 @@ export function Sign_up() {
     // Redirect if already logged in with valid token
     useEffect(() => {
         if (token && roles && roles.length > 0) {
-            // User is already logged in, redirect to appropriate page
-            // console.log('User already logged in, redirecting from register...');
-
             // Navigate based on role
             if (roles.some(r => String(r).trim().toLowerCase() === 'admin')) {
                 navigate('/admin', { replace: true });
@@ -56,8 +64,6 @@ export function Sign_up() {
         setDateOfBirth('');
         setPassword('');
         setConfirmPassword('');
-        // Hoặc navigate về login page
-        // navigate('/login');
     };
 
     const handleSubmit = async (e) => {
@@ -94,20 +100,23 @@ export function Sign_up() {
             return;
         }
 
-        setLoading(true);
+        setSubmitting(true);
 
         try {
             await register(username, phonenumber, email, password, confirmPassword, role, DateOfBirth || null);
-            // Hiển thị modal thay vì navigate ngay
             setShowSuccessModal(true);
         } catch (err) {
             setError('Registration failed');
             console.log(err);
         } finally {
-            setLoading(false);
+            setSubmitting(false);
         }
     };
 
+    // Hiển thị Loading component khi initial load
+    if (loading) {
+        return <Loading />;
+    }
 
     return (
         <>
@@ -157,10 +166,9 @@ export function Sign_up() {
                                     required
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    disabled={loading}
+                                    disabled={submitting}
                                     className='signup-input'
                                 />
-                                {/* Real-time username validation */}
                                 {username.length > 0 && !/^[a-zA-Z0-9 ]+$/.test(username) && (
                                     <div style={{
                                         color: '#dc3545',
@@ -224,10 +232,9 @@ export function Sign_up() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    disabled={loading}
+                                    disabled={submitting}
                                     className='signup-input'
                                 />
-                                {/* Real-time email validation */}
                                 {email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
                                     <div style={{
                                         color: '#dc3545',
@@ -301,10 +308,9 @@ export function Sign_up() {
                                         const value = e.target.value.replace(/[^0-9]/g, '');
                                         setPhonenumber(value);
                                     }}
-                                    disabled={loading}
+                                    disabled={submitting}
                                     className='signup-input'
                                 />
-                                {/* Real-time phone validation */}
                                 {phonenumber.length > 0 && (phonenumber.length < 8 || phonenumber.length > 15) && (
                                     <div style={{
                                         color: '#dc3545',
@@ -341,7 +347,7 @@ export function Sign_up() {
                                     required
                                     value={DateOfBirth}
                                     onChange={(e) => setDateOfBirth(e.target.value)}
-                                    disabled={loading}
+                                    disabled={submitting}
                                     className='signup-input'
                                 />
                             </div>
@@ -401,10 +407,9 @@ export function Sign_up() {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    disabled={loading}
+                                    disabled={submitting}
                                     className='signup-input'
                                 />
-                                {/* Real-time password validation */}
                                 {password.length > 0 && (
                                     <div style={{ marginTop: '8px', fontSize: '12px' }}>
                                         {!passwordRequirements.minLength && (
@@ -481,10 +486,9 @@ export function Sign_up() {
                                         required
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        disabled={loading}
+                                        disabled={submitting}
                                         className='signup-input'
                                     />
-                                    {/* Real-time confirm password validation */}
                                     {confirmPassword.length > 0 && !passwordRequirements.hasMatch && (
                                         <div style={{
                                             color: '#dc3545',
@@ -516,8 +520,8 @@ export function Sign_up() {
                         </div>
 
                         {/* button */}
-                        <button type="submit" disabled={loading} className='signup-button'>
-                            {loading ? 'Loading...' : 'Register'}
+                        <button type="submit" disabled={submitting} className='signup-button'>
+                            {submitting ? 'Loading...' : 'Register'}
                         </button>
                     </form>
                     <p style={{ marginTop: '10px' }}>
