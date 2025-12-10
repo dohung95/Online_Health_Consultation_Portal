@@ -9,6 +9,7 @@ import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { appointmentService } from '../api/appointmentApi';
 import { toast } from 'react-toastify';
+import SharedRecordsView from './SharedRecordsView';
 
 const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
   const [completingAppointment, setCompletingAppointment] = useState(false);
   const { roles, initiateCall } = useAuth();
   const { openChatWith } = useChat();
+  const [filteredSharedRecords, setFilteredSharedRecords] = useState([]);
 
   // Helper function to format date
   const formatDate = (dateString) => {
@@ -54,7 +56,7 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
   useEffect(() => {
     const fetchMedicalHistory = async () => {
       if (!patient?.patientID) return;
-      
+
       setLoadingHistory(true);
       try {
         const data = await appointmentService.getPatientMedicalHistory(patient.patientID);
@@ -356,6 +358,24 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                 </div>
               </div>
             </div>
+
+            {/* Shared Health Records Section */}
+            <div className="col-12">
+              <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
+                <div className="border-bottom border-border-light p-4">
+                  <h2 className="fs-5 fw-bold text-text-light-primary mb-0">
+                    <i className="bi bi-folder-open me-2"></i>Shared Health Records
+                  </h2>
+                  <p className="text-text-light-secondary small mb-0 mt-2">
+                    Medical documents shared by {patient.fullName}
+                  </p>
+                </div>
+                <div className="p-4">
+                  <SharedRecordsView patientFilter={patient.patientID} />
+                </div>
+              </div>
+            </div>
+
             {/* Full Width Medical Records Section (col-12) */}
             <div className="col-12">
               <div className="rounded-3 border border-border-light bg-content-light shadow-sm">
@@ -377,119 +397,119 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                       {medicalHistory.appointments
                         .filter(apt => apt.status === 'Completed')
                         .map((apt) => (
-                        <div key={apt.appointmentID} className="card border hover-shadow transition-all rounded-3">
-                          <div className="card-body">
-                            {/* Header row: Date + Status & Type + Action Button */}
-                            <div className="row align-items-start g-3 mb-3">
-                              {/* Date, Status, Type, Doctor */}
-                              <div className="col">
-                                <h5 className="fw-bold text-dark mb-2">
-                                  {formatDate(apt.appointmentTime)}
-                                </h5>
-                                <div className="d-flex gap-2 align-items-center mb-2">
-                                  <span className={`badge rounded-pill ${getStatusBadge(apt.status)}`}>
-                                    {apt.status}
-                                  </span>
-                                  <span className="badge bg-light text-dark border">
-                                    {apt.consultationType}
-                                  </span>
+                          <div key={apt.appointmentID} className="card border hover-shadow transition-all rounded-3">
+                            <div className="card-body">
+                              {/* Header row: Date + Status & Type + Action Button */}
+                              <div className="row align-items-start g-3 mb-3">
+                                {/* Date, Status, Type, Doctor */}
+                                <div className="col">
+                                  <h5 className="fw-bold text-dark mb-2">
+                                    {formatDate(apt.appointmentTime)}
+                                  </h5>
+                                  <div className="d-flex gap-2 align-items-center mb-2">
+                                    <span className={`badge rounded-pill ${getStatusBadge(apt.status)}`}>
+                                      {apt.status}
+                                    </span>
+                                    <span className="badge bg-light text-dark border">
+                                      {apt.consultationType}
+                                    </span>
+                                  </div>
+                                  {/* Doctor Info */}
+                                  <h6 className="fw-bold text-primary mb-0">
+                                    Dr. {apt.doctorName} - <span className="text-muted fw-normal">{apt.doctorSpecialty}</span>
+                                  </h6>
                                 </div>
-                                {/* Doctor Info */}
-                                <h6 className="fw-bold text-primary mb-0">
-                                  Dr. {apt.doctorName} - <span className="text-muted fw-normal">{apt.doctorSpecialty}</span>
-                                </h6>
-                              </div>
 
-                              {/* Action Button */}
-                              <div className="col-auto">
-                                <button
-                                  className="btn btn-outline-primary btn-sm rounded-pill px-3"
-                                  onClick={() => handleViewAppointmentDetail(apt.appointmentID)}
-                                >
-                                  More Info <i className="bi bi-chevron-right ms-1 small"></i>
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Diagnosis */}
-                            {apt.consultation && apt.consultation.diagnosis && (
-                              <div className="mb-3 p-3 bg-info-subtle rounded-3 border-start border-info border-4">
-                                <div className="d-flex align-items-center mb-2">
-                                  <i className="bi bi-clipboard2-pulse fs-5 text-info me-2"></i>
-                                  <strong className="text-info text-uppercase small">Diagnosis</strong>
-                                </div>
-                                <p className="mb-0 fs-6 fw-semibold text-dark">
-                                  {apt.consultation.diagnosis.length > 100 && !expandedCards[apt.appointmentID]
-                                    ? apt.consultation.diagnosis.substring(0, 100) + '...'
-                                    : apt.consultation.diagnosis
-                                  }
-                                </p>
-                                {apt.consultation.diagnosis.length > 100 && (
+                                {/* Action Button */}
+                                <div className="col-auto">
                                   <button
-                                    className="btn btn-link btn-sm p-0 mt-1 text-info text-decoration-none"
-                                    onClick={() => toggleCardExpand(apt.appointmentID)}
+                                    className="btn btn-outline-primary btn-sm rounded-pill px-3"
+                                    onClick={() => handleViewAppointmentDetail(apt.appointmentID)}
                                   >
-                                    {expandedCards[apt.appointmentID] ? (
-                                      <><i className="bi bi-chevron-up me-1"></i>Show less</>
-                                    ) : (
-                                      <><i className="bi bi-chevron-down me-1"></i>Show more</>
-                                    )}
+                                    More Info <i className="bi bi-chevron-right ms-1 small"></i>
                                   </button>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Prescription */}
-                            {apt.prescription && apt.prescription.medications && apt.prescription.medications.length > 0 && (
-                              <div className="p-3 bg-success-subtle rounded-3 border-start border-success border-4">
-                                <div className="d-flex align-items-center mb-2">
-                                  <i className="bi bi-capsule fs-5 text-success me-2"></i>
-                                  <strong className="text-success text-uppercase small">
-                                    Prescription ({apt.prescription.medicationCount} medications)
-                                  </strong>
                                 </div>
-                                <ul className="list-unstyled mb-0">
-                                  {(expandedCards[apt.appointmentID]
-                                    ? apt.prescription.medications
-                                    : apt.prescription.medications.slice(0, 3)
-                                  ).map((med, i) => (
-                                    <li key={i} className="text-dark mb-2 pb-2 border-bottom border-success border-opacity-25">
-                                      <div className="d-flex align-items-start">
-                                        <i className="bi bi-capsule-pill text-success me-2 mt-1"></i>
-                                        <div className="flex-grow-1">
-                                          <div className="fw-semibold text-dark">{med.medicationName}</div>
-                                          <div className="small text-muted mt-1">
-                                            <span className="badge bg-success-subtle text-success me-2">
-                                              {med.dosage}
-                                            </span>
-                                            <span>{med.instructions}</span>
-                                          </div>
-                                          <div className="small text-muted mt-1">
-                                            <i className="bi bi-calendar-check me-1"></i>
-                                            {med.totalSupplyDays} days supply
+                              </div>
+
+                              {/* Diagnosis */}
+                              {apt.consultation && apt.consultation.diagnosis && (
+                                <div className="mb-3 p-3 bg-info-subtle rounded-3 border-start border-info border-4">
+                                  <div className="d-flex align-items-center mb-2">
+                                    <i className="bi bi-clipboard2-pulse fs-5 text-info me-2"></i>
+                                    <strong className="text-info text-uppercase small">Diagnosis</strong>
+                                  </div>
+                                  <p className="mb-0 fs-6 fw-semibold text-dark">
+                                    {apt.consultation.diagnosis.length > 100 && !expandedCards[apt.appointmentID]
+                                      ? apt.consultation.diagnosis.substring(0, 100) + '...'
+                                      : apt.consultation.diagnosis
+                                    }
+                                  </p>
+                                  {apt.consultation.diagnosis.length > 100 && (
+                                    <button
+                                      className="btn btn-link btn-sm p-0 mt-1 text-info text-decoration-none"
+                                      onClick={() => toggleCardExpand(apt.appointmentID)}
+                                    >
+                                      {expandedCards[apt.appointmentID] ? (
+                                        <><i className="bi bi-chevron-up me-1"></i>Show less</>
+                                      ) : (
+                                        <><i className="bi bi-chevron-down me-1"></i>Show more</>
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Prescription */}
+                              {apt.prescription && apt.prescription.medications && apt.prescription.medications.length > 0 && (
+                                <div className="p-3 bg-success-subtle rounded-3 border-start border-success border-4">
+                                  <div className="d-flex align-items-center mb-2">
+                                    <i className="bi bi-capsule fs-5 text-success me-2"></i>
+                                    <strong className="text-success text-uppercase small">
+                                      Prescription ({apt.prescription.medicationCount} medications)
+                                    </strong>
+                                  </div>
+                                  <ul className="list-unstyled mb-0">
+                                    {(expandedCards[apt.appointmentID]
+                                      ? apt.prescription.medications
+                                      : apt.prescription.medications.slice(0, 3)
+                                    ).map((med, i) => (
+                                      <li key={i} className="text-dark mb-2 pb-2 border-bottom border-success border-opacity-25">
+                                        <div className="d-flex align-items-start">
+                                          <i className="bi bi-capsule-pill text-success me-2 mt-1"></i>
+                                          <div className="flex-grow-1">
+                                            <div className="fw-semibold text-dark">{med.medicationName}</div>
+                                            <div className="small text-muted mt-1">
+                                              <span className="badge bg-success-subtle text-success me-2">
+                                                {med.dosage}
+                                              </span>
+                                              <span>{med.instructions}</span>
+                                            </div>
+                                            <div className="small text-muted mt-1">
+                                              <i className="bi bi-calendar-check me-1"></i>
+                                              {med.totalSupplyDays} days supply
+                                            </div>
                                           </div>
                                         </div>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                                {apt.prescription.medications.length > 3 && (
-                                  <button
-                                    className="btn btn-link btn-sm p-0 mt-2 text-success text-decoration-none"
-                                    onClick={() => toggleCardExpand(apt.appointmentID)}
-                                  >
-                                    {expandedCards[apt.appointmentID] ? (
-                                      <><i className="bi bi-chevron-up me-1"></i>Show less</>
-                                    ) : (
-                                      <><i className="bi bi-chevron-down me-1"></i>Show all {apt.prescription.medicationCount} medications</>
-                                    )}
-                                  </button>
-                                )}
-                              </div>
-                            )}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                  {apt.prescription.medications.length > 3 && (
+                                    <button
+                                      className="btn btn-link btn-sm p-0 mt-2 text-success text-decoration-none"
+                                      onClick={() => toggleCardExpand(apt.appointmentID)}
+                                    >
+                                      {expandedCards[apt.appointmentID] ? (
+                                        <><i className="bi bi-chevron-up me-1"></i>Show less</>
+                                      ) : (
+                                        <><i className="bi bi-chevron-down me-1"></i>Show all {apt.prescription.medicationCount} medications</>
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   ) : (
                     <div className="text-center py-5">
