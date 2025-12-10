@@ -601,12 +601,14 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
                       </button>
                     )}
 
-                    <button
-                      className="btn btn-view d-flex align-items-center justify-content-center"
-                      onClick={() => onViewAppointment ? onViewAppointment(a) : navigate(`/appointment/${a.appointmentID}`)}
-                    >
-                      View
-                    </button>
+                    {a.status !== 'Completed' && a.status !== 'Cancelled' && (
+                      <button
+                        className="btn btn-view d-flex align-items-center justify-content-center"
+                        onClick={() => onViewAppointment ? onViewAppointment(a) : navigate(`/appointment/${a.appointmentID}`)}
+                      >
+                        View
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

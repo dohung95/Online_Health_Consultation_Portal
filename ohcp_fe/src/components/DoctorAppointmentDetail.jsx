@@ -21,6 +21,7 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
   const [selectedHistoryAppointment, setSelectedHistoryAppointment] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [completingAppointment, setCompletingAppointment] = useState(false);
+  const [showCompleteConfirmModal, setShowCompleteConfirmModal] = useState(false);
   const { roles, initiateCall } = useAuth();
   const { openChatWith } = useChat();
   const [filteredSharedRecords, setFilteredSharedRecords] = useState([]);
@@ -105,6 +106,7 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
   // Handle complete appointment
   const handleCompleteAppointment = async () => {
     setCompletingAppointment(true);
+    setShowCompleteConfirmModal(false);
     try {
       await appointmentService.completeAppointment(appointment.appointmentID);
       toast.success('Appointment marked as completed successfully');
@@ -348,7 +350,7 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                   </button>
                   <button
                     className="btn btn-success h-auto py-3 fw-bold flex-fill"
-                    onClick={handleCompleteAppointment}
+                    onClick={() => setShowCompleteConfirmModal(true)}
                     disabled={appointment.status !== 'Scheduled' || completingAppointment}
                     title={appointment.status !== 'Scheduled' ? "Can only complete scheduled appointments" : "Mark appointment as completed"}
                   >
@@ -668,6 +670,45 @@ const DoctorAppointmentDetail = ({ appointment, patient, onBack }) => {
                   onClick={() => setShowDetailModal(false)}
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Complete Confirmation Modal */}
+      {showCompleteConfirmModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header border-0 pb-0">
+                <h5 className="modal-title">
+                  <i className="bi bi-check-circle-fill text-success me-2"></i>
+                  Confirm Complete Appointment
+                </h5>
+                
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">Are you sure you want to mark this appointment as completed?</p>
+              </div>
+              <div className="modal-footer border-0 pt-0">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowCompleteConfirmModal(false)}
+                  disabled={completingAppointment}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={handleCompleteAppointment}
+                  disabled={completingAppointment}
+                >
+                  <i className="bi bi-check-circle me-2"></i>
+                  {completingAppointment ? 'Completing...' : 'Confirm'}
                 </button>
               </div>
             </div>
