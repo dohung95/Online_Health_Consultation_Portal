@@ -16,7 +16,7 @@ const myconfig = {
     showMyMicrophoneToggleButton: true,
     showAudioVideoSettingsButton: true,
     showScreenSharingButton: true, // (Bạn có thể đặt false nếu muốn)
-    showTextChat: false,
+    showTextChat: true,
     showUserList: false,
     showRoomDetailsButton: false,
     showPreJoinView: false,
@@ -55,8 +55,8 @@ export default function VideoCallPage() {
             setIsLoading(false);
 
             // 2. TẠO TOKEN (DÙNG THÔNG TIN ĐÃ GIẢI MÃ)
-            const appID = 157614012; // (Cách làm Test, lộ bí mật)
-            const serverSecret = "fe61db55625bbac30bedf6098447c357";
+            const appID = 2102231885; // (Cách làm Test, lộ bí mật)
+            const serverSecret = "0c6cec04eb3243744ed3af9863223ca3";
 
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
                 appID,
