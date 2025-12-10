@@ -492,7 +492,7 @@ const HealthRecords = () => {
                                     </div>
 
                                     {/* Pagination Controls */}
-                                    {medicalHistory?.appointments?.length > itemsPerPage && (
+                                    {getCompletedAppointmentsCount() > itemsPerPage && (
                                         <div className="d-flex justify-content-center align-items-center gap-3 mt-4">
                                             <button
                                                 className="btn btn-outline-primary btn-sm px-3"
@@ -509,18 +509,18 @@ const HealthRecords = () => {
                                             </button>
 
                                             <span className="text-muted small">
-                                                Page <strong>{currentPage}</strong> of <strong>{Math.ceil((medicalHistory?.appointments?.length || 0) / itemsPerPage)}</strong>
+                                                Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
                                             </span>
 
                                             <button
                                                 className="btn btn-outline-primary btn-sm px-3"
                                                 onClick={() => {
-                                                    setCurrentPage(prev => Math.min(Math.ceil((medicalHistory?.appointments?.length || 0) / itemsPerPage), prev + 1));
+                                                    setCurrentPage(prev => Math.min(totalPages, prev + 1));
                                                     setTimeout(() => {
                                                         timelineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                                                     }, 100);
                                                 }}
-                                                disabled={currentPage >= Math.ceil((medicalHistory?.appointments?.length || 0) / itemsPerPage)}
+                                                disabled={currentPage >= totalPages}
                                             >
                                                 Next
                                                 <i className="bi bi-chevron-right ms-1"></i>

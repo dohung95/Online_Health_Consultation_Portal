@@ -110,11 +110,6 @@ function Navbar() {
                                         </NavLink>
                                     </li>
                                     <li>
-                                        <NavLink to="/my-prescriptions" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
-                                            <i className="fas fa-prescription-bottle-alt me-2"></i> My Prescriptions
-                                        </NavLink>
-                                    </li>
-                                    <li>
                                         <NavLink to="/health-records" onClick={() => setMobileMenuOpen(false)} className="mobile-nav-link">
                                             <i className="fas fa-file-medical me-2"></i> Health Records
                                         </NavLink>

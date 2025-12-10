@@ -151,12 +151,6 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
-            <Route path="/my-prescriptions" element={
-              <ProtectedRoute allowedRoles={['Patient']}>
-                <PatientPrescriptionView />
-              </ProtectedRoute>
-            } />
-
             <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>} />
             <Route path="/admin/patients" element={<AdminRoute> <Patients /> </AdminRoute>} />
             <Route path="/admin/doctors" element={<AdminRoute> <AdminDoctors /> </AdminRoute>} />
