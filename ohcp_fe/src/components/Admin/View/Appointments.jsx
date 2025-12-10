@@ -29,8 +29,21 @@ export default function Appointments() {
     searchTerm: '',
     date: '',
     status: '',
-    doctorId: ''
+    department: ''
   });
+
+  const departments = [
+    "General Internal Medicine",
+    "Gastroenterology",
+    "Cardiology",
+    "Oncology",
+    "Endocrinology",
+    "Neurology",
+    "Pediatrics",
+    "Dermatology",
+    "Orthopedics",
+    "Psychiatry"
+  ];
 
   // Modal states
   const [showViewModal, setShowViewModal] = useState(false);
@@ -107,8 +120,8 @@ export default function Appointments() {
     setPagination({ ...pagination, pageNumber: 1 });
   };
 
-  const handleDoctorFilter = (e) => {
-    setFilters({ ...filters, doctorId: e.target.value });
+  const handleDepartmentFilter = (e) => {
+    setFilters({ ...filters, department: e.target.value });
     setPagination({ ...pagination, pageNumber: 1 });
   };
 
@@ -304,7 +317,7 @@ export default function Appointments() {
                 <button
                   className="btn btn-outline-secondary btn-sm"
                   onClick={() => {
-                    setFilters({ searchTerm: '', date: '', status: '', doctorId: '' });
+                    setFilters({ searchTerm: '', date: '', status: '', department: '' });
                     setPagination({ ...pagination, pageNumber: 1 });
                   }}
                   style={{ fontSize: '12px' }}
@@ -349,10 +362,15 @@ export default function Appointments() {
               <div className="col-md-3" style={{ padding: "0 20px 0 0" }}>
                 <select
                   className="form-select"
-                  value={filters.doctorId}
-                  onChange={handleDoctorFilter}
+                  value={filters.department}
+                  onChange={handleDepartmentFilter}
                 >
-                  <option value="">All Doctors</option>
+                  <option value="">All Departments</option>
+                  {departments.map((dept, index) => (
+                    <option key={index} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

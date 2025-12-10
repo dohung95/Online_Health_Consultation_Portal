@@ -110,9 +110,9 @@ export const appointmentsApi = {
   },
 
   getAll: async (params = {}) => {
-    const { pageNumber = 1, pageSize = 10, searchTerm = '', date = null, status = '', doctorId = '' } = params;
+    const { pageNumber = 1, pageSize = 10, searchTerm = '', date = null, status = '', department = '' } = params;
     const response = await adminApi.get('/adminappointments', {
-      params: { pageNumber, pageSize, searchTerm, date, status, doctorId }
+      params: { pageNumber, pageSize, searchTerm, date, status, department }
     });
     return response.data;
   },

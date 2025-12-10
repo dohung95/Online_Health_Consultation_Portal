@@ -65,7 +65,7 @@ namespace OHCP_BK.Controllers.Admin
             [FromQuery] string? searchTerm = null,
             [FromQuery] DateTime? date = null,
             [FromQuery] string? status = null,
-            [FromQuery] string? doctorId = null)
+            [FromQuery] string? department = null)
         {
             try
             {
@@ -97,10 +97,10 @@ namespace OHCP_BK.Controllers.Admin
                     query = query.Where(a => a.Status == status);
                 }
 
-                // Doctor filter
-                if (!string.IsNullOrWhiteSpace(doctorId) && doctorId != "All Doctors")
+                // Department filter
+                if (!string.IsNullOrWhiteSpace(department) && department != "All Departments")
                 {
-                    query = query.Where(a => a.DoctorID == doctorId);
+                    query = query.Where(a => a.Doctor.Specialty == department);
                 }
 
                 // Sort by appointment time descending (newest first)
