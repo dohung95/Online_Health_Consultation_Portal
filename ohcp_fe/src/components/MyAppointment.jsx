@@ -224,7 +224,7 @@ const MyAppointments = () => {
                                             <span className="text-capitalize">{item.patient?.fullName || "Unknown Patient"}</span>
                                             <br />
                                             <small className="text-muted">
-                                                {item.patient?.dateOfBirth ? new Date(item.patient.dateOfBirth).toLocaleDateString('vi-VN') : 'N/A'}
+                                                {item.patient?.dateOfBirth ? new Date(item.patient.dateOfBirth).toLocaleDateString() : 'N/A'}
                                             </small>
                                         </td>
 
