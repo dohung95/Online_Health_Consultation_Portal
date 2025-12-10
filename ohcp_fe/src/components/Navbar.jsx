@@ -251,10 +251,6 @@ function Navbar() {
                                                         <i className="fas fa-calendar-check me-2"></i>
                                                         My Appointments
                                                     </NavLink>
-                                                    <NavLink to="/my-prescriptions" className="dropdown-item">
-                                                        <i className="fas fa-prescription-bottle-alt me-2"></i>
-                                                        My Prescriptions
-                                                    </NavLink>
                                                     <NavLink to="/health-records" className="dropdown-item">
                                                         <i className="fas fa-file-medical me-2"></i>
                                                         Health Records

@@ -498,7 +498,9 @@ const HealthRecords = () => {
                                                 className="btn btn-outline-primary btn-sm px-3"
                                                 onClick={() => {
                                                     setCurrentPage(prev => Math.max(1, prev - 1));
-                                                    timelineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                    setTimeout(() => {
+                                                        timelineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                    }, 100);
                                                 }}
                                                 disabled={currentPage === 1}
                                             >

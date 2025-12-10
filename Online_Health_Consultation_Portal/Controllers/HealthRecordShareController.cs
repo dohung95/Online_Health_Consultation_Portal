@@ -214,6 +214,7 @@ namespace OHCP_BK.Controllers
                         s.ShareID,
                         s.HealthRecordID,
                         SharedDocumentIDs = sharedDocIds,
+                        PatientID = s.SharedByPatientID,
                         PatientName = s.SharedByPatient.FullName,
                         s.PermissionLevel,
                         s.ConsentGivenAt,
