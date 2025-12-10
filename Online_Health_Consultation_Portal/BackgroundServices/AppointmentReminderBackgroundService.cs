@@ -97,11 +97,11 @@ namespace OHCP_BK.BackgroundServices
             {
                 if (stoppingToken.IsCancellationRequested) break;
 
-                var reminderExists = await CheckReminderExists(
+                // Check if ANY reminder was sent today for this appointment
+                var reminderExists = await CheckReminderSentToday(
                     context,
                     appointment.AppointmentID,
-                    appointment.PatientID,
-                    "1 day"
+                    appointment.PatientID
                 );
 
                 if (!reminderExists)
@@ -125,6 +125,11 @@ namespace OHCP_BK.BackgroundServices
                     _logger.LogInformation("Sent 1-day advance reminder to patient {PatientId} for appointment {AppointmentId}",
                         appointment.PatientID, appointment.AppointmentID);
                 }
+                else
+                {
+                    _logger.LogDebug("Skipped 1-day reminder for appointment {AppointmentId} - already sent today",
+                        appointment.AppointmentID);
+                }
             }
 
             // Process same-day reminders (morning reminder for appointments today)
@@ -132,11 +137,11 @@ namespace OHCP_BK.BackgroundServices
             {
                 if (stoppingToken.IsCancellationRequested) break;
 
-                var reminderExists = await CheckReminderExists(
+                // Check if ANY reminder was sent today for this appointment
+                var reminderExists = await CheckReminderSentToday(
                     context,
                     appointment.AppointmentID,
-                    appointment.PatientID,
-                    "today"
+                    appointment.PatientID
                 );
 
                 if (!reminderExists)
@@ -160,6 +165,11 @@ namespace OHCP_BK.BackgroundServices
                     _logger.LogInformation("Sent same-day reminder to patient {PatientId} for appointment {AppointmentId}",
                         appointment.PatientID, appointment.AppointmentID);
                 }
+                else
+                {
+                    _logger.LogDebug("Skipped same-day reminder for appointment {AppointmentId} - already sent today",
+                        appointment.AppointmentID);
+                }
             }
 
             // Process 30-minute urgent reminders
@@ -167,14 +177,14 @@ namespace OHCP_BK.BackgroundServices
             {
                 if (stoppingToken.IsCancellationRequested) break;
 
-                // Check if urgent reminder already sent in the last hour
-                var recentReminder = await CheckRecentUrgentReminder(
+                // Check if ANY reminder was sent today for this appointment
+                var reminderExists = await CheckReminderSentToday(
                     context,
                     appointment.AppointmentID,
                     appointment.PatientID
                 );
 
-                if (!recentReminder)
+                if (!reminderExists)
                 {
                     var notification = new AppointmentNotificationDto
                     {
@@ -195,39 +205,28 @@ namespace OHCP_BK.BackgroundServices
                     _logger.LogInformation("Sent URGENT 30min reminder to patient {PatientId} for appointment {AppointmentId}",
                         appointment.PatientID, appointment.AppointmentID);
                 }
+                else
+                {
+                    _logger.LogDebug("Skipped 30min reminder for appointment {AppointmentId} - already sent today",
+                        appointment.AppointmentID);
+                }
             }
         }
 
-        private async Task<bool> CheckReminderExists(
-            OHCPContext context,
-            int appointmentId,
-            string patientId,
-            string reminderType)
-        {
-            // Check if a reminder of this type was already sent for this specific appointment
-            var typeKeyword = reminderType == "1 day" ? "in 1 day" : 
-                              reminderType == "today" ? "today" : "";
-
-            return await context.Notifications
-                .AnyAsync(n => n.UserId == patientId
-                    && n.AppointmentId == appointmentId
-                    && (string.IsNullOrEmpty(typeKeyword) || n.Message.Contains(typeKeyword)));
-        }
-
-        private async Task<bool> CheckRecentUrgentReminder(
+        private async Task<bool> CheckReminderSentToday(
             OHCPContext context,
             int appointmentId,
             string patientId)
         {
-            var oneHourAgo = DateTime.UtcNow.AddHours(-1);
+            // Check if ANY reminder was already sent TODAY for this specific appointment
+            var today = DateTime.UtcNow.Date;
+            var tomorrow = today.AddDays(1);
 
-            // Check if urgent reminder (30 min) was sent for this specific appointment
             return await context.Notifications
                 .AnyAsync(n => n.UserId == patientId
                     && n.AppointmentId == appointmentId
-                    && n.Message.Contains("in")
-                    && n.Message.Contains("minutes")
-                    && n.CreatedAt >= oneHourAgo);
+                    && n.CreatedAt >= today
+                    && n.CreatedAt < tomorrow);
         }
     }
 }

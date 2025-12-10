@@ -75,17 +75,12 @@ namespace OHCP_BK.Services
                 using var scope = _scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<OHCPContext>();
 
-                // Build message with all medications
-                var medicationLines = medications.Select(m => 
-                    $"{m.MedicationName} - {m.Dosage}: use {m.Instructions}"
-                ).ToList();
-
                 // Calculate remaining days (use the longest supply period)
                 var maxSupplyDays = medications.Max(m => m.TotalSupplyDays);
                 var remainingDays = CalculateRemainingDays(issueDate, maxSupplyDays);
 
-                // Combine all medication lines and add remaining days at the end
-                var message = string.Join("\n", medicationLines) + $"\n{remainingDays} days remaining.";
+                // Simple message for prescription reminder
+                var message = $"You have a prescription #{prescriptionId} with {medications.Count} medication(s). {remainingDays} day(s) remaining.";
 
                 // Save to database
                 var notification = new Notification
@@ -99,11 +94,11 @@ namespace OHCP_BK.Services
                 context.Notifications.Add(notification);
                 await context.SaveChangesAsync();
 
-                // Send realtime via SignalR with all medications
+                // Send realtime via SignalR with prescription-level data
                 await _hubContext.Clients.User(patientId).SendAsync("ReceiveMedicationReminder", new
                 {
                     prescriptionId = prescriptionId,
-                    medications = medications,
+                    medicationCount = medications.Count,
                     remainingDays = remainingDays,
                     message = message
                 });
@@ -261,10 +256,15 @@ namespace OHCP_BK.Services
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<OHCPContext>();
 
-            // Check if notification exists for this specific appointment
+            // Check if notification exists for this specific appointment TODAY
+            var today = DateTime.UtcNow.Date;
+            var tomorrow = today.AddDays(1);
+
             return await context.Notifications
                 .AnyAsync(n => n.UserId == userId 
-                    && n.AppointmentId == appointmentId);
+                    && n.AppointmentId == appointmentId
+                    && n.CreatedAt >= today
+                    && n.CreatedAt < tomorrow);
         }
 
         private int CalculateRemainingDays(DateTime issueDate, int totalSupplyDays)

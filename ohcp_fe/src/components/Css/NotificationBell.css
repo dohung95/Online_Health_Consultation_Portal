@@ -914,3 +914,201 @@
     font-size: 0.75rem;
   }
 }
+
+/* ============ PRESCRIPTION REMINDER STYLES ============ */
+
+.prescription-reminder {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%) !important;
+  border: 2px solid #e3f2fd !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  position: relative;
+}
+
+.prescription-reminder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #2196f3 0%, #1976d2 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.prescription-reminder:hover::before {
+  opacity: 1;
+}
+
+.prescription-reminder:hover {
+  border-color: #2196f3 !important;
+  transform: translateX(2px) !important;
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.15) !important;
+}
+
+.prescription-reminder.unread {
+  background: linear-gradient(145deg, #fffbf0 0%, #fff9e6 100%) !important;
+  border: 2px solid #ffd54f !important;
+  box-shadow: 0 2px 12px rgba(255, 193, 7, 0.12);
+}
+
+.prescription-reminder.unread::before {
+  background: linear-gradient(180deg, #ffc107 0%, #ff9800 100%);
+  opacity: 1;
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0);
+  }
+}
+
+.prescription-reminder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 2px solid #e9ecef;
+  position: relative;
+}
+
+.prescription-reminder-header::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #2196f3 0%, #1976d2 100%);
+  transition: width 0.4s ease;
+}
+
+.prescription-reminder:hover .prescription-reminder-header::after {
+  width: 100%;
+}
+
+.prescription-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1976d2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  flex: 1;
+}
+
+.prescription-title .material-symbols-outlined {
+  font-size: 1.3rem;
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 1px 2px rgba(33, 150, 243, 0.2));
+}
+
+.info-item.remaining-time {
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  border: 1px solid #ffd54f;
+  padding: 0.6rem 0.8rem;
+  font-weight: 600;
+}
+
+.info-item.remaining-time .material-symbols-outlined {
+  color: #f57c00;
+  background: linear-gradient(135deg, #ffe082 0%, #ffd54f 100%);
+}
+
+.days-text {
+  color: #e65100;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.days-text.urgent {
+  color: #d84315;
+  animation: urgentTextPulse 1.5s infinite;
+}
+
+@keyframes urgentTextPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.prescription-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #495057;
+  padding: 0.5rem 0.7rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.info-item:hover {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f0f7ff 100%);
+  border-color: #90caf9;
+  transform: translateX(3px);
+}
+
+.info-item .material-symbols-outlined {
+  font-size: 1.1rem;
+  color: #2196f3;
+  background: linear-gradient(135deg, #bbdefb 0%, #e3f2fd 100%);
+  padding: 0.3rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.info-item:hover .material-symbols-outlined {
+  transform: scale(1.1) rotate(5deg);
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+}
+
+.info-item.time-info {
+  background: transparent;
+  padding: 0.3rem 0;
+  border: none;
+  opacity: 0.8;
+}
+
+.info-item.time-info:hover {
+  background: transparent;
+  opacity: 1;
+  transform: none;
+}
+
+.info-item.time-info .material-symbols-outlined {
+  font-size: 0.95rem;
+  color: #6c757d;
+  background: none;
+  padding: 0;
+}
+
+.info-item.time-info:hover .material-symbols-outlined {
+  transform: none;
+  background: none;
+  color: #495057;
+}

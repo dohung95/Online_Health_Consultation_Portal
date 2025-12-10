@@ -56,3 +56,5 @@ export const prescriptionService = {
     return response.data;
   }
 };
+
+export default prescriptionService;

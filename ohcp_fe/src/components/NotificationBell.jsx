@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import signalRService from '../services/signalrService';
 import notificationApi from '../api/notificationApi';
+import PrescriptionDetailModal from './PrescriptionDetailModal';
 import './Css/NotificationBell.css';
 
 function NotificationBell() {
@@ -17,6 +18,8 @@ function NotificationBell() {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [hasNewReminder, setHasNewReminder] = useState(false);
   const [hasNewNotification, setHasNewNotification] = useState(false);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [selectedPrescriptionId, setSelectedPrescriptionId] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -36,10 +39,12 @@ function NotificationBell() {
       // Add to reminders list if tab is open
       const newReminder = {
         notificationID: Date.now(), // Temporary ID
-        message: reminder.message || `${reminder.medicationName} - ${reminder.dosage}: use ${reminder.instructions}`,
+        message: reminder.message,
         createdAt: new Date().toISOString(),
         isRead: false,
-        prescriptionId: reminder.prescriptionId
+        prescriptionId: reminder.prescriptionId,
+        medicationCount: reminder.medicationCount,
+        remainingDays: reminder.remainingDays
       };
       
       setReminders(prev => [newReminder, ...prev]);
@@ -47,7 +52,7 @@ function NotificationBell() {
       // Show browser notification if supported
       if (Notification.permission === 'granted') {
         new Notification('💊 Medication Reminder', {
-          body: `Time to take ${reminder.medicationName}. ${reminder.dosage}`,
+          body: reminder.message,
           icon: '/medication-icon.png'
         });
       }
@@ -109,12 +114,10 @@ function NotificationBell() {
       // Load all notifications and count by type
       const data = await notificationApi.getMyNotifications();
       
-      // Medication reminders
+      // Medication reminders - updated pattern to match new format
       const medicationReminders = data.filter(n => {
         const msg = n.message.toLowerCase();
-        return msg.includes('days remaining') || 
-               msg.includes(' - ') && msg.includes(': use') ||
-               msg.includes('prescription today');
+        return msg.includes('prescription #') && (msg.includes('day(s) remaining') || msg.includes('medication(s)'));
       });
       const unreadReminders = medicationReminders.filter(n => !n.isRead).length;
       setReminderCount(unreadReminders);
@@ -122,9 +125,7 @@ function NotificationBell() {
       // Appointment notifications
       const appointmentNotifs = data.filter(n => {
         const msg = n.message.toLowerCase();
-        const isMedication = msg.includes('days remaining') || 
-                            (msg.includes(' - ') && msg.includes(': use')) ||
-                            msg.includes('prescription today');
+        const isMedication = msg.includes('prescription #') && (msg.includes('day(s) remaining') || msg.includes('medication(s)'));
         return !isMedication && (
           msg.includes('appointment') || 
           msg.includes('dr.') ||
@@ -150,12 +151,10 @@ function NotificationBell() {
       const data = await notificationApi.getMyNotifications();
       console.log('All notifications:', data);
       
-      // Filter for medication reminders - check for "days remaining", "prescription today" or medicine format
+      // Filter for medication reminders - updated pattern
       const medicationReminders = data.filter(n => {
         const msg = n.message.toLowerCase();
-        return msg.includes('days remaining') || 
-               msg.includes('prescription today') ||
-               msg.includes(' - ') && msg.includes(': use'); // Format: "name - dosage: use instructions"
+        return msg.includes('prescription #') && (msg.includes('day(s) remaining') || msg.includes('medication(s)'));
       });
       
       console.log('Filtered medication reminders:', medicationReminders);
@@ -179,9 +178,7 @@ function NotificationBell() {
       // Filter for appointment notifications - exclude medication reminders
       const appointmentNotifs = data.filter(n => {
         const msg = n.message.toLowerCase();
-        const isMedication = msg.includes('days remaining') || 
-                            msg.includes('prescription today') ||
-                            (msg.includes(' - ') && msg.includes(': use'));
+        const isMedication = msg.includes('prescription #') && (msg.includes('day(s) remaining') || msg.includes('medication(s)'));
         
         return !isMedication && (
           msg.includes('appointment') || 
@@ -259,12 +256,21 @@ function NotificationBell() {
   };
 
   const handleReminderClick = (reminder) => {
-    // Close dropdown
-    setDropdownOpen(false);
+    // Extract prescription ID from message
+    let prescriptionId = null;
     
-    // Navigate to prescription detail if prescriptionId exists
-    if (reminder.prescriptionId) {
-      navigate(`/prescription/${reminder.prescriptionId}`);
+    // Try to extract from message like "You have a prescription #123"
+    const match = reminder.message.match(/prescription #(\d+)/i);
+    if (match) {
+      prescriptionId = parseInt(match[1]);
+    }
+    
+    if (prescriptionId) {
+      setSelectedPrescriptionId(prescriptionId);
+      setShowPrescriptionModal(true);
+      setDropdownOpen(false);
+    } else {
+      console.warn('No prescription ID found in reminder:', reminder);
     }
   };
 
@@ -283,30 +289,27 @@ function NotificationBell() {
     return date.toLocaleDateString();
   };
 
-  // Format medication reminder message to display nicely
+  // Format medication reminder message to extract prescription info
   const formatReminderMessage = (message) => {
-    if (!message) return { medications: [], timeRemaining: '' };
+    if (!message) return { prescriptionId: null, medicationCount: 0, remainingDays: 0, displayText: message };
     
-    const lines = message.split('\n').filter(line => line.trim());
+    // Extract prescription ID: "You have a prescription #123"
+    const prescriptionMatch = message.match(/prescription #(\d+)/i);
+    const prescriptionId = prescriptionMatch ? parseInt(prescriptionMatch[1]) : null;
     
-    // Last line is usually the time remaining (contains "days remaining" or "prescription today")
-    const lastLine = lines[lines.length - 1];
-    const isTimeRemaining = lastLine.includes('days remaining') || 
-                           lastLine.includes('day remaining') || 
-                           lastLine.includes('prescription today') ||
-                           lastLine.includes('remember to take medicine');
+    // Extract medication count: "with 3 medication(s)"
+    const medicationMatch = message.match(/with (\d+) medication\(s\)/i);
+    const medicationCount = medicationMatch ? parseInt(medicationMatch[1]) : 0;
     
-    if (isTimeRemaining) {
-      return {
-        medications: lines.slice(0, -1), // All lines except the last
-        timeRemaining: lastLine
-      };
-    }
+    // Extract remaining days: "5 day(s) remaining"
+    const daysMatch = message.match(/(\d+) day\(s\) remaining/i);
+    const remainingDays = daysMatch ? parseInt(daysMatch[1]) : 0;
     
-    // If no time remaining line found, treat all as medications
     return {
-      medications: lines,
-      timeRemaining: ''
+      prescriptionId,
+      medicationCount,
+      remainingDays,
+      displayText: message
     };
   };
 
@@ -352,39 +355,48 @@ function NotificationBell() {
                   </div>
                 ) : reminders.length > 0 ? (
                   reminders.map(reminder => {
-                    const { medications, timeRemaining } = formatReminderMessage(reminder.message);
+                    const { prescriptionId, medicationCount, remainingDays, displayText } = formatReminderMessage(reminder.message);
                     return (
                       <div 
                         key={reminder.notificationID} 
-                        className={`notification-list-item ${!reminder.isRead ? 'unread' : ''}`}
+                        className={`notification-list-item prescription-reminder ${!reminder.isRead ? 'unread' : ''}`}
                         onClick={() => handleReminderClick(reminder)}
+                        style={{ cursor: 'pointer' }}
                       >
                         <div className="notification-icon-wrapper medication-bg">
-                          <span className="material-symbols-outlined">pill</span>
+                          <span className="material-symbols-outlined">local_pharmacy</span>
                         </div>
                         <div className="notification-content">
-                          <div className="medication-list">
-                            {medications.map((med, index) => (
-                              <div key={index} className="medication-item">
-                                <span className="material-symbols-outlined med-bullet">medication</span>
-                                <span className="medication-text">{med}</span>
-                              </div>
-                            ))}
+                          <div className="prescription-reminder-header">
+                            <h6 className="prescription-title">
+                              <span className="material-symbols-outlined">description</span>
+                              Prescription #{prescriptionId}
+                            </h6>
                           </div>
-                          {timeRemaining && (
-                            <div className="time-remaining">
+                          <div className="prescription-info">
+                            {remainingDays > 0 && (
+                              <div className="info-item remaining-time">
+                                <span className="material-symbols-outlined">schedule</span>
+                                <span className={`days-text ${remainingDays <= 3 ? 'urgent' : ''}`}>
+                                  {remainingDays} day(s) left
+                                </span>
+                              </div>
+                            )}
+                            <div className="info-item">
+                              <span className="material-symbols-outlined">medication</span>
+                              <span>{medicationCount} medication(s)</span>
+                            </div>
+                            <div className="info-item time-info">
                               <span className="material-symbols-outlined">schedule</span>
-                              <span>{timeRemaining}</span>
+                              <span>{formatDate(reminder.createdAt)}</span>
                             </div>
-                          )}
-                          {reminder.prescriptionId && (
-                            <div className="notification-footer">
-                              <span className="click-hint">
-                                <span className="material-symbols-outlined">info</span>
-                                Click for detail
-                              </span>
-                            </div>
-                          )}
+                          </div>
+                          <div className="notification-footer">
+                            <span className="click-hint">
+                              <span className="material-symbols-outlined">visibility</span>
+                              Click to view details
+                            </span>
+                          </div>
                         </div>
                       </div>
                     );
@@ -441,6 +453,13 @@ function NotificationBell() {
           </div>
         </div>
       )}
+
+      {/* Prescription Detail Modal */}
+      <PrescriptionDetailModal 
+        show={showPrescriptionModal}
+        onHide={() => setShowPrescriptionModal(false)}
+        prescriptionId={selectedPrescriptionId}
+      />
     </div>
   );
 }

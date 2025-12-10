@@ -388,6 +388,44 @@ namespace OHCP_BK.Controllers
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
 
+                // Send immediate notification to patient if appointment is today
+                try
+                {
+                    var appointmentDate = dto.AppointmentTime.Date;
+                    var today = DateTime.UtcNow.Date;
+                    
+                    if (appointmentDate == today)
+                    {
+                        var doctor = await _context.Doctors.FindAsync(dto.DoctorID);
+                        
+                        if (doctor != null)
+                        {
+                            var patientNotification = new AppointmentNotificationDto
+                            {
+                                AppointmentId = appointment.AppointmentID,
+                                DoctorName = doctor.FullName,
+                                Specialty = doctor.Specialty,
+                                AppointmentDateTime = appointment.AppointmentTime,
+                                Location = appointment.ConsultationType == "Online" 
+                                    ? "Online Consultation" 
+                                    : "Clinic"
+                            };
+
+                            await _notificationService.SendAppointmentNotificationAsync(
+                                userId,
+                                patientNotification
+                            );
+
+                            _logger.LogInformation("Sent same-day appointment notification to patient {PatientId} for appointment {AppointmentId}",
+                                userId, appointment.AppointmentID);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error sending immediate same-day appointment notification to patient");
+                }
+
                 // Send real-time notification to doctor about new appointment
                 try
                 {
