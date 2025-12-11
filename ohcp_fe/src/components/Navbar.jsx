@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import NotificationBell from './NotificationBell';
@@ -41,6 +41,22 @@ function Navbar() {
             window.removeEventListener('scroll', handleScroll);
         };
     }, [lastScrollY]);
+
+    const closeTimer = useRef(null);
+
+    const handleMouseEnter = () => {
+        if (closeTimer.current) {
+            clearTimeout(closeTimer.current);
+            closeTimer.current = null;
+        }
+        setPatientDropdownOpen(true);
+    };
+
+    const handleMouseLeave = () => {
+        closeTimer.current = setTimeout(() => {
+            setPatientDropdownOpen(false);
+        }, 200); // 200ms delay
+    };
 
     return (
         <>
@@ -230,8 +246,8 @@ function Navbar() {
                                     {isUser && (
                                         <div
                                             className="position-relative d-none d-xl-block"
-                                            onMouseEnter={() => setPatientDropdownOpen(true)}
-                                            onMouseLeave={() => setPatientDropdownOpen(false)}
+                                            onMouseEnter={handleMouseEnter}
+                                            onMouseLeave={handleMouseLeave}
                                         >
                                             <span className="user-role text-white fw-medium" style={{ cursor: 'pointer' }}>
                                                 Patient <i className="fas fa-caret-down ms-1"></i>
