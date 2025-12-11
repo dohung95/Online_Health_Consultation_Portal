@@ -542,6 +542,9 @@ export function Sign_up() {
                 <Modal.Header
                     closeButton
                     className="modal-success-header"
+                    style={{
+                        backgroundColor: '#f8f9fa'
+                    }}
                 >
                     <Modal.Title className="modal-success-title">
                         <i className="bi bi-info-circle-fill"></i>
