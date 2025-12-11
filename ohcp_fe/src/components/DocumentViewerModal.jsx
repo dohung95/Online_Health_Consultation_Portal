@@ -155,6 +155,18 @@ const DocumentViewerModal = ({
                                     : 'Unknown'
                                 }
                             </div>
+                            {document.documentDate && (
+                                <div className="mb-2">
+                                    <i className="bi bi-calendar-event me-2"></i>
+                                    Date Performed: <strong>
+                                        {new Date(document.documentDate).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric'
+                                        })}
+                                    </strong>
+                                </div>
+                            )}
                             {document.category && (
                                 <div className="mb-2">
                                     <i className="bi bi-folder me-2"></i>

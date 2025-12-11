@@ -213,7 +213,7 @@ const Doctors = () => {
                   <label className="form-label fw-bold">Location</label>
                   <input
                     type="text" name="location" className="form-control"
-                    placeholder="e.g. Hanoi..."
+                    placeholder="e.g. Chicago..."
                     onChange={handleFilterChange}
                     value={filters.location}
                   />
