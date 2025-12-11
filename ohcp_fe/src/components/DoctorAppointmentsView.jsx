@@ -482,38 +482,42 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
             {showDatePicker && (
               <>
                 <div className="filter-backdrop d-md-none" onClick={() => setShowDatePicker(false)} />
-                <Card className="position-absolute end-0 mt-2 shadow-lg" style={{ zIndex: 1000, minWidth: '300px' }}>
-              <Card.Body>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold">Select Date</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                  />
-                </Form.Group>
-                <div className="d-flex gap-2">
-                  <Button 
-                    variant="primary" 
-                    size="sm" 
-                    className="flex-grow-1"
-                    onClick={handleDateFilter}
-                  >
-                    Apply Filter
-                  </Button>
-                  <Button 
-                    variant="outline-secondary" 
-                    size="sm"
-                    onClick={() => {
-                      clearFilter();
-                      setShowDatePicker(false);
-                    }}
-                  >
-                    Clear
-                  </Button>
+                <div className="date-filter-dropdown position-absolute end-0 mt-2 shadow-lg" style={{ zIndex: 1000 }}>
+                  <div className="date-filter-header">
+                    <i className="bi bi-calendar-event me-2"></i>
+                    <span>Select Date</span>
+                  </div>
+                  <div className="date-filter-body">
+                    <Form.Control
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="date-input"
+                    />
+                  </div>
+                  <div className="date-filter-footer">
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      className="flex-grow-1"
+                      onClick={handleDateFilter}
+                    >
+                      <i className="bi bi-check2 me-1"></i>
+                      Apply
+                    </Button>
+                    <Button 
+                      variant="outline-secondary" 
+                      size="sm"
+                      onClick={() => {
+                        clearFilter();
+                        setShowDatePicker(false);
+                      }}
+                    >
+                      <i className="bi bi-x-lg me-1"></i>
+                      Clear
+                    </Button>
+                  </div>
                 </div>
-              </Card.Body>
-            </Card>
               </>
             )}
           </div>
@@ -530,7 +534,7 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
               <th scope="col" className="px-4 py-3">Time</th>
               <th scope="col" className="px-4 py-3">Type</th>
               <th scope="col" className="px-4 py-3">Status</th>
-              <th scope="col" className="px-4 py-3 text-end"></th>
+              <th scope="col" className="px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -538,20 +542,20 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
               const isNew = isNewAppointment(a.appointmentID);
               return (
               <tr key={a.appointmentID} className={`border-bottom hover-table-row ${isNew ? 'new-appointment-row' : ''}`}>
-                <td className="px-4 py-4 fw-medium text-dark fw-bold">
+                <td className="px-4 py-4 fw-medium text-dark fw-bold" data-label="ID">
                   #{a.appointmentID}
                   {isNew && (
                     <span className="badge bg-success ms-2 small new-badge-pulse">NEW</span>
                   )}
                 </td>
-                <td className="px-4 py-4 text-dark">{a.patient?.fullName || 'Unknown Patient'}</td>
-                <td className="px-4 py-4 text-dark">
+                <td className="px-4 py-4 text-dark" data-label="Patient">{a.patient?.fullName || 'Unknown Patient'}</td>
+                <td className="px-4 py-4 text-dark" data-label="Date">
                   {new Date(a.appointmentTime).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                 </td>
-                <td className="px-4 py-4 text-dark">
+                <td className="px-4 py-4 text-dark" data-label="Time">
                   {new Date(a.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </td>
-                <td className="px-4 py-4">
+                <td className="px-4 py-4" data-label="Type">
                   <span className={`type-badge ${a.consultationType === 'Video Call' ? 'type-video' :
                     a.consultationType === 'Audio Call' ? 'type-audio' :
                       a.consultationType === 'Chat' ? 'type-chat' :
@@ -566,7 +570,7 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
                     {a.consultationType || 'N/A'}
                   </span>
                 </td>
-                <td className="px-4 py-4">
+                <td className="px-4 py-4" data-label="Status">
                   <span className={`badge ${a.status === 'Scheduled' ? 'bg-primary' :
                     a.status === 'Completed' ? 'bg-success' :
                       a.status === 'Cancelled' ? 'bg-danger' :
@@ -575,7 +579,7 @@ export default function DoctorAppointmentsView({ doctorId, onViewAppointment, vi
                     {a.status}
                   </span>
                 </td>
-                <td className="px-4 py-4 text-end">
+                <td className="px-4 py-4 text-end" data-label="Actions">
                   <div className="d-flex gap-2 align-items-center justify-content-end flex-nowrap">
                     {a.consultationType === 'Chat' && a.status === 'Scheduled' && (
                       <button

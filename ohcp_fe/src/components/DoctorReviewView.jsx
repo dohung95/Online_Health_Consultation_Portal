@@ -167,51 +167,69 @@ const DoctorReviewView = ({ doctorId }) => {
 
   return (
     <>
-      <div className="d-flex justify-content-end p-3 pb-0">
-        <div className="position-relative">
-          <Button 
-            variant="outline-primary"
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            size="sm"
-          >
-            <i className="bi bi-calendar-check me-2"></i>
-            Filter by Date
-          </Button>
+      <div className="d-flex justify-content-between align-items-center p-3 pb-0 flex-wrap gap-2">
+        <h6 className="mb-0 fw-semibold text-dark d-none d-md-block">Reviews List</h6>
+        
+        <div className="d-flex gap-2 ms-auto flex-wrap">
+          {/* Date Filter */}
+          <div className="position-relative">
+            <Button 
+              variant={selectedDate ? 'primary' : 'outline-primary'}
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              size="sm"
+              className={`filter-btn ${selectedDate ? 'filter-active' : ''}`}
+              title="Filter by Date"
+            >
+              <i className="bi bi-calendar-check"></i>
+              {selectedDate && (
+                <span className="ms-2 d-none d-sm-inline">
+                  {new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+              )}
+            </Button>
           
-          {showDatePicker && (
-            <Card className="position-absolute end-0 mt-2 shadow-lg" style={{ zIndex: 1000, minWidth: '300px' }}>
-              <Card.Body>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold">Select Date</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                  />
-                </Form.Group>
-                <div className="d-flex gap-2">
-                  <Button 
-                    variant="primary" 
-                    size="sm" 
-                    className="flex-grow-1"
-                    onClick={handleDateFilter}
-                  >
-                    Apply Filter
-                  </Button>
-                  <Button 
-                    variant="outline-secondary" 
-                    size="sm"
-                    onClick={() => {
-                      clearFilter();
-                      setShowDatePicker(false);
-                    }}
-                  >
-                    Clear
-                  </Button>
+            {showDatePicker && (
+              <>
+                <div className="filter-backdrop d-md-none" onClick={() => setShowDatePicker(false)} />
+                <div className="date-filter-dropdown position-absolute end-0 mt-2 shadow-lg" style={{ zIndex: 1000 }}>
+                  <div className="date-filter-header">
+                    <i className="bi bi-calendar-event me-2"></i>
+                    <span>Select Date</span>
+                  </div>
+                  <div className="date-filter-body">
+                    <Form.Control
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="date-input"
+                    />
+                  </div>
+                  <div className="date-filter-footer">
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      className="flex-grow-1"
+                      onClick={handleDateFilter}
+                    >
+                      <i className="bi bi-check2 me-1"></i>
+                      Apply
+                    </Button>
+                    <Button 
+                      variant="outline-secondary" 
+                      size="sm"
+                      onClick={() => {
+                        clearFilter();
+                        setShowDatePicker(false);
+                      }}
+                    >
+                      <i className="bi bi-x-lg me-1"></i>
+                      Clear
+                    </Button>
+                  </div>
                 </div>
-              </Card.Body>
-            </Card>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -253,23 +271,23 @@ const DoctorReviewView = ({ doctorId }) => {
                     <tbody>
                       {currentReviews.map((review) => (
                         <tr key={review.reviewID} className="border-bottom hover-table-row">
-                          <td className="px-4 py-4 fw-medium text-dark fw-bold">#{review.reviewID}</td>
-                          <td className="px-4 py-4 text-dark">{review.patient?.fullName || 'Anonymous'}</td>
-                          <td className="px-4 py-4">
+                          <td className="px-4 py-4 fw-medium text-dark fw-bold" data-label="ID">#{review.reviewID}</td>
+                          <td className="px-4 py-4 text-dark" data-label="Patient">{review.patient?.fullName || 'Anonymous'}</td>
+                          <td className="px-4 py-4" data-label="Rating">
                             <RatingStars rating={review.rating} />
                             <span className="ms-2 text-muted small">({review.rating}/5)</span>
                           </td>
-                          <td className="px-4 py-4" style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <td className="px-4 py-4" data-label="Comment" style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {review.comment || 'No comment provided'}
                           </td>
-                          <td className="px-4 py-4 text-muted">
+                          <td className="px-4 py-4 text-muted" data-label="Date">
                             {new Date(review.reviewDate).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'short',
                               day: 'numeric'
                             })}
                           </td>
-                          <td className="px-4 py-4 text-end">
+                          <td className="px-4 py-4 text-end" data-label="Actions">
                             <button
                               className="btn btn-view d-flex align-items-center justify-content-center ms-auto"
                               onClick={() => handleViewReview(review)}

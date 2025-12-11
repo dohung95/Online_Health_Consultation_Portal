@@ -1023,6 +1023,99 @@ body {
     -webkit-backdrop-filter: blur(4px);
 }
 
+/* Date Filter Dropdown */
+.date-filter-dropdown {
+    background: white;
+    border-radius: 12px;
+    min-width: 320px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(19, 127, 236, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(19, 127, 236, 0.1);
+    animation: slideDown 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.date-filter-header {
+    background: linear-gradient(135deg, #137fec 0%, #0d6ecc 100%);
+    color: white;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.date-filter-header i {
+    font-size: 1.1rem;
+}
+
+.date-filter-body {
+    padding: 1.25rem;
+}
+
+.date-filter-body .date-input {
+    border: 2px solid #e3f2fd;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: #fafbfc;
+}
+
+.date-filter-body .date-input:focus {
+    border-color: #137fec;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(19, 127, 236, 0.1);
+    outline: none;
+}
+
+.date-filter-footer {
+    padding: 0 1.25rem 1.25rem 1.25rem;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.date-filter-footer .btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.date-filter-footer .btn-primary {
+    background: linear-gradient(135deg, #137fec 0%, #0d6ecc 100%);
+    border: none;
+    box-shadow: 0 2px 8px rgba(19, 127, 236, 0.3);
+}
+
+.date-filter-footer .btn-primary:hover {
+    background: linear-gradient(135deg, #0d6ecc 0%, #0a5bb3 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(19, 127, 236, 0.4);
+}
+
+.date-filter-footer .btn-outline-secondary {
+    border: 2px solid #e3e8ef;
+    color: #64748b;
+}
+
+.date-filter-footer .btn-outline-secondary:hover {
+    background: #f8f9fa;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-15px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 @media (min-width: 769px) {
     .filter-backdrop {
         display: none;
@@ -1241,6 +1334,126 @@ body {
 }
 
 /* ============================================
+   RESPONSIVE STYLES FOR APPOINTMENT VIEW
+   ============================================ */
+
+@media (max-width: 1024px) {
+    /* Appointment table compact */
+    .table thead th {
+        font-size: 0.8rem;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .table tbody td {
+        font-size: 0.85rem;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Action buttons smaller */
+    .btn-view {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .btn-sm {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Stack table on mobile - card layout */
+    .table-responsive table,
+    .table-responsive thead,
+    .table-responsive tbody,
+    .table-responsive th,
+    .table-responsive td,
+    .table-responsive tr {
+        display: block;
+    }
+    
+    /* Hide table header */
+    .table thead {
+        display: none;
+    }
+    
+    /* Make each row a card */
+    .table tbody tr {
+        margin-bottom: 1rem;
+        border: 1px solid #e3f2fd;
+        border-radius: 8px;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 4px rgba(19, 127, 236, 0.08);
+    }
+    
+    /* Each cell becomes a row */
+    .table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border: none !important;
+        text-align: right;
+    }
+    
+    /* Add labels before content */
+    .table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #137fec;
+        text-align: left;
+        flex: 1;
+        font-size: 0.85rem;
+    }
+    
+    /* Action buttons full width */
+    .table tbody td:last-child {
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .table tbody td:last-child::before {
+        display: none;
+    }
+    
+    .table tbody td:last-child > div {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+    }
+    
+    .table tbody td:last-child button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Status badges */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Extra compact for very small screens */
+    .table tbody tr {
+        padding: 0.75rem;
+    }
+    
+    .table tbody td {
+        font-size: 0.8rem;
+        padding: 0.4rem 0;
+    }
+    
+    .table tbody td::before {
+        font-size: 0.75rem;
+    }
+}
+
+/* ============================================
    RESPONSIVE STYLES FOR REVIEW VIEW
    ============================================ */
 
@@ -1248,10 +1461,104 @@ body {
     /* Review table */
     .table thead th {
         font-size: 0.8rem;
+        padding: 0.75rem 0.5rem;
     }
     
     .table tbody td {
         font-size: 0.85rem;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Rating stars */
+    .rating-stars {
+        font-size: 1.1rem;
+    }
+    
+    /* View button */
+    .btn-view {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Stack table on mobile - card layout */
+    .table-responsive table,
+    .table-responsive thead,
+    .table-responsive tbody,
+    .table-responsive th,
+    .table-responsive td,
+    .table-responsive tr {
+        display: block;
+    }
+    
+    /* Hide table header */
+    .table thead {
+        display: none;
+    }
+    
+    /* Make each row a card */
+    .table tbody tr {
+        margin-bottom: 1rem;
+        border: 1px solid #e3f2fd;
+        border-radius: 8px;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 4px rgba(19, 127, 236, 0.08);
+    }
+    
+    /* Each cell becomes a row */
+    .table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.5rem 0;
+        border: none !important;
+        text-align: right;
+    }
+    
+    /* Add labels before content */
+    .table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #137fec;
+        text-align: left;
+        flex: 0 0 40%;
+        font-size: 0.85rem;
+    }
+    
+    /* Comment cell - allow wrap */
+    .table tbody td:nth-child(4) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .table tbody td:nth-child(4)::before {
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Rating cell */
+    .table tbody td:nth-child(3) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .table tbody td:nth-child(3)::before {
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Action buttons */
+    .table tbody td:last-child {
+        margin-top: 0.5rem;
+        justify-content: center;
+    }
+    
+    .table tbody td:last-child::before {
+        display: none;
+    }
+    
+    .table tbody td:last-child button {
+        width: 100%;
     }
     
     /* Rating stars */
@@ -1260,52 +1567,23 @@ body {
     }
 }
 
-@media (max-width: 768px) {
-    /* Review cards more compact */
-    .card {
-        margin-bottom: 0.75rem;
-    }
-    
-    .card-body {
-        padding: 1rem;
-    }
-    
-    /* Hide review ID column */
-    .table thead th:first-child,
-    .table tbody td:first-child {
-        display: none;
-    }
-    
-    /* Rating stars smaller */
-    .rating-stars {
-        font-size: 0.9rem;
-    }
-    
-    /* Review text */
-    .table tbody td {
-        font-size: 0.8rem;
-        line-height: 1.4;
-    }
-}
-
 @media (max-width: 480px) {
-    /* Very compact reviews */
-    .card-body {
+    /* Extra compact reviews */
+    .table tbody tr {
         padding: 0.75rem;
     }
     
-    .rating-stars {
-        font-size: 0.85rem;
-    }
-    
-    /* Hide date column on very small screens */
-    .table thead th:nth-child(3),
-    .table tbody td:nth-child(3) {
-        display: none;
-    }
-    
-    /* Review text smaller */
     .table tbody td {
+        font-size: 0.8rem;
+        padding: 0.4rem 0;
+    }
+    
+    .table tbody td::before {
         font-size: 0.75rem;
+        flex: 0 0 35%;
+    }
+    
+    .rating-stars {
+        font-size: 0.9rem;
     }
 }
