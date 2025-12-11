@@ -571,7 +571,7 @@ const HealthRecords = () => {
                                         </div>
 
                                         <div className="mb-3">
-                                            <label className="form-label small fw-bold text-muted text-uppercase">Date</label>
+                                            <label className="form-label small fw-bold text-muted text-uppercase">Date Performed</label>
                                             <input type="date" className="form-control bg-light border-0 py-2" value={documentDate} onChange={e => setDocumentDate(e.target.value)} />
                                         </div>
 

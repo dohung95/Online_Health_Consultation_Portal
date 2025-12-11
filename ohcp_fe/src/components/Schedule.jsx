@@ -13,12 +13,18 @@ function Schedule() {
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [maxDate] = useState(() => {
+    const max = new Date();
+    max.setDate(max.getDate() + 90);
+    return max.toISOString().split('T')[0];
+  });
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [consultationType, setConsultationType] = useState('Video Call');
   const [loadingSlots, setLoadingSlots] = useState(false);
   const { doctorId } = useParams();
   const { isAuthenticated } = useAuth();
+
   // 1. Load list of Doctors
   useEffect(() => {
     async function fetchDoctors() {
@@ -41,6 +47,7 @@ function Schedule() {
       }
     }
   }, [doctorId, doctors]);
+
   // 2. Load empty Slot list when changing Doctor or Date
   useEffect(() => {
     if (!selectedDoctor || !date) return;
@@ -57,12 +64,23 @@ function Schedule() {
     }
     fetchSlots();
   }, [selectedDoctor, date]);
+
   // 3. appointment processing
   const handleSchedule = async () => {
     if (!selectedDoctor || !selectedSlot) {
       toast.warning("Please select a doctor and a time slot.");
       return;
     }
+
+    const selectedDateTime = new Date(selectedSlot.startTime);
+    const maxDateTime = new Date();
+    maxDateTime.setDate(maxDateTime.getDate() + 90);
+
+    if (selectedDateTime > maxDateTime) {
+      toast.error("Appointments can only be booked up to 90 days in advance.");
+      return;
+    }
+
     try {
       const bookingData = {
         DoctorID: selectedDoctor,
@@ -76,6 +94,7 @@ function Schedule() {
       toast.error(error.response?.data?.message || "Failed to schedule appointment.");
     }
   };
+
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -105,7 +124,7 @@ function Schedule() {
       <div className='Background_Schedule' >
         <div className="container">
           <div className="row justify-content-center">
-            <div className="col-lg-8 col-md-10" style={{paddingBottom:"3%"}}>
+            <div className="col-lg-8 col-md-10" style={{ paddingBottom: "3%" }}>
               <div className="card shadow-lg border-0 rounded-4 overflow-hidden" >
                 {/* Header */}
                 <div className="card-header bg-primary text-white p-4 text-center">
@@ -227,11 +246,16 @@ function Schedule() {
 
                       <div className="mb-4">
                         <label className="form-label fw-semibold text-muted small text-uppercase">Preferred Date</label>
+                        <small className="d-block text-muted mb-2">
+                          <i className="bi bi-info-circle me-1"></i>
+                          You can book appointments up to 90 days in advance
+                        </small>
                         <input
                           type="date"
                           className="form-control form-control-lg"
                           value={date}
                           min={new Date().toISOString().split('T')[0]}
+                          max={maxDate}
                           onChange={(e) => setDate(e.target.value)}
                         />
                       </div>
@@ -265,10 +289,10 @@ function Schedule() {
                                       disabled={!isAvailable}
                                       onClick={() => setSelectedSlot(slot)}
                                       className={`btn w-100 py-2 position-relative ${isSelected
-                                          ? 'btn-primary shadow'
-                                          : isAvailable
-                                            ? 'btn-outline-primary'
-                                            : 'btn-light text-muted border-0'
+                                        ? 'btn-primary shadow'
+                                        : isAvailable
+                                          ? 'btn-outline-primary'
+                                          : 'btn-light text-muted border-0'
                                         }`}
                                     >
                                       {timeString}

@@ -361,6 +361,14 @@ namespace OHCP_BK.Controllers
                     return BadRequest("Appointment time must be in the future");
                 }
 
+                // Must not book too far in advance (e.g., max 90 days)
+                var maxAdvanceDays = 90; // Có thể config trong appsettings.json
+                var maxBookingDate = DateTime.UtcNow.AddHours(7).AddDays(maxAdvanceDays);
+                if (dto.AppointmentTime > maxBookingDate)
+                {
+                    return BadRequest($"Appointments can only be booked up to {maxAdvanceDays} days in advance.");
+                }
+
                 // Conflict Check
                 // Logic: A slot is considered busy if there is an appointment at the same time AND the status is NOT "Cancelled"
                 // (Avoid the case where the user re-booked the canceled slot but the old code still reports busy)
