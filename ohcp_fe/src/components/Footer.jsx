@@ -120,9 +120,9 @@ function Footer() {
                   </NavLink>
                 </li>
                 <li>
-                  <a href="#" onClick={handleAppointmentClick}>
+                 <NavLink to="/schedule" onClick={scrollToTop}>
                     <i className="fas fa-calendar-alt me-2"></i>➺ Schedule
-                  </a>
+                  </NavLink>
                 </li>
                 <li>
                   <NavLink to="/contact_us" onClick={scrollToTop}>

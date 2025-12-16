@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OHCP_BK.Data;
 using OHCP_BK.DTOs.Admin;
 using OHCP_BK.Models;
+using OHCP_BK.Services;
 
 namespace OHCP_BK.Controllers.Admin
 {
@@ -13,10 +14,12 @@ namespace OHCP_BK.Controllers.Admin
     public class AdminAppointmentsController : ControllerBase
     {
         private readonly OHCPContext _context;
+        private readonly IEmailService _emailService;
 
-        public AdminAppointmentsController(OHCPContext context)
+        public AdminAppointmentsController(OHCPContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         // GET: api/admin/adminappointments/stats
@@ -277,6 +280,11 @@ namespace OHCP_BK.Controllers.Admin
                     return NotFound(new { error = "Appointment not found" });
                 }
 
+                // Capture old values BEFORE updating
+                var oldAppointmentTime = appointment.AppointmentTime;
+                var oldStatus = appointment.Status;
+                var oldConsultationType = appointment.ConsultationType;
+
                 // Update fields if provided
                 if (dto.AppointmentTime.HasValue)
                 {
@@ -344,6 +352,70 @@ namespace OHCP_BK.Controllers.Admin
                 _context.Entry(appointment).State = EntityState.Modified;
 
                 await _context.SaveChangesAsync();
+
+                // Send email notifications to patient and doctor
+                try
+                {
+                    // Reload appointment with patient and doctor user information
+                    var appointmentWithUsers = await _context.Appointments
+                        .Include(a => a.Patient)
+                            .ThenInclude(p => p.User)
+                        .Include(a => a.Doctor)
+                            .ThenInclude(d => d.User)
+                        .FirstOrDefaultAsync(a => a.AppointmentID == id);
+
+                    if (appointmentWithUsers != null)
+                    {
+                        var patientEmail = appointmentWithUsers.Patient.User.Email;
+                        var doctorEmail = appointmentWithUsers.Doctor.User.Email;
+                        var patientName = appointmentWithUsers.Patient.FullName;
+                        var doctorName = appointmentWithUsers.Doctor.FullName;
+                        var appointmentTime = appointmentWithUsers.AppointmentTime;
+                        var status = appointmentWithUsers.Status;
+                        var consultationType = appointmentWithUsers.ConsultationType;
+
+                        // Send email to patient with old values for comparison
+                        if (!string.IsNullOrEmpty(patientEmail))
+                        {
+                            await _emailService.SendAppointmentUpdateNotificationAsync(
+                                patientEmail,
+                                patientName,
+                                id.ToString(),
+                                appointmentTime,
+                                doctorName,
+                                patientName,
+                                status,
+                                consultationType,
+                                oldAppointmentTime,
+                                oldStatus,
+                                oldConsultationType
+                            );
+                        }
+
+                        // Send email to doctor with old values for comparison
+                        if (!string.IsNullOrEmpty(doctorEmail))
+                        {
+                            await _emailService.SendAppointmentUpdateNotificationAsync(
+                                doctorEmail,
+                                doctorName,
+                                id.ToString(),
+                                appointmentTime,
+                                doctorName,
+                                patientName,
+                                status,
+                                consultationType,
+                                oldAppointmentTime,
+                                oldStatus,
+                                oldConsultationType
+                            );
+                        }
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    // Log email error but don't fail the update
+                    Console.WriteLine($"Failed to send email notifications: {emailEx.Message}");
+                }
 
                 return Ok(new { message = "Appointment updated successfully" });
             }
