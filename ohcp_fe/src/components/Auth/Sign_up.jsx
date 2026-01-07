@@ -70,7 +70,7 @@ export function Sign_up() {
         e.preventDefault();
         setError('');
 
-        if (!username && !email && !phonenumber && !password && !confirmPassword) {
+        if (!username && !email && !phonenumber && !password && !confirmPassword && !DateOfBirth) {
             setError('All fields are required');
             return;
         }
@@ -87,6 +87,11 @@ export function Sign_up() {
 
         if (phonenumber.length < 8 || phonenumber.length > 15) {
             setError('Phone number must be between 8 and 15 digits');
+            return;
+        }
+
+        if (!DateOfBirth) {
+            setError('Date of birth is required');
             return;
         }
 
@@ -341,6 +346,23 @@ export function Sign_up() {
                             <div>
                                 <label>
                                     Date of Birth:
+                                    <span className='tooltip-container'>
+                                        <span style={{ color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>*</span>
+                                        <div className='tooltip'>
+                                            <div className='tooltip-arrow'></div>
+                                            <div>
+                                                <strong style={{ display: 'block', marginBottom: '6px' }}>Date of Birth:</strong>
+                                                <span style={{ fontSize: '12px', lineHeight: '1.6' }}>
+                                                    Please provide your date of birth.
+                                                    <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+                                                        <li>Used for age verification</li>
+                                                        <li>Required for medical records</li>
+                                                        <li>Helps doctors provide better care</li>
+                                                    </ul>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </span>
                                 </label>
                                 <input
                                     type="date"
